@@ -63,4 +63,4 @@
 ## 8. Підписи
 - [ ] Андрій (GitHub: @kepeld)
 - [ ] Дарина (GitHub: @dahl1a-bloom)
-- [ ] Дмитро (GitHub: @AvdieienkoDmytro)
+- [x] Дмитро (GitHub: @AvdieienkoDmytro)
