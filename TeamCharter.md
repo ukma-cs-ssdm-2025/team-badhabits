@@ -61,6 +61,6 @@
   - Ділитися знаннями, досвідом та допомагати іншим членам команди.
 
 ## 8. Підписи
-- [ ] Андрій (GitHub: @kepeld)
+- [x] Андрій (GitHub: @kepeld)
 - [x] Дарина (GitHub: @dahl1a-bloom)
 - [x] Дмитро (GitHub: @AvdieienkoDmytro)
