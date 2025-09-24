@@ -1,52 +1,21 @@
 [![Open in Codespaces](https://classroom.github.com/assets/launch-codespace-2972f46106e565e64193e422d61a12cf1da4916b45550586e14ef0a7c637dd04.svg)](https://classroom.github.com/open-in-codespaces?assignment_repo_id=20493604)
 
-# Team BadHabits — Wellity
+# Team BadHabits — Wellity <br> (Fitnes & Habits Tracker)
 
 [![CI Test](https://github.com/ukma-cs-ssdm-2025/team-badhabits/actions/workflows/flutter-ci.yml/badge.svg?branch=main)](https://github.com/ukma-cs-ssdm-2025/team-badhabits/actions/workflows/flutter-ci.yml)
 
-## Команда
 
-- **Супроводжувач репозиторію**: Дмитро (GitHub: @AvdieienkoDmytro, електронна пошта НаУКМА: d.avdieienko@ukma.edu.ua)
-- **Супроводжувач CI**: Андрій (GitHub: @kepeld, електронна пошта НаУКМА: a.kozin@ukma.edu.ua)
-- **Керівник документації**: Дарина (GitHub: @dahl1a-bloom, електронна пошта НаУКМА: d.savarina@ukma.edu.ua)
-- **Керівник трекера завдань**: Андрій (GitHub: @kepeld, електронна пошта НаУКМА: a.kozin@ukma.edu.ua)
 
-## Опис проєкту
+[ProjectDescription.md](ProjectDescription.md) - опис та функціонал проекту  <br>
 
-Wellity – застосунок, який допомагає користувачам відстежувати свої звички, формувати корисні щоденні ритуали та візуалізувати прогрес через інтерактивний календар. Він забезпечує соціальну взаємодію та обмін досягненнями між користувачами, підтримуючи мотивацію та стимулюючи регулярне виконання завдань.
+[TeamCharter.md](TeamCharter.md) - інформація про організацію процесів впровадження <br> та контролю співпраці, а також 
+спільного робочого середовища команди проекту
 
-Назва Wellity походить від поєднання слів "wellness" (здоров’я, гарний стан) та "activity" (активність), що підкреслює головну мету розробників застосунку – створити інтерактивний та кросплатформенний простір, котрий допомагає користувачам підтримувати активний та здоровий спосіб життя.
+[requirements.md](docs/requirements/requirements.md) - FR & NFR проекту
 
-## Технології
+[rtm.md](docs/requirements/rtm.md) - матриця простежуваності вимог проекту
 
-- Backend: [TBD]
-- Frontend: Flutter
-- Database: [TBD]
-- CI/CD: GitHub Actions
-
-## Робочий процес (GitHub Flow)
-
-1. **Основна гілка**: `main` - завжди стабільна і готова до розгортання
-2. **Feature гілки**: `feature/feature-name` для нових функцій
-3. **Bug fix гілки**: `fix/bug-name` для виправлень
-4. **Усі зміни через Pull Requests** з обов'язковим code review
-5. **Мінімум 1 схвалення** для злиття PR
-
-### Конвенції назв гілок:
-- `feature/user-authentication`
-- `feature/product-catalog`
-- `fix/login-validation`
-- `docs/api-documentation`
-- `refactor/database-schema`
-
-### Правила комітів:
-- Використовуйте англійську мову
-- Формат: `<type>: <description>`
-- Приклади:
-  - `feat: add user registration endpoint`
-  - `fix: resolve login validation issue`
-  - `docs: update API documentation`
-  - `refactor: simplify database queries`
+[user-stories.md](docs/requirements/user-stories.md) - користувацькі історії
 
 ## Структура проєкту
 
@@ -62,25 +31,14 @@ team-badhabits/
 │   └── shared/
 ├── docs/
 ├── tests/
+├── Labs/
 ├── README.md
 ├── TeamCharter.md
-└── Project-Description.md
+└── ProjectDescription.md
 ```
 
-## Команди Git для розробки
-```bash
-# Створення нової feature гілки
-git checkout main
-git pull origin main
-git checkout -b feature/your-feature-name
-
-# Робота з змінами
-git add .
-git commit -m "feat: add your feature description"
-git push origin feature/your-feature-name
-
-# Після злиття PR - очищення
-git checkout main
-git pull origin main
-git branch -d feature/your-feature-name
-```
+## Контакти команди авторів проекту:
+- Андрій (GitHub: @kepeld)
+- Дарина (GitHub: @dahl1a-bloom)
+- Давид (GitHub: @DavydKod)
+- Дмитро (GitHub: @AvdieienkoDmytro)
