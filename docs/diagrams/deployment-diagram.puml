@@ -1,0 +1,129 @@
+@startuml Wellity Deployment Diagram
+
+skinparam backgroundColor #FEFEFE
+skinparam node {
+    BackgroundColor #E3F2FD
+    BorderColor #1976D2
+    FontSize 12
+}
+skinparam artifact {
+    BackgroundColor #FFFFFF
+    BorderColor #424242
+}
+skinparam cloud {
+    BackgroundColor #FFF3E0
+    BorderColor #F57C00
+}
+skinparam database {
+    BackgroundColor #E8F5E9
+    BorderColor #388E3C
+}
+
+' Client Devices
+node "iOS Device" as iOS {
+    artifact "Wellity App\n(Flutter)" as iOSApp
+}
+
+node "Android Device" as Android {
+    artifact "Wellity App\n(Flutter)" as AndroidApp
+}
+
+' Firebase Cloud
+cloud "Firebase (Google Cloud)" as FirebaseCloud {
+    database "Firestore" as Firestore {
+        note right
+            - Users
+            - Workouts
+            - Habit Trackers
+            - Notes
+        end note
+    }
+    
+    database "Realtime Database" as RealtimeDB {
+        note right
+            - Active Workout
+            Sessions
+            - Real-time sync
+        end note
+    }
+    
+    artifact "Firebase Auth" as FBAuth
+    artifact "Cloud Storage" as CloudStorage
+    artifact "Cloud Messaging" as FCM
+}
+
+' Custom Backend
+node "Backend Server\n(Node.js)" as BackendServer <<Ubuntu/Docker>> {
+    artifact "API Gateway\n(Express)" as APIGateway
+    artifact "Adaptive Service\n(Python/ML)" as MLService
+    artifact "Payment Service" as PaymentSvc
+    artifact "Analytics Service" as AnalyticsSvc
+    artifact "Verification Service" as VerificationSvc
+}
+
+' External Services
+cloud "External Services" as ExternalCloud {
+    artifact "Stripe API" as Stripe
+    artifact "PayPal API" as PayPal
+    artifact "SendGrid" as SendGrid
+}
+
+' Connections - Client to Firebase
+iOS -down-> FBAuth : "HTTPS"
+iOS -down-> Firestore : "SDK"
+iOS -down-> RealtimeDB : "WebSocket"
+iOS -down-> CloudStorage : "HTTPS"
+
+Android -down-> FBAuth : "HTTPS"
+Android -down-> Firestore : "SDK"
+Android -down-> RealtimeDB : "WebSocket"
+Android -down-> CloudStorage : "HTTPS"
+
+' Connections - Client to Backend
+iOS -down-> APIGateway : "REST API\n(HTTPS)"
+Android -down-> APIGateway : "REST API\n(HTTPS)"
+
+' Connections - Backend to Firebase
+APIGateway --> Firestore : "Admin SDK"
+APIGateway --> FCM : "Push Notifications"
+MLService --> Firestore : "Read/Write Data"
+AnalyticsSvc --> Firestore : "Query Data"
+VerificationSvc --> Firestore : "Update Status"
+
+' Connections - Backend to External
+PaymentSvc --> Stripe : "HTTPS/REST"
+PaymentSvc --> PayPal : "HTTPS/REST"
+VerificationSvc --> SendGrid : "Email API"
+
+' Deployment Notes
+note bottom of BackendServer
+    **Deployment:**
+    - Cloud Run / AWS ECS
+    - Auto-scaling
+    - Load Balancer
+    - 99.0% uptime (REL-001)
+end note
+
+note bottom of FirebaseCloud
+    **Firebase SLA:**
+    - 99.95% uptime
+    - Auto-scaling
+    - Multi-region
+    - Built-in CDN
+end note
+
+note right of iOS
+    **Minimum Requirements:**
+    - iOS 14.0+
+    - Offline-first
+    - Local cache
+end note
+
+note right of Android
+    **Minimum Requirements:**
+    - Android 7.0+ (API 24)
+    - Offline-first
+    - Local cache
+end note
+
+@enduml
