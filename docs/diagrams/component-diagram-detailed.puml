@@ -1,0 +1,106 @@
+@startuml Wellity Component Diagram
+
+skinparam componentStyle rectangle
+skinparam backgroundColor #FEFEFE
+skinparam component {
+    BackgroundColor<<client>> #E3F2FD
+    BackgroundColor<<firebase>> #FFF3E0
+    BackgroundColor<<backend>> #E8F5E9
+    BackgroundColor<<external>> #F3E5F5
+    BorderColor #424242
+    ArrowColor #616161
+}
+
+' Client Layer
+package "Client Layer" <<client>> {
+    component "Flutter App\n(iOS + Android)" as FlutterApp
+    component "Presentation Layer" as Presentation
+    component "BLoC (Business Logic)" as BLoC
+    component "Repositories" as Repos
+
+    FlutterApp *-- Presentation
+    FlutterApp *-- BLoC
+    FlutterApp *-- Repos
+}
+
+' Firebase (BaaS) Layer
+package "Firebase Services" <<firebase>> {
+    component "Firebase Auth" as FBAuth
+    component "Firestore" as Firestore
+    component "Realtime Database" as RealtimeDB
+    component "Cloud Storage" as CloudStorage
+    component "Cloud Messaging (FCM)" as FCM
+}
+
+' Custom Backend Layer
+package "Custom Backend (Node.js)" <<backend>> {
+    component "REST API Gateway" as APIGateway
+
+    package "Core Services" {
+        component "Adaptive Workouts\nService (ML)" as AdaptiveService
+        component "Payment Service" as PaymentService
+        component "Analytics & Reporting\nService" as AnalyticsService
+        component "Verification Service" as VerificationService
+    }
+}
+
+' External Services
+package "External Services" <<external>> {
+    component "Stripe/PayPal\nPayment Gateway" as PaymentGateway
+    component "Email Service\n(SendGrid)" as EmailService
+}
+
+' Client to Firebase connections (direct)
+FlutterApp --> FBAuth : "Authentication\n(FR-001)"
+FlutterApp --> Firestore : "CRUD Operations\n(FR-002, FR-016)"
+FlutterApp --> RealtimeDB : "Workout Sessions\n(FR-013)"
+FlutterApp --> CloudStorage : "Media Upload"
+FlutterApp --> FCM : "Push Notifications\n(FR-010)"
+
+' Client to Backend connections
+FlutterApp --> APIGateway : "HTTPS/REST\n(SEC-002)"
+
+' Backend internal connections
+APIGateway --> AdaptiveService : "Workout Adaptation\n(FR-014)"
+APIGateway --> PaymentService : "Payment Processing\n(FR-012)"
+APIGateway --> AnalyticsService : "Complex Queries\n(FR-005)"
+APIGateway --> VerificationService : "Workout Verification\n(FR-011)"
+
+' Backend to Firebase
+AdaptiveService --> Firestore : "Read ratings,\nWrite adaptations"
+AnalyticsService --> Firestore : "Aggregate queries"
+VerificationService --> Firestore : "Update status"
+
+' Backend to External Services
+PaymentService --> PaymentGateway : "Process Payments\n(SEC-004)"
+VerificationService --> EmailService : "Notification Emails"
+APIGateway --> FCM : "Trigger Notifications"
+
+' Notes
+note right of FlutterApp
+  **Offline-First**
+  Local cache + sync
+  (PERF-001, REL-003)
+end note
+
+note right of Firestore
+  **Primary Database**
+  - User profiles
+  - Habit trackers
+  - Workouts & Notes
+end note
+
+note right of RealtimeDB
+  **Realtime Sync**
+  Session locking
+  ≤2s sync (REL-004)
+end note
+
+note right of AdaptiveService
+  **ML/Recommendation**
+  Adjusts workouts based
+  on user ratings
+  (PERF-004: ≤3s)
+end note
+
+@enduml
