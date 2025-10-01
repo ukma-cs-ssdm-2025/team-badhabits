@@ -17,6 +17,12 @@
 
 [user-stories.md](docs/requirements/user-stories.md) - користувацькі історії
 
+[architecture](docs/architecture/high-level-design.md) - загальний огляд архітектури додатку
+
+[diagrams](docs/diagrams) - uml-представлення імплементування додатку
+
+[decisions](docs/decisions) записи архітектурних рішень додатку
+
 ## Структура проєкту
 
 ```bash
@@ -30,6 +36,10 @@ team-badhabits/
 │   ├── frontend/
 │   └── shared/
 ├── docs/
+│   ├── architecture/
+│   ├── decisions/
+│   ├── diagrams/
+│   └── requirements/
 ├── tests/
 ├── Labs/
 ├── README.md
