@@ -1,0 +1,20 @@
+@startuml
+[Product Service] as Product
+[MobileApp] --> [Notification Service]
+[MobileApp] --> [Auth Service]
+[MobileApp] --> [User Service]
+[MobileApp] --> Product
+Product --> [Note Service]
+Product --> [Workout Service]
+Product --> [Relation Service]
+Product --> [Statistic Service]
+[Relation Service] --> [Sharing Service]
+[Statistic Service] --> [Achievement Service]
+[Notification Service] --> [Database]
+[Auth Service] --> [Database]
+[User Service] --> [Database]
+[Note Service] --> [Database]
+[Workout Service] --> [Database]
+[Sharing Service] --> [Database]
+[Achievement Service] --> [Database]
+@enduml
