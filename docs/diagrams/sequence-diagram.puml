@@ -1,0 +1,33 @@
+@startuml
+actor User
+participant MobileApp
+participant AuthService
+participant WorkoutService
+database Database
+
+User -> MobileApp: Open app
+MobileApp -> AuthService: Send data for login
+AuthService -> Database: Check user
+
+alt Invalid data
+  Database --> AuthService: Incorrect data
+  AuthService --> MobileApp: Authorization failed
+  MobileApp --> User: Authorization rejected
+else Valid data
+  Database --> AuthService: Correct data
+  AuthService --> MobileApp: Authorization accepted
+end
+
+User -> MobileApp: Add workout
+MobileApp -> WorkoutService: Request to create workout
+
+alt Failure
+  WorkoutService --> MobileApp: Request failed
+  MobileApp --> User: No workout added
+else Success
+  WorkoutService -> Database: Save workout
+  Database --> WorkoutService: OK
+  WorkoutService --> MobileApp: Confirmed
+  MobileApp --> User: Workout added
+end
+@enduml
