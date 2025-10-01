@@ -1,4 +1,4 @@
-# Requirements Traceability Matrix (RTM)
+# Requirements Traceability Matrix (Lab 02)
 
 | User Story | FR (Функціональна вимога) | NFR (Нефункціональна вимога) | Test Case |
 |------------|----------------------------|-------------------------------|-----------|
