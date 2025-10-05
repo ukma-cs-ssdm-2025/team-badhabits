@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "123456789",
+    "project_id": "badhabits-temp",
+    "storage_bucket": "badhabits-temp.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:123456789:android:abc123",
+        "android_client_info": {
+          "package_name": "ua.wellity.frontend"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDummyKeyForLocalDevelopment123456"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
