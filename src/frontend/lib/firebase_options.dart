@@ -4,18 +4,11 @@ import 'package:flutter/foundation.dart'
 
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
-    if (kIsWeb) {
-      return web;
-    }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
         return ios;
-      case TargetPlatform.macOS:
-        return macos;
-      case TargetPlatform.windows:
-        return windows;
       default:
         throw UnsupportedError(
           'DefaultFirebaseOptions are not supported for this platform.',
@@ -23,45 +16,21 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyDummyKeyForLocalDevelopment123456',
-    appId: '1:123456789:web:abc123',
-    messagingSenderId: '123456789',
-    projectId: 'badhabits-temp',
-    authDomain: 'badhabits-temp.firebaseapp.com',
-    storageBucket: 'badhabits-temp.appspot.com',
-  );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDummyKeyForLocalDevelopment123456',
-    appId: '1:123456789:android:abc123',
-    messagingSenderId: '123456789',
-    projectId: 'badhabits-temp',
-    storageBucket: 'badhabits-temp.appspot.com',
+    apiKey: 'AIzaSyBAMVOp-EfmTxIl32w6qMIifPo5KdFBWEw',
+    appId: '1:1029575967903:android:aa22f694000ffbd58f0eaa',
+    messagingSenderId: '1029575967903',
+    projectId: 'wellity-ce2a3',
+    storageBucket: 'wellity-ce2a3.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyDummyKeyForLocalDevelopment123456',
-    appId: '1:123456789:ios:abc123',
-    messagingSenderId: '123456789',
-    projectId: 'badhabits-temp',
-    storageBucket: 'badhabits-temp.appspot.com',
+    apiKey: 'AIzaSyABMQFPbs3bjHQ5rI17S3LQ9NCiU5jinDw',
+    appId: '1:1029575967903:ios:a40253e7a5fadfd98f0eaa',
+    messagingSenderId: '1029575967903',
+    projectId: 'wellity-ce2a3',
+    storageBucket: 'wellity-ce2a3.firebasestorage.app',
     iosBundleId: 'ua.wellity.frontend',
-  );
-
-  static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyDummyKeyForLocalDevelopment123456',
-    appId: '1:123456789:macos:abc123',
-    messagingSenderId: '123456789',
-    projectId: 'badhabits-temp',
-    storageBucket: 'badhabits-temp.appspot.com',
-    iosBundleId: 'ua.wellity.frontend',
-  );
-
-  static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyDummyKeyForLocalDevelopment123456',
-    appId: '1:123456789:windows:abc123',
-    messagingSenderId: '123456789',
-    projectId: 'badhabits-temp',
   );
 }
