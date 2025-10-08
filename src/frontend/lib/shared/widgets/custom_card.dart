@@ -8,7 +8,7 @@ class CustomCard extends StatelessWidget {
   final Color? color;
   final double? elevation;
   final VoidCallback? onTap;
-  final BorderRadiusGeometry? borderRadius;
+  final BorderRadius? borderRadius;
 
   const CustomCard({
     super.key,

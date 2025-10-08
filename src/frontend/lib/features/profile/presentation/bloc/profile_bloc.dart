@@ -42,8 +42,13 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     Emitter<ProfileState> emit,
   ) async {
     // Get current user from state
-    if (state is ProfileLoaded) {
-      final currentUser = (state as ProfileLoaded).user;
+    if (state is ProfileLoaded || state is ProfileUpdateSuccess || state is AvatarUploadSuccess) {
+      final currentUser = state is ProfileLoaded
+          ? (state as ProfileLoaded).user
+          : state is ProfileUpdateSuccess
+              ? (state as ProfileUpdateSuccess).user
+              : (state as AvatarUploadSuccess).user;
+
       emit(ProfileUpdating(currentUser));
 
       final result = await updateUserProfileUseCase(
@@ -54,7 +59,11 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
 
       result.fold(
         (failure) => emit(ProfileError(failure.message)),
-        (user) => emit(ProfileUpdateSuccess(user)),
+        (user) {
+          emit(ProfileUpdateSuccess(user));
+          // Return to loaded state after showing success
+          emit(ProfileLoaded(user));
+        },
       );
     } else {
       emit(const ProfileError('Cannot update profile: profile not loaded'));
@@ -67,10 +76,12 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     Emitter<ProfileState> emit,
   ) async {
     // Get current user from state
-    if (state is ProfileLoaded || state is ProfileUpdateSuccess) {
+    if (state is ProfileLoaded || state is ProfileUpdateSuccess || state is AvatarUploadSuccess) {
       final currentUser = state is ProfileLoaded
           ? (state as ProfileLoaded).user
-          : (state as ProfileUpdateSuccess).user;
+          : state is ProfileUpdateSuccess
+              ? (state as ProfileUpdateSuccess).user
+              : (state as AvatarUploadSuccess).user;
 
       emit(AvatarUploading(currentUser));
 
@@ -93,7 +104,11 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
 
           updateResult.fold(
             (failure) => emit(ProfileError(failure.message)),
-            (user) => emit(AvatarUploadSuccess(user)),
+            (user) {
+              emit(AvatarUploadSuccess(user));
+              // Return to loaded state after showing success
+              emit(ProfileLoaded(user));
+            },
           );
         },
       );

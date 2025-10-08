@@ -15,15 +15,22 @@ class ProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AuthBloc, AuthState>(
-      builder: (context, authState) {
-        if (authState is! Authenticated) {
-          return const Scaffold(
-            body: Center(
-              child: Text('Please log in to view profile'),
-            ),
-          );
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, authState) {
+        // Navigate back to root when user logs out
+        if (authState is Unauthenticated) {
+          Navigator.of(context).popUntil((route) => route.isFirst);
         }
+      },
+      child: BlocBuilder<AuthBloc, AuthState>(
+        builder: (context, authState) {
+          if (authState is! Authenticated) {
+            return const Scaffold(
+              body: Center(
+                child: CircularProgressIndicator(),
+              ),
+            );
+          }
 
         final userId = authState.user.id;
 
@@ -268,7 +275,8 @@ class ProfilePage extends StatelessWidget {
             ),
           ),
         );
-      },
+        },
+      ),
     );
   }
 
