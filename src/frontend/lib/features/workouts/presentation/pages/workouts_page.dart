@@ -27,6 +27,7 @@ class WorkoutsPage extends StatelessWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'workouts_fab',
         onPressed: () {
           // TODO: Add workout functionality
         },

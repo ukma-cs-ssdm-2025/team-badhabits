@@ -27,6 +27,7 @@ class HabitsPage extends StatelessWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'habits_fab',
         onPressed: () {
           // TODO: Add habit functionality
         },

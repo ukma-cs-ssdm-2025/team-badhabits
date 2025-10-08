@@ -13,6 +13,15 @@ import '../../features/auth/domain/usecases/sign_out_usecase.dart';
 import '../../features/auth/domain/usecases/sign_up_usecase.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
 
+// Profile
+import '../../features/profile/data/datasources/profile_remote_data_source.dart';
+import '../../features/profile/data/repositories/profile_repository_impl.dart';
+import '../../features/profile/domain/repositories/profile_repository.dart';
+import '../../features/profile/domain/usecases/get_user_profile_usecase.dart';
+import '../../features/profile/domain/usecases/update_user_profile_usecase.dart';
+import '../../features/profile/domain/usecases/upload_avatar_usecase.dart';
+import '../../features/profile/presentation/bloc/profile_bloc.dart';
+
 final sl = GetIt.instance;
 
 Future<void> init() async {
@@ -49,6 +58,39 @@ Future<void> init() async {
     () => AuthRemoteDataSourceImpl(
       firebaseAuth: sl(),
       firestore: sl(),
+    ),
+  );
+
+  // ============================================================================
+  // Features - Profile
+  // ============================================================================
+
+  // Bloc
+  sl.registerFactory(
+    () => ProfileBloc(
+      getUserProfileUseCase: sl(),
+      updateUserProfileUseCase: sl(),
+      uploadAvatarUseCase: sl(),
+    ),
+  );
+
+  // Use cases
+  sl.registerLazySingleton(() => GetUserProfileUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateUserProfileUseCase(sl()));
+  sl.registerLazySingleton(() => UploadAvatarUseCase(sl()));
+
+  // Repository
+  sl.registerLazySingleton<ProfileRepository>(
+    () => ProfileRepositoryImpl(
+      remoteDataSource: sl(),
+    ),
+  );
+
+  // Data sources
+  sl.registerLazySingleton<ProfileRemoteDataSource>(
+    () => ProfileRemoteDataSourceImpl(
+      firestore: sl(),
+      storage: sl(),
     ),
   );
 

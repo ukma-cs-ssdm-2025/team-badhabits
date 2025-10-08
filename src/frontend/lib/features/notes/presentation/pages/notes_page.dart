@@ -27,6 +27,7 @@ class NotesPage extends StatelessWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'notes_fab',
         onPressed: () {
           // TODO: Add note functionality
         },
