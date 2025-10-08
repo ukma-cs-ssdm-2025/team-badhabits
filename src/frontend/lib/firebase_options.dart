@@ -16,7 +16,6 @@ class DefaultFirebaseOptions {
     }
   }
 
-
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyBAMVOp-EfmTxIl32w6qMIifPo5KdFBWEw',
     appId: '1:1029575967903:android:aa22f694000ffbd58f0eaa',
@@ -33,4 +32,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'wellity-ce2a3.firebasestorage.app',
     iosBundleId: 'ua.wellity.frontend',
   );
+
 }
