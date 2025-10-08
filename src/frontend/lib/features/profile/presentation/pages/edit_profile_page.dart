@@ -149,12 +149,16 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 final isUpdating = state is ProfileUpdating || state is AvatarUploading;
                 return TextButton(
                   onPressed: isUpdating ? null : _handleSave,
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.white,
+                  ),
                   child: isUpdating
                       ? const SizedBox(
                           width: 20,
                           height: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
+                            color: Colors.white,
                           ),
                         )
                       : const Text('Save'),
@@ -250,6 +254,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       controller: _bioController,
                       maxLines: 4,
                       maxLength: 200,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
                       decoration: const InputDecoration(
                         labelText: 'Bio',
                         hintText: 'Tell us about yourself...',

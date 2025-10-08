@@ -330,7 +330,7 @@ class AppTheme {
       // Input decoration
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: darkSurface,
+        fillColor: const Color(0xFF2C2C2C), // Darker background for better contrast
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: Colors.grey.shade700),
@@ -344,6 +344,9 @@ class AppTheme {
           borderSide: const BorderSide(color: primaryBlue, width: 2),
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        // Text style for dark theme
+        hintStyle: TextStyle(color: darkTextSecondary),
+        labelStyle: TextStyle(color: darkTextSecondary),
       ),
 
       // Floating action button

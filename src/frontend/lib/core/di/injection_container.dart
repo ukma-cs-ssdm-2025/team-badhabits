@@ -3,6 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
+// Core
+import '../theme/theme_cubit.dart';
+
 // Auth
 import '../../features/auth/data/datasources/auth_remote_data_source.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
@@ -25,6 +28,13 @@ import '../../features/profile/presentation/bloc/profile_bloc.dart';
 final sl = GetIt.instance;
 
 Future<void> init() async {
+  // ============================================================================
+  // Core
+  // ============================================================================
+
+  // Theme
+  sl.registerFactory(() => ThemeCubit());
+
   // ============================================================================
   // Features - Auth
   // ============================================================================

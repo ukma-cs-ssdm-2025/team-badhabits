@@ -123,7 +123,7 @@ class ProfilePage extends StatelessWidget {
                           children: [
                             CircleAvatar(
                               radius: 60,
-                              backgroundColor: Colors.grey[300],
+                              backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                               backgroundImage: user.avatarUrl != null && user.avatarUrl!.isNotEmpty
                                   ? NetworkImage(user.avatarUrl!)
                                   : null,
@@ -131,7 +131,7 @@ class ProfilePage extends StatelessWidget {
                                   ? Icon(
                                       Icons.person,
                                       size: 60,
-                                      color: Colors.grey[600],
+                                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
                                     )
                                   : null,
                             ),
@@ -172,13 +172,17 @@ class ProfilePage extends StatelessWidget {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(Icons.email_outlined, size: 20, color: Colors.grey),
+                              Icon(
+                                Icons.email_outlined,
+                                size: 20,
+                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                              ),
                               const SizedBox(width: 8),
                               Flexible(
                                 child: Text(
                                   user.email,
                                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                        color: Colors.grey[700],
+                                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                                       ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -196,7 +200,7 @@ class ProfilePage extends StatelessWidget {
                               width: double.infinity,
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: Colors.grey[100],
+                                color: Theme.of(context).colorScheme.surfaceContainerHighest,
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
@@ -270,10 +274,14 @@ class ProfilePage extends StatelessWidget {
 
   Widget _buildUserTypeBadge(BuildContext context, UserType userType) {
     final isTrainer = userType == UserType.trainer;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: isTrainer ? Colors.blue[100] : Colors.grey[200],
+        color: isTrainer
+            ? (isDarkMode ? Colors.blue[900]!.withOpacity(0.3) : Colors.blue[100])
+            : Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
@@ -282,13 +290,17 @@ class ProfilePage extends StatelessWidget {
           Icon(
             isTrainer ? Icons.fitness_center : Icons.person,
             size: 16,
-            color: isTrainer ? Colors.blue[700] : Colors.grey[700],
+            color: isTrainer
+                ? (isDarkMode ? Colors.blue[300] : Colors.blue[700])
+                : Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
           ),
           const SizedBox(width: 4),
           Text(
             isTrainer ? 'Trainer' : 'User',
             style: TextStyle(
-              color: isTrainer ? Colors.blue[700] : Colors.grey[700],
+              color: isTrainer
+                  ? (isDarkMode ? Colors.blue[300] : Colors.blue[700])
+                  : Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
               fontWeight: FontWeight.bold,
             ),
           ),
