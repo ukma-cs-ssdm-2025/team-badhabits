@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1029575967903",
+    "project_id": "wellity-ce2a3",
+    "storage_bucket": "wellity-ce2a3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1029575967903:android:aa22f694000ffbd58f0eaa",
+        "android_client_info": {
+          "package_name": "ua.wellity.frontend"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBAMVOp-EfmTxIl32w6qMIifPo5KdFBWEw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
