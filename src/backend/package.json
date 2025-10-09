@@ -1,0 +1,26 @@
+{
+  "name": "wellity-backend",
+  "version": "1.0.0",
+  "description": "Wellity Custom Backend - REST API for adaptive workouts, payments, and analytics",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "keywords": [
+    "wellity",
+    "fitness",
+    "rest-api"
+  ],
+  "author": "Team BadHabits",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.0",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
