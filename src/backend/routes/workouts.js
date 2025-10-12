@@ -1,4 +1,6 @@
 const express = require('express');
+const { param, body } = require('express-validator');
+const validateRequest = require('../middleware/validateRequest');
 const router = express.Router();
 
 /**
@@ -106,36 +108,91 @@ const router = express.Router();
  *       404:
  *         description: Workout not found
  */
-router.post('/:id/verify', (req, res) => {
-  const { id } = req.params;
-  const { verifiedBy, verificationNotes, autoChecksPassed = true } = req.body;
+router.post('/:id/verify', [
+  param('id').notEmpty().withMessage('workout id is required'),
+  body('verifiedBy').notEmpty().withMessage('verifiedBy is required'),
+  validateRequest
+], (req, res) => {
+  try {
+    const { id } = req.params;
+    const { verifiedBy, verificationNotes, autoChecksPassed = true } = req.body;
 
-  // Mock workout verification response
-  const mockVerification = {
-    workoutId: id,
-    isVerified: true,
-    verificationStatus: 'approved',
-    verifiedBy: verifiedBy,
-    verifiedAt: new Date().toISOString(),
-    verificationDetails: {
-      safetyScore: 95,
-      qualityScore: 88,
-      checks: {
-        videoQuality: true,
-        exerciseForm: true,
-        instructionClarity: true,
-        safetyGuidelines: true
+    // Mock 404 check for non-existent workout
+    if (id === 'nonexistent') {
+      return res.status(404).json({
+        error: 'Workout not found',
+        message: 'The specified workout does not exist in the system'
+      });
+    }
+
+    // Mock scenario where workout fails verification checks
+    if (autoChecksPassed === false) {
+      return res.status(400).json({
+        error: 'Verification failed',
+        message: 'Workout did not pass automated safety and quality checks',
+        failedChecks: ['videoQuality', 'safetyGuidelines'],
+        recommendations: [
+          'Improve video resolution to at least 720p',
+          'Add proper warm-up and cool-down instructions',
+          'Include safety disclaimers for high-intensity exercises'
+        ]
+      });
+    }
+
+    // Dynamic verification scores based on input
+    const hasNotes = verificationNotes && verificationNotes.length > 10;
+    const safetyScore = autoChecksPassed ? (hasNotes ? 98 : 95) : 65;
+    const qualityScore = hasNotes ? 92 : 88;
+
+    // Determine verification status
+    const overallScore = (safetyScore + qualityScore) / 2;
+    const verificationStatus = overallScore >= 90 ? 'approved' : overallScore >= 75 ? 'approved_with_notes' : 'rejected';
+
+    // Mock workout verification response with dynamic data
+    const mockVerification = {
+      workoutId: id,
+      isVerified: verificationStatus !== 'rejected',
+      verificationStatus: verificationStatus,
+      verifiedBy: verifiedBy,
+      verifiedAt: new Date().toISOString(),
+      verificationDetails: {
+        safetyScore: safetyScore,
+        qualityScore: qualityScore,
+        overallScore: Math.round(overallScore),
+        checks: {
+          videoQuality: autoChecksPassed,
+          exerciseForm: autoChecksPassed,
+          instructionClarity: autoChecksPassed,
+          safetyGuidelines: autoChecksPassed
+        },
+        verificationNotes: verificationNotes || 'Workout meets all quality and safety standards'
       },
-      verificationNotes: verificationNotes || 'Workout meets all quality and safety standards'
-    },
-    nextSteps: [
-      'Workout is now live and accessible to premium users',
-      'Added to trainer\'s verified workout list',
-      'Email notification sent to trainer'
-    ]
-  };
+      nextSteps: verificationStatus === 'approved'
+        ? [
+            'Workout is now live and accessible to premium users',
+            'Added to trainer\'s verified workout list',
+            'Email notification sent to trainer'
+          ]
+        : verificationStatus === 'approved_with_notes'
+          ? [
+              'Workout is approved with recommendations',
+              'Consider addressing noted improvements for better quality',
+              'Notification sent to trainer with feedback'
+            ]
+          : [
+              'Workout requires revisions before approval',
+              'Trainer notified of required changes'
+            ]
+    };
 
-  res.json(mockVerification);
+    res.json(mockVerification);
+  } catch (error) {
+    console.error('Error verifying workout:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'Failed to verify workout'
+    });
+  }
 });
 
 module.exports = router;
