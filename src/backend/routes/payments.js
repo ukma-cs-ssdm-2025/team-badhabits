@@ -1,4 +1,6 @@
 const express = require('express');
+const { body } = require('express-validator');
+const validateRequest = require('../middleware/validateRequest');
 const router = express.Router();
 
 /**
@@ -92,34 +94,86 @@ const router = express.Router();
  *       402:
  *         description: Payment failed
  */
-router.post('/subscribe', (req, res) => {
-  const { userId, workoutId, paymentMethod, planType = 'monthly' } = req.body;
+router.post('/subscribe', [
+  body('userId').notEmpty().withMessage('userId is required'),
+  body('workoutId').notEmpty().withMessage('workoutId is required'),
+  body('paymentMethod').isIn(['stripe', 'paypal']).withMessage('paymentMethod must be either stripe or paypal'),
+  validateRequest
+], (req, res) => {
+  try {
+    const { userId, workoutId, paymentMethod, planType = 'monthly', paymentToken } = req.body;
 
-  const startDate = new Date();
-  const endDate = new Date(startDate);
+    // Mock 404 check for non-existent resources
+    if (userId === 'nonexistent') {
+      return res.status(404).json({
+        error: 'User not found',
+        message: 'The specified user does not exist in the system'
+      });
+    }
 
-  if (planType === 'monthly') {
-    endDate.setMonth(endDate.getMonth() + 1);
-  } else if (planType === 'yearly') {
-    endDate.setFullYear(endDate.getFullYear() + 1);
+    if (workoutId === 'nonexistent') {
+      return res.status(404).json({
+        error: 'Workout not found',
+        message: 'The specified workout does not exist in the system'
+      });
+    }
+
+    // Mock payment failure scenario
+    if (paymentToken === 'invalid_token') {
+      return res.status(402).json({
+        error: 'Payment failed',
+        message: 'Payment could not be processed. Please check your payment details.',
+        paymentMethod: paymentMethod
+      });
+    }
+
+    const startDate = new Date();
+    const endDate = new Date(startDate);
+
+    if (planType === 'monthly') {
+      endDate.setMonth(endDate.getMonth() + 1);
+    } else if (planType === 'yearly') {
+      endDate.setFullYear(endDate.getFullYear() + 1);
+    }
+
+    // Dynamic pricing based on plan type
+    const pricing = {
+      monthly: { amount: 9.99, savings: 0 },
+      yearly: { amount: 99.99, savings: 19.89 }
+    };
+
+    const selectedPlan = pricing[planType] || pricing.monthly;
+
+    // Mock subscription response with dynamic data
+    const mockSubscription = {
+      subscriptionId: `sub_${Date.now()}`,
+      userId: userId,
+      workoutId: workoutId,
+      status: 'active',
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      planType: planType,
+      amount: selectedPlan.amount,
+      currency: 'USD',
+      nextBillingDate: endDate.toISOString(),
+      paymentMethod: paymentMethod,
+      savings: selectedPlan.savings,
+      features: {
+        unlimitedAccess: true,
+        offlineDownloads: planType === 'yearly',
+        prioritySupport: planType === 'yearly',
+        personalizedPlans: true
+      }
+    };
+
+    res.json(mockSubscription);
+  } catch (error) {
+    console.error('Error processing subscription:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'Failed to process subscription payment'
+    });
   }
-
-  // Mock subscription response
-  const mockSubscription = {
-    subscriptionId: `sub_${Date.now()}`,
-    userId: userId,
-    workoutId: workoutId,
-    status: 'active',
-    startDate: startDate.toISOString(),
-    endDate: endDate.toISOString(),
-    planType: planType,
-    amount: planType === 'monthly' ? 9.99 : 99.99,
-    currency: 'USD',
-    nextBillingDate: endDate.toISOString(),
-    paymentMethod: paymentMethod
-  };
-
-  res.json(mockSubscription);
 });
 
 module.exports = router;
