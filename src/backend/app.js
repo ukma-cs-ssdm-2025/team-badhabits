@@ -35,6 +35,11 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
   customSiteTitle: 'Wellity API Documentation'
 }));
 
+app.get('/api-docs-json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
+
 app.use('/api/v1/adaptive', adaptiveRoutes);
 app.use('/api/v1/payments', paymentsRoutes);
 app.use('/api/v1/analytics', analyticsRoutes);
@@ -72,9 +77,12 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`Wellity Backend API running on http://localhost:${PORT}`);
-  console.log(`API Documentation: http://localhost:${PORT}/api-docs`);
-});
+// Only start server if this file is run directly (not imported)
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Wellity Backend API running on http://localhost:${PORT}`);
+    console.log(`API Documentation: http://localhost:${PORT}/api-docs`);
+  });
+}
 
 module.exports = app;

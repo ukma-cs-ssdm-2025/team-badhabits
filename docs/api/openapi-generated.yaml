@@ -1,0 +1,586 @@
+openapi: 3.0.0
+info:
+  title: Wellity API
+  version: 1.0.0
+  description: Custom Backend REST API for Wellity - Fitness and Habit Tracking Application
+  contact:
+    name: Team BadHabits
+servers:
+  - url: http://localhost:3000
+    description: Development server
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - bearerAuth: []
+paths:
+  /api/v1/adaptive/recommend:
+    post:
+      summary: Get adaptive workout recommendation
+      description: Returns a personalized workout recommendation based on user ratings and performance history (FR-014)
+      tags:
+        - Adaptive Workouts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - userId
+                - previousWorkoutId
+                - userRating
+              properties:
+                userId:
+                  type: string
+                  description: User ID from Firebase Auth
+                  example: user123
+                previousWorkoutId:
+                  type: string
+                  description: ID of the completed workout
+                  example: workout456
+                userRating:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                  description: User's rating of workout difficulty
+                  example: 4
+                performanceMetrics:
+                  type: object
+                  properties:
+                    completionRate:
+                      type: number
+                      description: Percentage of workout completed
+                      example: 95.5
+                    averageHeartRate:
+                      type: integer
+                      example: 145
+      responses:
+        '200':
+          description: Workout recommendation generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  workoutId:
+                    type: string
+                    example: workout789
+                  title:
+                    type: string
+                    example: Full Body Strength - Intermediate
+                  trainerId:
+                    type: string
+                    example: trainer101
+                  exercises:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          example: Push-ups
+                        sets:
+                          type: integer
+                          example: 3
+                        reps:
+                          type: integer
+                          example: 12
+                        restSeconds:
+                          type: integer
+                          example: 60
+                  difficultyLevel:
+                    type: string
+                    enum:
+                      - beginner
+                      - intermediate
+                      - advanced
+                    example: intermediate
+                  estimatedDuration:
+                    type: integer
+                    description: Duration in minutes
+                    example: 45
+                  adaptationReason:
+                    type: string
+                    example: Increased intensity based on positive rating and high completion rate
+        '400':
+          description: Invalid request parameters
+        '401':
+          description: Unauthorized - Invalid or missing token
+  /api/v1/analytics/trainer/{id}:
+    get:
+      summary: Get trainer analytics and statistics
+      description: >-
+        Returns aggregated statistics for a trainer including workout performance, subscriber count, and revenue
+        (FR-005)
+      tags:
+        - Analytics
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Trainer ID
+          example: trainer101
+        - in: query
+          name: period
+          schema:
+            type: string
+            enum:
+              - week
+              - month
+              - quarter
+              - year
+          description: Time period for analytics
+          example: month
+      responses:
+        '200':
+          description: Trainer statistics retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  trainerId:
+                    type: string
+                    example: trainer101
+                  displayName:
+                    type: string
+                    example: John Doe
+                  period:
+                    type: string
+                    example: month
+                  statistics:
+                    type: object
+                    properties:
+                      totalWorkouts:
+                        type: integer
+                        description: Total number of workouts created
+                        example: 45
+                      verifiedWorkouts:
+                        type: integer
+                        description: Number of verified workouts
+                        example: 38
+                      totalSubscribers:
+                        type: integer
+                        description: Total active subscribers
+                        example: 1250
+                      newSubscribers:
+                        type: integer
+                        description: New subscribers in period
+                        example: 87
+                      totalRevenue:
+                        type: number
+                        description: Total revenue in USD
+                        example: 12487.5
+                      averageRating:
+                        type: number
+                        description: Average workout rating (1-5)
+                        example: 4.6
+                      totalCompletions:
+                        type: integer
+                        description: Total workout completions by users
+                        example: 5432
+                      completionRate:
+                        type: number
+                        description: Percentage of started workouts completed
+                        example: 87.5
+                  topWorkouts:
+                    type: array
+                    description: Top 5 most popular workouts
+                    items:
+                      type: object
+                      properties:
+                        workoutId:
+                          type: string
+                          example: workout789
+                        title:
+                          type: string
+                          example: HIIT Cardio Blast
+                        completions:
+                          type: integer
+                          example: 892
+                        averageRating:
+                          type: number
+                          example: 4.8
+                  engagement:
+                    type: object
+                    properties:
+                      dailyActiveUsers:
+                        type: integer
+                        example: 234
+                      weeklyActiveUsers:
+                        type: integer
+                        example: 567
+                      monthlyActiveUsers:
+                        type: integer
+                        example: 1089
+        '401':
+          description: Unauthorized - Invalid or missing token
+        '403':
+          description: Forbidden - User is not a trainer or accessing another trainer's data
+        '404':
+          description: Trainer not found
+  /api/v1/payments/subscribe:
+    post:
+      summary: Subscribe to a workout plan
+      description: Process subscription payment for premium workout access (FR-012)
+      tags:
+        - Payments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - userId
+                - workoutId
+                - paymentMethod
+              properties:
+                userId:
+                  type: string
+                  description: User ID from Firebase Auth
+                  example: user123
+                workoutId:
+                  type: string
+                  description: ID of the workout to subscribe to
+                  example: workout456
+                paymentMethod:
+                  type: string
+                  enum:
+                    - stripe
+                    - paypal
+                  description: Payment provider
+                  example: stripe
+                paymentToken:
+                  type: string
+                  description: Payment token from Stripe/PayPal
+                  example: tok_1234567890abcdef
+                planType:
+                  type: string
+                  enum:
+                    - monthly
+                    - yearly
+                  description: Subscription plan duration
+                  example: monthly
+      responses:
+        '200':
+          description: Subscription created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  subscriptionId:
+                    type: string
+                    example: sub_1234567890
+                  userId:
+                    type: string
+                    example: user123
+                  workoutId:
+                    type: string
+                    example: workout456
+                  status:
+                    type: string
+                    enum:
+                      - active
+                      - pending
+                      - cancelled
+                    example: active
+                  startDate:
+                    type: string
+                    format: date-time
+                    example: '2025-10-09T12:00:00Z'
+                  endDate:
+                    type: string
+                    format: date-time
+                    example: '2025-11-09T12:00:00Z'
+                  planType:
+                    type: string
+                    example: monthly
+                  amount:
+                    type: number
+                    description: Subscription price
+                    example: 9.99
+                  currency:
+                    type: string
+                    example: USD
+                  nextBillingDate:
+                    type: string
+                    format: date-time
+                    example: '2025-11-09T12:00:00Z'
+        '400':
+          description: Invalid payment data
+        '401':
+          description: Unauthorized - Invalid or missing token
+        '402':
+          description: Payment failed
+  /api/v1/recommendations/recovery:
+    get:
+      summary: Get personalized recovery recommendations
+      description: Returns personalized recovery advice based on workout history, performance metrics, and user profile (FR-006)
+      tags:
+        - Recommendations
+      parameters:
+        - in: query
+          name: userId
+          required: true
+          schema:
+            type: string
+          description: User ID from Firebase Auth
+          example: user123
+        - in: query
+          name: lastWorkoutId
+          schema:
+            type: string
+          description: ID of most recent completed workout
+          example: workout456
+        - in: query
+          name: muscleGroup
+          schema:
+            type: string
+            enum:
+              - upper
+              - lower
+              - core
+              - full_body
+          description: Target muscle group from last workout
+          example: upper
+      responses:
+        '200':
+          description: Recovery recommendations generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userId:
+                    type: string
+                    example: user123
+                  generatedAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-09T12:45:00Z'
+                  recoveryStatus:
+                    type: string
+                    enum:
+                      - fully_recovered
+                      - partially_recovered
+                      - needs_rest
+                    example: partially_recovered
+                  estimatedRecoveryTime:
+                    type: integer
+                    description: Hours until full recovery
+                    example: 24
+                  recommendations:
+                    type: object
+                    properties:
+                      restDays:
+                        type: integer
+                        description: Recommended rest days before next intense workout
+                        example: 1
+                      activeRecovery:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            activity:
+                              type: string
+                              example: Light yoga
+                            duration:
+                              type: integer
+                              description: Duration in minutes
+                              example: 20
+                            benefits:
+                              type: string
+                              example: Improves flexibility and reduces muscle tension
+                      nutrition:
+                        type: object
+                        properties:
+                          protein:
+                            type: string
+                            example: 20-30g within 2 hours post-workout
+                          hydration:
+                            type: string
+                            example: 2.5-3L water throughout the day
+                          supplements:
+                            type: array
+                            items:
+                              type: string
+                            example:
+                              - BCAAs
+                              - Omega-3
+                      sleep:
+                        type: object
+                        properties:
+                          recommendedHours:
+                            type: number
+                            example: 8.5
+                          qualityTips:
+                            type: array
+                            items:
+                              type: string
+                            example:
+                              - Maintain consistent sleep schedule
+                              - Avoid screens 1hr before bed
+                      stretching:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                              example: Chest stretch
+                            duration:
+                              type: integer
+                              description: Hold time in seconds
+                              example: 30
+                            targetMuscles:
+                              type: array
+                              items:
+                                type: string
+                              example:
+                                - Pectorals
+                                - Anterior deltoids
+                  nextWorkoutRecommendation:
+                    type: object
+                    properties:
+                      suggestedDate:
+                        type: string
+                        format: date-time
+                        example: '2025-10-10T14:00:00Z'
+                      focusArea:
+                        type: string
+                        example: Lower body or core (allow upper body to recover)
+                      intensity:
+                        type: string
+                        enum:
+                          - light
+                          - moderate
+                          - high
+                        example: moderate
+                  warnings:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - Avoid heavy upper body exercises for 24-48 hours
+        '400':
+          description: Invalid request parameters
+        '401':
+          description: Unauthorized - Invalid or missing token
+        '404':
+          description: User not found
+  /api/v1/workouts/{id}/verify:
+    post:
+      summary: Verify a workout for quality and safety
+      description: Performs automated and manual verification of workout content to ensure quality standards (FR-011)
+      tags:
+        - Workouts
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Workout ID to verify
+          example: workout456
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - verifiedBy
+              properties:
+                verifiedBy:
+                  type: string
+                  description: ID of admin/moderator performing verification
+                  example: admin789
+                verificationNotes:
+                  type: string
+                  description: Additional notes from verifier
+                  example: Excellent form demonstrations, clear instructions
+                autoChecksPassed:
+                  type: boolean
+                  description: Whether automated safety checks passed
+                  example: true
+      responses:
+        '200':
+          description: Workout verification completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  workoutId:
+                    type: string
+                    example: workout456
+                  isVerified:
+                    type: boolean
+                    example: true
+                  verificationStatus:
+                    type: string
+                    enum:
+                      - pending
+                      - approved
+                      - rejected
+                    example: approved
+                  verifiedBy:
+                    type: string
+                    example: admin789
+                  verifiedAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-09T12:30:00Z'
+                  verificationDetails:
+                    type: object
+                    properties:
+                      safetyScore:
+                        type: integer
+                        description: Automated safety score (0-100)
+                        example: 95
+                      qualityScore:
+                        type: integer
+                        description: Quality assessment score (0-100)
+                        example: 88
+                      checks:
+                        type: object
+                        properties:
+                          videoQuality:
+                            type: boolean
+                            example: true
+                          exerciseForm:
+                            type: boolean
+                            example: true
+                          instructionClarity:
+                            type: boolean
+                            example: true
+                          safetyGuidelines:
+                            type: boolean
+                            example: true
+                      verificationNotes:
+                        type: string
+                        example: Excellent form demonstrations, clear instructions
+                  nextSteps:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - Workout is now live and accessible to premium users
+                      - Added to trainer's verified workout list
+        '400':
+          description: Invalid verification request
+        '401':
+          description: Unauthorized - Invalid or missing token
+        '403':
+          description: Forbidden - User does not have verification permissions
+        '404':
+          description: Workout not found
+tags: []
