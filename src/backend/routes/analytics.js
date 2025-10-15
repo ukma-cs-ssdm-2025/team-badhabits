@@ -1,4 +1,6 @@
 const express = require('express');
+const { param, query } = require('express-validator');
+const validateRequest = require('../middleware/validateRequest');
 const router = express.Router();
 
 /**
@@ -113,65 +115,113 @@ const router = express.Router();
  *       404:
  *         description: Trainer not found
  */
-router.get('/trainer/:id', (req, res) => {
-  const { id } = req.params;
-  const { period = 'month' } = req.query;
+router.get('/trainer/:id', [
+  param('id').notEmpty().withMessage('trainerId is required'),
+  query('period').optional().isIn(['week', 'month', 'quarter', 'year']).withMessage('period must be one of: week, month, quarter, year'),
+  validateRequest
+], (req, res) => {
+  try {
+    const { id } = req.params;
+    const { period = 'month' } = req.query;
 
-  // Mock trainer analytics
-  const mockAnalytics = {
-    trainerId: id,
-    displayName: 'John Doe',
-    period: period,
-    statistics: {
-      totalWorkouts: 45,
-      verifiedWorkouts: 38,
-      totalSubscribers: 1250,
-      newSubscribers: 87,
-      totalRevenue: 12487.50,
-      averageRating: 4.6,
-      totalCompletions: 5432,
-      completionRate: 87.5
-    },
-    topWorkouts: [
-      {
-        workoutId: 'workout789',
-        title: 'HIIT Cardio Blast',
-        completions: 892,
-        averageRating: 4.8
-      },
-      {
-        workoutId: 'workout234',
-        title: 'Upper Body Strength',
-        completions: 765,
-        averageRating: 4.7
-      },
-      {
-        workoutId: 'workout567',
-        title: 'Core & Abs Intensive',
-        completions: 654,
-        averageRating: 4.5
-      },
-      {
-        workoutId: 'workout890',
-        title: 'Yoga Flow',
-        completions: 543,
-        averageRating: 4.9
-      },
-      {
-        workoutId: 'workout345',
-        title: 'Leg Day Power',
-        completions: 432,
-        averageRating: 4.4
-      }
-    ],
-    engagement: {
-      dailyActiveUsers: 234,
-      weeklyActiveUsers: 567,
-      monthlyActiveUsers: 1089
+    // Mock 404 check for non-existent trainer
+    if (id === 'nonexistent') {
+      return res.status(404).json({
+        error: 'Trainer not found',
+        message: 'The specified trainer does not exist in the system'
+      });
     }
-  };
 
-  res.json(mockAnalytics);
+    // Dynamic statistics based on period
+    const periodMultipliers = {
+      week: { mult: 0.25, newSubs: 20, revenue: 3000 },
+      month: { mult: 1, newSubs: 87, revenue: 12487.50 },
+      quarter: { mult: 3, newSubs: 245, revenue: 35420 },
+      year: { mult: 12, newSubs: 980, revenue: 142350 }
+    };
+
+    const periodData = periodMultipliers[period] || periodMultipliers.month;
+
+    // Dynamic engagement based on period
+    const baseEngagement = {
+      week: { daily: 234, weekly: 567, monthly: 1089 },
+      month: { daily: 289, weekly: 712, monthly: 1250 },
+      quarter: { daily: 345, weekly: 892, monthly: 1450 },
+      year: { daily: 398, weekly: 1034, monthly: 1689 }
+    };
+
+    const engagement = baseEngagement[period] || baseEngagement.month;
+
+    // Mock trainer analytics
+    const mockAnalytics = {
+      trainerId: id,
+      displayName: 'John Doe',
+      period: period,
+      dateRange: {
+        start: new Date(Date.now() - (periodData.mult * 30 * 24 * 60 * 60 * 1000)).toISOString(),
+        end: new Date().toISOString()
+      },
+      statistics: {
+        totalWorkouts: Math.floor(45 * periodData.mult),
+        verifiedWorkouts: Math.floor(38 * periodData.mult),
+        totalSubscribers: 1250,
+        newSubscribers: periodData.newSubs,
+        totalRevenue: periodData.revenue,
+        averageRating: 4.6,
+        totalCompletions: Math.floor(5432 * periodData.mult),
+        completionRate: 87.5
+      },
+      topWorkouts: [
+        {
+          workoutId: 'workout789',
+          title: 'HIIT Cardio Blast',
+          completions: Math.floor(892 * periodData.mult),
+          averageRating: 4.8
+        },
+        {
+          workoutId: 'workout234',
+          title: 'Upper Body Strength',
+          completions: Math.floor(765 * periodData.mult),
+          averageRating: 4.7
+        },
+        {
+          workoutId: 'workout567',
+          title: 'Core & Abs Intensive',
+          completions: Math.floor(654 * periodData.mult),
+          averageRating: 4.5
+        },
+        {
+          workoutId: 'workout890',
+          title: 'Yoga Flow',
+          completions: Math.floor(543 * periodData.mult),
+          averageRating: 4.9
+        },
+        {
+          workoutId: 'workout345',
+          title: 'Leg Day Power',
+          completions: Math.floor(432 * periodData.mult),
+          averageRating: 4.4
+        }
+      ],
+      engagement: {
+        dailyActiveUsers: engagement.daily,
+        weeklyActiveUsers: engagement.weekly,
+        monthlyActiveUsers: engagement.monthly
+      },
+      trends: {
+        subscriberGrowth: periodData.newSubs > 200 ? 'high' : periodData.newSubs > 50 ? 'moderate' : 'steady',
+        revenueGrowth: periodData.revenue > 100000 ? 'excellent' : periodData.revenue > 30000 ? 'good' : 'stable'
+      }
+    };
+
+    res.json(mockAnalytics);
+  } catch (error) {
+    console.error('Error fetching trainer analytics:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'Failed to retrieve trainer analytics'
+    });
+  }
 });
 
 module.exports = router;

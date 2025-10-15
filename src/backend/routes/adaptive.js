@@ -1,4 +1,6 @@
 const express = require('express');
+const { body } = require('express-validator');
+const validateRequest = require('../middleware/validateRequest');
 const router = express.Router();
 
 /**
@@ -94,50 +96,79 @@ const router = express.Router();
  *       401:
  *         description: Unauthorized - Invalid or missing token
  */
-router.post('/recommend', (req, res) => {
-  const { userId, previousWorkoutId, userRating, performanceMetrics } = req.body;
+router.post('/recommend', [
+  body('userId').notEmpty().withMessage('userId is required'),
+  body('previousWorkoutId').notEmpty().withMessage('previousWorkoutId is required'),
+  body('userRating').isInt({ min: 1, max: 5 }).withMessage('userRating must be between 1 and 5'),
+  validateRequest
+], (req, res) => {
+  try {
+    const { userId, previousWorkoutId, userRating, performanceMetrics } = req.body;
 
-  // Mock adaptive workout recommendation
-  const mockRecommendation = {
-    workoutId: `workout_${Date.now()}`,
-    title: 'Full Body Strength - Intermediate',
-    trainerId: 'trainer101',
-    exercises: [
-      {
-        name: 'Push-ups',
-        sets: 3,
-        reps: 12,
-        restSeconds: 60
-      },
-      {
-        name: 'Squats',
-        sets: 4,
-        reps: 15,
-        restSeconds: 90
-      },
-      {
-        name: 'Plank',
-        sets: 3,
-        reps: 1,
-        restSeconds: 60
-      },
-      {
-        name: 'Lunges',
-        sets: 3,
-        reps: 10,
-        restSeconds: 60
-      }
-    ],
-    difficultyLevel: userRating >= 4 ? 'advanced' : userRating >= 3 ? 'intermediate' : 'beginner',
-    estimatedDuration: 45,
-    adaptationReason: userRating >= 4
-      ? 'Increased intensity based on positive rating and high completion rate'
-      : userRating <= 2
-        ? 'Reduced intensity based on difficulty feedback'
-        : 'Maintained current difficulty level'
-  };
+    // Mock 404 check for non-existent resources
+    if (userId === 'nonexistent' || previousWorkoutId === 'nonexistent') {
+      return res.status(404).json({
+        error: 'Resource not found',
+        message: userId === 'nonexistent'
+          ? 'User not found in the system'
+          : 'Previous workout not found in the system'
+      });
+    }
 
-  res.json(mockRecommendation);
+    // Determine difficulty level based on rating
+    const difficultyLevel = userRating >= 4 ? 'advanced' : userRating >= 3 ? 'intermediate' : 'beginner';
+
+    // Dynamic exercises based on difficulty
+    const exercisesByDifficulty = {
+      beginner: [
+        { name: 'Wall Push-ups', sets: 2, reps: 10, restSeconds: 90 },
+        { name: 'Bodyweight Squats', sets: 2, reps: 12, restSeconds: 90 },
+        { name: 'Knee Plank', sets: 2, reps: 1, restSeconds: 90 },
+        { name: 'Standing Lunges', sets: 2, reps: 8, restSeconds: 90 }
+      ],
+      intermediate: [
+        { name: 'Push-ups', sets: 3, reps: 12, restSeconds: 60 },
+        { name: 'Squats', sets: 4, reps: 15, restSeconds: 90 },
+        { name: 'Plank', sets: 3, reps: 1, restSeconds: 60 },
+        { name: 'Lunges', sets: 3, reps: 10, restSeconds: 60 }
+      ],
+      advanced: [
+        { name: 'Diamond Push-ups', sets: 4, reps: 15, restSeconds: 45 },
+        { name: 'Jump Squats', sets: 4, reps: 20, restSeconds: 60 },
+        { name: 'Plank with Leg Raise', sets: 4, reps: 1, restSeconds: 45 },
+        { name: 'Jumping Lunges', sets: 4, reps: 12, restSeconds: 45 }
+      ]
+    };
+
+    // Dynamic duration based on difficulty and performance
+    const baseDuration = { beginner: 30, intermediate: 45, advanced: 60 };
+    const completionRate = performanceMetrics?.completionRate || 100;
+    const durationAdjustment = completionRate < 80 ? -5 : completionRate > 95 ? 5 : 0;
+    const estimatedDuration = baseDuration[difficultyLevel] + durationAdjustment;
+
+    // Mock adaptive workout recommendation
+    const mockRecommendation = {
+      workoutId: `workout_${Date.now()}`,
+      title: `Full Body Strength - ${difficultyLevel.charAt(0).toUpperCase() + difficultyLevel.slice(1)}`,
+      trainerId: 'trainer101',
+      exercises: exercisesByDifficulty[difficultyLevel],
+      difficultyLevel: difficultyLevel,
+      estimatedDuration: estimatedDuration,
+      adaptationReason: userRating >= 4
+        ? 'Increased intensity based on positive rating and high completion rate'
+        : userRating <= 2
+          ? 'Reduced intensity based on difficulty feedback'
+          : 'Maintained current difficulty level'
+    };
+
+    res.json(mockRecommendation);
+  } catch (error) {
+    console.error('Error generating workout recommendation:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'Failed to generate workout recommendation'
+    });
+  }
 });
 
 module.exports = router;
