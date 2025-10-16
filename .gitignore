@@ -1,0 +1,9 @@
+# Release artifacts
+*.apk
+*.aab
+*.ipa
+
+# Android signing
+**/android/key.properties
+**/android/*.jks
+**/android/*.keystore
