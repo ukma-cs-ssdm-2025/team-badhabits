@@ -25,6 +25,16 @@ import '../../features/profile/domain/usecases/update_user_profile_usecase.dart'
 import '../../features/profile/domain/usecases/upload_avatar_usecase.dart';
 import '../../features/profile/presentation/bloc/profile_bloc.dart';
 
+// Notes
+import '../../features/notes/data/datasources/notes_firestore_datasource.dart';
+import '../../features/notes/data/repositories/notes_repository_impl.dart';
+import '../../features/notes/domain/repositories/notes_repository.dart';
+import '../../features/notes/domain/usecases/create_note.dart';
+import '../../features/notes/domain/usecases/delete_note.dart';
+import '../../features/notes/domain/usecases/get_notes.dart';
+import '../../features/notes/domain/usecases/update_note.dart';
+import '../../features/notes/presentation/bloc/notes_bloc.dart';
+
 final sl = GetIt.instance;
 
 Future<void> init() async {
@@ -102,6 +112,36 @@ Future<void> init() async {
       firestore: sl(),
       storage: sl(),
     ),
+  );
+
+  // ============================================================================
+  // Features - Notes
+  // ============================================================================
+
+  // Bloc
+  sl.registerFactory(
+    () => NotesBloc(
+      getNotes: sl(),
+      createNote: sl(),
+      updateNote: sl(),
+      deleteNote: sl(),
+    ),
+  );
+
+  // Use cases
+  sl.registerLazySingleton(() => GetNotes(sl()));
+  sl.registerLazySingleton(() => CreateNote(sl()));
+  sl.registerLazySingleton(() => UpdateNote(sl()));
+  sl.registerLazySingleton(() => DeleteNote(sl()));
+
+  // Repository
+  sl.registerLazySingleton<NotesRepository>(
+    () => NotesRepositoryImpl(datasource: sl()),
+  );
+
+  // Data sources
+  sl.registerLazySingleton<NotesFirestoreDataSource>(
+    () => NotesFirestoreDataSourceImpl(firestore: sl()),
   );
 
   // ============================================================================
