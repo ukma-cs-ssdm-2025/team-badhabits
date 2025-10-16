@@ -1,0 +1,44 @@
+name: Build and Release Android APK
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build:
+    name: Build APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+
+      - name: Get Flutter dependencies
+        working-directory: src/frontend
+        run: flutter pub get
+
+      - name: Build APK
+        working-directory: src/frontend
+        run: flutter build apk --release
+
+      - name: Upload APK to Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: src/frontend/build/app/outputs/flutter-apk/app-release.apk
+          asset_name: wellity-${{ github.event.release.tag_name }}.apk
+          asset_content_type: application/vnd.android.package-archive
