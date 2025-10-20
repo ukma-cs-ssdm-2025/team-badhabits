@@ -1,0 +1,294 @@
+name: Backend API Documentation CI/CD
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'src/backend/**'
+      - 'docs/api/**'
+      - '.github/workflows/backend-api-docs.yml'
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'src/backend/**'
+      - 'docs/api/**'
+
+# Allow manual workflow runs
+  workflow_dispatch:
+
+# Set permissions for GitHub Pages deployment
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  # Job 1: Generate OpenAPI Specification
+  generate-openapi:
+    name: Generate OpenAPI Spec
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'src/backend/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: src/backend
+        run: npm ci
+
+      - name: Generate OpenAPI specification
+        working-directory: src/backend
+        run: npm run generate-openapi
+
+      - name: Check if OpenAPI file was generated
+        run: |
+          if [ ! -f "docs/api/openapi-generated.yaml" ]; then
+            echo "❌ Error: OpenAPI file was not generated!"
+            exit 1
+          fi
+          echo "✅ OpenAPI file generated successfully"
+          echo "📄 File size: $(wc -c < docs/api/openapi-generated.yaml) bytes"
+          echo "📊 Endpoints: $(grep -c 'paths:' docs/api/openapi-generated.yaml || echo 'N/A')"
+
+      - name: Upload OpenAPI spec as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: openapi-spec
+          path: docs/api/openapi-generated.yaml
+          retention-days: 30
+
+  # Job 2: Validate OpenAPI Specification
+  validate-openapi:
+    name: Validate OpenAPI Spec
+    runs-on: ubuntu-latest
+    needs: generate-openapi
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download OpenAPI spec artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: openapi-spec
+          path: docs/api/
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install validation tools
+        run: |
+          npm install -g @apidevtools/swagger-cli
+          npm install -g @stoplight/spectral-cli
+
+      - name: Validate with Swagger CLI
+        run: |
+          echo "🔍 Validating OpenAPI spec with Swagger CLI..."
+          swagger-cli validate docs/api/openapi-generated.yaml
+          echo "✅ Swagger validation passed!"
+
+      - name: Create Spectral ruleset
+        run: |
+          cat > .spectral.yaml << 'EOF'
+          extends: ["spectral:oas", "spectral:asyncapi"]
+          rules:
+            operation-description: warn
+            operation-operationId-unique: error
+            operation-parameters: error
+            operation-tag-defined: warn
+            path-params: error
+            contact-properties: warn
+            info-contact: warn
+            info-description: warn
+            license-url: warn
+            openapi-tags: warn
+            operation-operationId: warn
+            operation-summary: warn
+            operation-tags: warn
+            tag-description: warn
+          EOF
+
+      - name: Lint with Spectral
+        run: |
+          echo "🔍 Linting OpenAPI spec with Spectral..."
+          spectral lint docs/api/openapi-generated.yaml --format stylish --verbose || true
+          echo "✅ Spectral linting completed!"
+
+      - name: Validate OpenAPI structure
+        run: |
+          echo "🔍 Checking OpenAPI structure..."
+
+          # Check for required fields
+          if ! grep -q "openapi:" docs/api/openapi-generated.yaml; then
+            echo "❌ Error: Missing 'openapi' field"
+            exit 1
+          fi
+
+          if ! grep -q "info:" docs/api/openapi-generated.yaml; then
+            echo "❌ Error: Missing 'info' field"
+            exit 1
+          fi
+
+          if ! grep -q "paths:" docs/api/openapi-generated.yaml; then
+            echo "❌ Error: Missing 'paths' field"
+            exit 1
+          fi
+
+          echo "✅ OpenAPI structure is valid!"
+
+      - name: Generate validation report
+        if: always()
+        run: |
+          echo "📊 OpenAPI Validation Report" > validation-report.txt
+          echo "================================" >> validation-report.txt
+          echo "" >> validation-report.txt
+          echo "File: docs/api/openapi-generated.yaml" >> validation-report.txt
+          echo "Size: $(wc -c < docs/api/openapi-generated.yaml) bytes" >> validation-report.txt
+          echo "Lines: $(wc -l < docs/api/openapi-generated.yaml)" >> validation-report.txt
+          echo "" >> validation-report.txt
+          echo "Validation completed at: $(date)" >> validation-report.txt
+
+          cat validation-report.txt
+
+      - name: Upload validation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: validation-report
+          path: validation-report.txt
+          retention-days: 30
+
+  # Job 3: Deploy Documentation to GitHub Pages
+  deploy-docs:
+    name: Deploy to GitHub Pages
+    runs-on: ubuntu-latest
+    needs: [generate-openapi, validate-openapi]
+    # Only deploy from main branch
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    # Configure environment for GitHub Pages
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download OpenAPI spec artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: openapi-spec
+          path: docs/api/
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Redoc CLI
+        run: npm install -g redoc-cli
+
+      - name: Generate Redoc HTML documentation
+        run: |
+          echo "📚 Generating Redoc HTML documentation..."
+          mkdir -p docs/api/public
+          redoc-cli bundle docs/api/openapi-generated.yaml \
+            -o docs/api/public/index.html \
+            --title "Wellity API Documentation" \
+            --options.theme.colors.primary.main="#4CAF50"
+          echo "✅ Redoc HTML generated successfully!"
+
+      - name: Create documentation index page
+        run: |
+          cat > docs/api/public/README.md << 'EOF'
+          # Wellity API Documentation
+
+          This directory contains the automatically generated API documentation for Wellity Backend.
+
+          ## Files
+
+          - `index.html` - Interactive API documentation (Redoc)
+          - `openapi-generated.yaml` - OpenAPI 3.0 specification
+
+          ## Viewing Documentation
+
+          Open `index.html` in your browser to view the interactive API documentation.
+
+          ## API Endpoints
+
+          The API is organized into the following sections:
+
+          - **Adaptive Workouts** - Personalized workout recommendations
+          - **Payments** - Subscription and payment processing
+          - **Analytics** - Trainer statistics and performance metrics
+          - **Workouts** - Workout verification and management
+          - **Recommendations** - Recovery and wellness recommendations
+
+          ---
+
+          Generated automatically by GitHub Actions CI/CD pipeline.
+          EOF
+
+      - name: Copy OpenAPI spec to public folder
+        run: |
+          cp docs/api/openapi-generated.yaml docs/api/public/openapi-generated.yaml
+          echo "✅ OpenAPI spec copied to public folder"
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact to GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'docs/api/public'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Display deployment URL
+        run: |
+          echo "🚀 Documentation deployed successfully!"
+          echo "📚 View documentation at: ${{ steps.deployment.outputs.page_url }}"
+
+  # Summary job - runs after all jobs complete
+  workflow-summary:
+    name: Workflow Summary
+    runs-on: ubuntu-latest
+    needs: [generate-openapi, validate-openapi]
+    if: always()
+
+    steps:
+      - name: Create workflow summary
+        run: |
+          echo "# 📚 API Documentation CI/CD Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Workflow Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Generate OpenAPI | ${{ needs.generate-openapi.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Validate OpenAPI | ${{ needs.validate-openapi.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- OpenAPI Specification: \`openapi-spec\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Validation Report: \`validation-report\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Triggered by:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY

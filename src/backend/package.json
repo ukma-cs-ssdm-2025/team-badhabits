@@ -9,7 +9,9 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "audit": "npm audit",
-    "generate-docs": "node scripts/generate-openapi.js"
+    "generate-openapi": "node scripts/generate-openapi.js",
+    "docs:serve": "redoc-cli serve ../../docs/api/openapi-generated.yaml -p 8080",
+    "docs:build": "redoc-cli bundle ../../docs/api/openapi-generated.yaml -o ../../docs/api/index.html"
   },
   "keywords": [
     "wellity",
@@ -27,6 +29,8 @@
     "swagger-ui-express": "^5.0.0"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
+    "nodemon": "^3.0.1",
+    "redoc-cli": "^0.13.21",
+    "@apidevtools/swagger-cli": "^4.0.4"
   }
 }

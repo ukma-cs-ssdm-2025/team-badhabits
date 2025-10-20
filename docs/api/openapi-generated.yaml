@@ -269,7 +269,7 @@ paths:
                   description: Subscription plan duration
                   example: monthly
       responses:
-        '200':
+        '201':
           description: Subscription created successfully
           content:
             application/json:
@@ -318,8 +318,10 @@ paths:
           description: Invalid payment data
         '401':
           description: Unauthorized - Invalid or missing token
-        '402':
-          description: Payment failed
+        '404':
+          description: User or workout not found
+        '409':
+          description: User already has active subscription
   /api/v1/recommendations/recovery:
     get:
       summary: Get personalized recovery recommendations
