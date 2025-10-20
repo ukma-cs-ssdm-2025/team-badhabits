@@ -1,6 +1,7 @@
 const express = require('express');
 const { body } = require('express-validator');
 const validateRequest = require('../middleware/validateRequest');
+const { NotFoundError, BadRequestError } = require('../utils/errors');
 const router = express.Router();
 
 /**
@@ -101,18 +102,17 @@ router.post('/recommend', [
   body('previousWorkoutId').notEmpty().withMessage('previousWorkoutId is required'),
   body('userRating').isInt({ min: 1, max: 5 }).withMessage('userRating must be between 1 and 5'),
   validateRequest
-], (req, res) => {
+], (req, res, next) => {
   try {
     const { userId, previousWorkoutId, userRating, performanceMetrics } = req.body;
 
     // Mock 404 check for non-existent resources
-    if (userId === 'nonexistent' || previousWorkoutId === 'nonexistent') {
-      return res.status(404).json({
-        error: 'Resource not found',
-        message: userId === 'nonexistent'
-          ? 'User not found in the system'
-          : 'Previous workout not found in the system'
-      });
+    if (userId === 'nonexistent') {
+      throw new NotFoundError('Користувач');
+    }
+
+    if (previousWorkoutId === 'nonexistent') {
+      throw new NotFoundError('Попереднє тренування');
     }
 
     // Determine difficulty level based on rating
@@ -161,13 +161,13 @@ router.post('/recommend', [
           : 'Maintained current difficulty level'
     };
 
-    res.json(mockRecommendation);
-  } catch (error) {
-    console.error('Error generating workout recommendation:', error);
-    res.status(500).json({
-      error: 'Internal server error',
-      message: 'Failed to generate workout recommendation'
+    // 200 OK - успішна генерація рекомендації
+    res.status(200).json({
+      success: true,
+      data: mockRecommendation
     });
+  } catch (error) {
+    next(error);
   }
 });
 
