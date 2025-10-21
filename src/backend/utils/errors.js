@@ -16,8 +16,8 @@ class AppError extends Error {
  * Use when a requested resource doesn't exist
  */
 class NotFoundError extends AppError {
-  constructor(resource = 'Ресурс') {
-    super(`${resource} не знайдено`, 404);
+  constructor(resource = 'Resource') {
+    super(`${resource} not found`, 404);
     this.code = 'NOT_FOUND';
   }
 }
@@ -27,7 +27,7 @@ class NotFoundError extends AppError {
  * Use when authentication is required but not provided or invalid
  */
 class UnauthorizedError extends AppError {
-  constructor(message = 'Необхідна автентифікація') {
+  constructor(message = 'Authentication required') {
     super(message, 401);
     this.code = 'UNAUTHORIZED';
   }
@@ -38,7 +38,7 @@ class UnauthorizedError extends AppError {
  * Use when user is authenticated but doesn't have permission
  */
 class ForbiddenError extends AppError {
-  constructor(message = 'Доступ заборонено') {
+  constructor(message = 'Access forbidden') {
     super(message, 403);
     this.code = 'FORBIDDEN';
   }
@@ -49,7 +49,7 @@ class ForbiddenError extends AppError {
  * Use for general client-side errors (invalid input)
  */
 class BadRequestError extends AppError {
-  constructor(message = 'Некоректний запит') {
+  constructor(message = 'Invalid request') {
     super(message, 400);
     this.code = 'BAD_REQUEST';
   }
@@ -60,7 +60,7 @@ class BadRequestError extends AppError {
  * Use when request conflicts with current state (e.g., duplicate resource)
  */
 class ConflictError extends AppError {
-  constructor(message = 'Конфлікт ресурсу') {
+  constructor(message = 'Resource conflict') {
     super(message, 409);
     this.code = 'CONFLICT';
   }
@@ -71,7 +71,7 @@ class ConflictError extends AppError {
  * Use for validation failures with detailed error list
  */
 class ValidationError extends AppError {
-  constructor(message = 'Помилка валідації', errors = []) {
+  constructor(message = 'Validation error', errors = []) {
     super(message, 422);
     this.code = 'VALIDATION_ERROR';
     this.errors = errors;
