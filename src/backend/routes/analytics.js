@@ -1,6 +1,7 @@
 const express = require('express');
 const { param, query } = require('express-validator');
 const validateRequest = require('../middleware/validateRequest');
+const { NotFoundError, BadRequestError } = require('../utils/errors');
 const router = express.Router();
 
 /**
@@ -119,17 +120,14 @@ router.get('/trainer/:id', [
   param('id').notEmpty().withMessage('trainerId is required'),
   query('period').optional().isIn(['week', 'month', 'quarter', 'year']).withMessage('period must be one of: week, month, quarter, year'),
   validateRequest
-], (req, res) => {
+], (req, res, next) => {
   try {
     const { id } = req.params;
     const { period = 'month' } = req.query;
 
     // Mock 404 check for non-existent trainer
     if (id === 'nonexistent') {
-      return res.status(404).json({
-        error: 'Trainer not found',
-        message: 'The specified trainer does not exist in the system'
-      });
+      throw new NotFoundError('Trainer');
     }
 
     // Dynamic statistics based on period
@@ -214,13 +212,13 @@ router.get('/trainer/:id', [
       }
     };
 
-    res.json(mockAnalytics);
-  } catch (error) {
-    console.error('Error fetching trainer analytics:', error);
-    res.status(500).json({
-      error: 'Internal server error',
-      message: 'Failed to retrieve trainer analytics'
+    // 200 OK - successful statistics retrieval
+    res.status(200).json({
+      success: true,
+      data: mockAnalytics
     });
+  } catch (error) {
+    next(error);
   }
 });
 

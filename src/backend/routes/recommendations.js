@@ -1,6 +1,7 @@
 const express = require('express');
 const { query } = require('express-validator');
 const validateRequest = require('../middleware/validateRequest');
+const { NotFoundError } = require('../utils/errors');
 const router = express.Router();
 
 /**
@@ -148,16 +149,13 @@ const router = express.Router();
 router.get('/recovery', [
   query('userId').notEmpty().withMessage('userId is required'),
   validateRequest
-], (req, res) => {
+], (req, res, next) => {
   try {
     const { userId, lastWorkoutId, muscleGroup = 'upper' } = req.query;
 
     // Mock 404 check for non-existent user
     if (userId === 'nonexistent') {
-      return res.status(404).json({
-        error: 'User not found',
-        message: 'The specified user does not exist in the system'
-      });
+      throw new NotFoundError('User');
     }
 
     const now = new Date();
@@ -280,13 +278,13 @@ router.get('/recovery', [
       ]
     };
 
-    res.json(mockRecommendations);
-  } catch (error) {
-    console.error('Error generating recovery recommendations:', error);
-    res.status(500).json({
-      error: 'Internal server error',
-      message: 'Failed to generate recovery recommendations'
+    // 200 OK - successful recommendation generation
+    res.status(200).json({
+      success: true,
+      data: mockRecommendations
     });
+  } catch (error) {
+    next(error);
   }
 });
 

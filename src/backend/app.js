@@ -2,7 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./swagger');
-
+const errorHandler = require('./middleware/errorHandler');
+const { NotFoundError } = require('./utils/errors');
 const adaptiveRoutes = require('./routes/adaptive');
 const paymentsRoutes = require('./routes/payments');
 const analyticsRoutes = require('./routes/analytics');
@@ -61,21 +62,13 @@ app.get('/', (req, res) => {
   });
 });
 
-app.use((req, res) => {
-  res.status(404).json({
-    error: 'Not Found',
-    message: `Route ${req.method} ${req.path} not found`,
-    documentation: '/api-docs'
-  });
+// 404 Handler - must be BEFORE error handler
+app.use((req, res, next) => {
+  next(new NotFoundError('Endpoint not found'));
 });
 
-app.use((err, req, res, next) => {
-  console.error('Error:', err);
-  res.status(err.status || 500).json({
-    error: err.message || 'Internal Server Error',
-    status: err.status || 500
-  });
-});
+// Global Error Handler - must be LAST middleware
+app.use(errorHandler);
 
 // Only start server if this file is run directly (not imported)
 if (require.main === module) {

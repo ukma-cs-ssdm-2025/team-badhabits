@@ -1,6 +1,7 @@
 const express = require('express');
 const { param, body } = require('express-validator');
 const validateRequest = require('../middleware/validateRequest');
+const { NotFoundError, BadRequestError } = require('../utils/errors');
 const router = express.Router();
 
 /**
@@ -112,31 +113,28 @@ router.post('/:id/verify', [
   param('id').notEmpty().withMessage('workout id is required'),
   body('verifiedBy').notEmpty().withMessage('verifiedBy is required'),
   validateRequest
-], (req, res) => {
+], (req, res, next) => {
   try {
     const { id } = req.params;
     const { verifiedBy, verificationNotes, autoChecksPassed = true } = req.body;
 
     // Mock 404 check for non-existent workout
     if (id === 'nonexistent') {
-      return res.status(404).json({
-        error: 'Workout not found',
-        message: 'The specified workout does not exist in the system'
-      });
+      throw new NotFoundError('Workout');
     }
 
     // Mock scenario where workout fails verification checks
     if (autoChecksPassed === false) {
-      return res.status(400).json({
-        error: 'Verification failed',
-        message: 'Workout did not pass automated safety and quality checks',
+      const error = new BadRequestError('Workout failed automated safety and quality checks');
+      error.errors = {
         failedChecks: ['videoQuality', 'safetyGuidelines'],
         recommendations: [
-          'Improve video resolution to at least 720p',
+          'Improve video resolution to minimum 720p',
           'Add proper warm-up and cool-down instructions',
-          'Include safety disclaimers for high-intensity exercises'
+          'Include safety warnings for high-intensity exercises'
         ]
-      });
+      };
+      throw error;
     }
 
     // Dynamic verification scores based on input
@@ -185,13 +183,13 @@ router.post('/:id/verify', [
             ]
     };
 
-    res.json(mockVerification);
-  } catch (error) {
-    console.error('Error verifying workout:', error);
-    res.status(500).json({
-      error: 'Internal server error',
-      message: 'Failed to verify workout'
+    // 200 OK - verification completed
+    res.status(200).json({
+      success: true,
+      data: mockVerification
     });
+  } catch (error) {
+    next(error);
   }
 });
 

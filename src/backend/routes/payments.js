@@ -1,6 +1,7 @@
 const express = require('express');
 const { body } = require('express-validator');
 const validateRequest = require('../middleware/validateRequest');
+const { NotFoundError, BadRequestError, ConflictError } = require('../utils/errors');
 const router = express.Router();
 
 /**
@@ -45,7 +46,7 @@ const router = express.Router();
  *                 description: Subscription plan duration
  *                 example: "monthly"
  *     responses:
- *       200:
+ *       201:
  *         description: Subscription created successfully
  *         content:
  *           application/json:
@@ -91,40 +92,37 @@ const router = express.Router();
  *         description: Invalid payment data
  *       401:
  *         description: Unauthorized - Invalid or missing token
- *       402:
- *         description: Payment failed
+ *       404:
+ *         description: User or workout not found
+ *       409:
+ *         description: User already has active subscription
  */
 router.post('/subscribe', [
   body('userId').notEmpty().withMessage('userId is required'),
   body('workoutId').notEmpty().withMessage('workoutId is required'),
   body('paymentMethod').isIn(['stripe', 'paypal']).withMessage('paymentMethod must be either stripe or paypal'),
   validateRequest
-], (req, res) => {
+], (req, res, next) => {
   try {
     const { userId, workoutId, paymentMethod, planType = 'monthly', paymentToken } = req.body;
 
     // Mock 404 check for non-existent resources
     if (userId === 'nonexistent') {
-      return res.status(404).json({
-        error: 'User not found',
-        message: 'The specified user does not exist in the system'
-      });
+      throw new NotFoundError('User');
     }
 
     if (workoutId === 'nonexistent') {
-      return res.status(404).json({
-        error: 'Workout not found',
-        message: 'The specified workout does not exist in the system'
-      });
+      throw new NotFoundError('Workout');
+    }
+
+    // Mock conflict - user already has subscription
+    if (userId === 'already_subscribed') {
+      throw new ConflictError('User already has an active subscription to this workout');
     }
 
     // Mock payment failure scenario
     if (paymentToken === 'invalid_token') {
-      return res.status(402).json({
-        error: 'Payment failed',
-        message: 'Payment could not be processed. Please check your payment details.',
-        paymentMethod: paymentMethod
-      });
+      throw new BadRequestError('Payment could not be processed. Please check payment details');
     }
 
     const startDate = new Date();
@@ -166,13 +164,13 @@ router.post('/subscribe', [
       }
     };
 
-    res.json(mockSubscription);
-  } catch (error) {
-    console.error('Error processing subscription:', error);
-    res.status(500).json({
-      error: 'Internal server error',
-      message: 'Failed to process subscription payment'
+    // 201 Created - new resource (subscription) created
+    res.status(201).json({
+      success: true,
+      data: mockSubscription
     });
+  } catch (error) {
+    next(error);
   }
 });
 
