@@ -127,7 +127,7 @@ router.get('/trainer/:id', [
 
     // Mock 404 check for non-existent trainer
     if (id === 'nonexistent') {
-      throw new NotFoundError('Тренер');
+      throw new NotFoundError('Trainer');
     }
 
     // Dynamic statistics based on period
@@ -212,7 +212,7 @@ router.get('/trainer/:id', [
       }
     };
 
-    // 200 OK - успішне отримання статистики
+    // 200 OK - successful statistics retrieval
     res.status(200).json({
       success: true,
       data: mockAnalytics
