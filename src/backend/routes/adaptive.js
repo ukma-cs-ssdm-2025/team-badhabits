@@ -108,11 +108,11 @@ router.post('/recommend', [
 
     // Mock 404 check for non-existent resources
     if (userId === 'nonexistent') {
-      throw new NotFoundError('Користувач');
+      throw new NotFoundError('User');
     }
 
     if (previousWorkoutId === 'nonexistent') {
-      throw new NotFoundError('Попереднє тренування');
+      throw new NotFoundError('Previous workout');
     }
 
     // Determine difficulty level based on rating
@@ -161,7 +161,7 @@ router.post('/recommend', [
           : 'Maintained current difficulty level'
     };
 
-    // 200 OK - успішна генерація рекомендації
+    // 200 OK - successful recommendation generation
     res.status(200).json({
       success: true,
       data: mockRecommendation
