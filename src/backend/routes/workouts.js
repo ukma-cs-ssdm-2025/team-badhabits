@@ -120,18 +120,18 @@ router.post('/:id/verify', [
 
     // Mock 404 check for non-existent workout
     if (id === 'nonexistent') {
-      throw new NotFoundError('Тренування');
+      throw new NotFoundError('Workout');
     }
 
     // Mock scenario where workout fails verification checks
     if (autoChecksPassed === false) {
-      const error = new BadRequestError('Тренування не пройшло автоматичні перевірки безпеки та якості');
+      const error = new BadRequestError('Workout failed automated safety and quality checks');
       error.errors = {
         failedChecks: ['videoQuality', 'safetyGuidelines'],
         recommendations: [
-          'Покращити роздільну здатність відео до мінімум 720p',
-          'Додати належні інструкції розминки та заминки',
-          'Включити попередження безпеки для високоінтенсивних вправ'
+          'Improve video resolution to minimum 720p',
+          'Add proper warm-up and cool-down instructions',
+          'Include safety warnings for high-intensity exercises'
         ]
       };
       throw error;
@@ -183,7 +183,7 @@ router.post('/:id/verify', [
             ]
     };
 
-    // 200 OK - верифікація завершена
+    // 200 OK - verification completed
     res.status(200).json({
       success: true,
       data: mockVerification
