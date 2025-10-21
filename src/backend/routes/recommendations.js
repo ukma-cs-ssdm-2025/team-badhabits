@@ -155,7 +155,7 @@ router.get('/recovery', [
 
     // Mock 404 check for non-existent user
     if (userId === 'nonexistent') {
-      throw new NotFoundError('Користувач');
+      throw new NotFoundError('User');
     }
 
     const now = new Date();
