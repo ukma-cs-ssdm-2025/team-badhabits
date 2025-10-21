@@ -278,7 +278,7 @@ router.get('/recovery', [
       ]
     };
 
-    // 200 OK - успішна генерація рекомендацій
+    // 200 OK - successful recommendation generation
     res.status(200).json({
       success: true,
       data: mockRecommendations
