@@ -19,7 +19,7 @@ const errorHandler = (err, req, res, next) => {
 
   // Determine status code
   let statusCode = err.statusCode || 500;
-  let message = err.message || 'Внутрішня помилка сервера';
+  let message = err.message || 'Internal server error';
 
   // Handle specific error types
 
@@ -34,7 +34,7 @@ const errorHandler = (err, req, res, next) => {
       success: false,
       error: {
         code: 'VALIDATION_ERROR',
-        message: 'Помилка валідації даних',
+        message: 'Data validation error',
         details: errors
       }
     });
@@ -43,25 +43,25 @@ const errorHandler = (err, req, res, next) => {
   // JWT errors
   if (err.name === 'JsonWebTokenError') {
     statusCode = 401;
-    message = 'Невалідний токен';
+    message = 'Invalid token';
   }
 
   if (err.name === 'TokenExpiredError') {
     statusCode = 401;
-    message = 'Токен прострочений';
+    message = 'Token expired';
   }
 
   // MongoDB CastError (invalid ID format)
   if (err.name === 'CastError') {
     statusCode = 400;
-    message = 'Невалідний формат ID';
+    message = 'Invalid ID format';
   }
 
   // MongoDB duplicate key error
   if (err.code === 11000) {
     statusCode = 409;
     const field = Object.keys(err.keyPattern || {})[0];
-    message = field ? `Ресурс з таким ${field} вже існує` : 'Ресурс вже існує';
+    message = field ? `Resource with this ${field} already exists` : 'Resource already exists';
   }
 
   // Build error response
