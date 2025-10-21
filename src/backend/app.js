@@ -4,7 +4,6 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./swagger');
 const errorHandler = require('./middleware/errorHandler');
 const { NotFoundError } = require('./utils/errors');
-
 const adaptiveRoutes = require('./routes/adaptive');
 const paymentsRoutes = require('./routes/payments');
 const analyticsRoutes = require('./routes/analytics');
@@ -65,7 +64,7 @@ app.get('/', (req, res) => {
 
 // 404 Handler - must be BEFORE error handler
 app.use((req, res, next) => {
-  next(new NotFoundError('Endpoint не знайдено'));
+  next(new NotFoundError('Endpoint not found'));
 });
 
 // Global Error Handler - must be LAST middleware
