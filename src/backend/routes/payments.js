@@ -108,21 +108,21 @@ router.post('/subscribe', [
 
     // Mock 404 check for non-existent resources
     if (userId === 'nonexistent') {
-      throw new NotFoundError('Користувач');
+      throw new NotFoundError('User');
     }
 
     if (workoutId === 'nonexistent') {
-      throw new NotFoundError('Тренування');
+      throw new NotFoundError('Workout');
     }
 
     // Mock conflict - user already has subscription
     if (userId === 'already_subscribed') {
-      throw new ConflictError('Користувач вже має активну підписку на це тренування');
+      throw new ConflictError('User already has an active subscription to this workout');
     }
 
     // Mock payment failure scenario
     if (paymentToken === 'invalid_token') {
-      throw new BadRequestError('Платіж не вдалося обробити. Перевірте платіжні дані');
+      throw new BadRequestError('Payment could not be processed. Please check payment details');
     }
 
     const startDate = new Date();
@@ -164,7 +164,7 @@ router.post('/subscribe', [
       }
     };
 
-    // 201 Created - новий ресурс (підписка) створено
+    // 201 Created - new resource (subscription) created
     res.status(201).json({
       success: true,
       data: mockSubscription
