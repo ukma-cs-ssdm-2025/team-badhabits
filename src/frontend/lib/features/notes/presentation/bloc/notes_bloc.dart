@@ -1,3 +1,4 @@
+// ignore_for_file: avoid_print
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/usecases/create_note.dart';
 import '../../domain/usecases/delete_note.dart';
@@ -8,11 +9,6 @@ import 'notes_state.dart';
 
 /// BLoC for managing notes state
 class NotesBloc extends Bloc<NotesEvent, NotesState> {
-  final GetNotes getNotes;
-  final CreateNote createNote;
-  final UpdateNote updateNote;
-  final DeleteNote deleteNote;
-
   NotesBloc({
     required this.getNotes,
     required this.createNote,
@@ -24,6 +20,10 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
     on<UpdateNoteEvent>(_onUpdateNote);
     on<DeleteNoteEvent>(_onDeleteNote);
   }
+  final GetNotes getNotes;
+  final CreateNote createNote;
+  final UpdateNote updateNote;
+  final DeleteNote deleteNote;
 
   /// Handle load notes request
   Future<void> _onLoadNotes(
@@ -63,9 +63,11 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
         emit(NotesError(failure.message));
       },
       (createdNote) {
-        print('🟢 NotesBloc: Note created successfully with ID: ${createdNote.id}');
+        print(
+          '🟢 NotesBloc: Note created successfully with ID: ${createdNote.id}',
+        );
         // Emit success state - parent page will reload
-        emit(NotesLoaded(const []));
+        emit(const NotesLoaded([]));
       },
     );
   }
@@ -88,7 +90,7 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
       (updatedNote) {
         print('🟢 NotesBloc: Note updated successfully');
         // Emit success state - parent page will reload
-        emit(NotesLoaded(const []));
+        emit(const NotesLoaded([]));
       },
     );
   }
@@ -111,20 +113,19 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
 
     final result = await deleteNote(event.noteId);
 
-    await result.fold(
-      (failure) async => emit(NotesError(failure.message)),
-      (_) async {
-        // Reload notes after successful deletion
-        if (userId != null) {
-          final notesResult = await getNotes(userId);
-          notesResult.fold(
-            (failure) => emit(NotesError(failure.message)),
-            (notes) => emit(NotesLoaded(notes)),
-          );
-        } else {
-          emit(const NotesError('Unable to reload notes: user ID not found'));
-        }
-      },
-    );
+    await result.fold((failure) async => emit(NotesError(failure.message)), (
+      _,
+    ) async {
+      // Reload notes after successful deletion
+      if (userId != null) {
+        final notesResult = await getNotes(userId);
+        notesResult.fold(
+          (failure) => emit(NotesError(failure.message)),
+          (notes) => emit(NotesLoaded(notes)),
+        );
+      } else {
+        emit(const NotesError('Unable to reload notes: user ID not found'));
+      }
+    });
   }
 }

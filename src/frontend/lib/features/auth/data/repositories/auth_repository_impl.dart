@@ -8,11 +8,8 @@ import '../datasources/auth_remote_data_source.dart';
 ///
 /// Handles the business logic and error handling for authentication operations
 class AuthRepositoryImpl implements AuthRepository {
+  AuthRepositoryImpl({required this.remoteDataSource});
   final AuthRemoteDataSource remoteDataSource;
-
-  AuthRepositoryImpl({
-    required this.remoteDataSource,
-  });
 
   @override
   Future<Either<Failure, UserEntity>> signIn({
@@ -71,7 +68,5 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Stream<UserEntity?> get authStateChanges {
-    return remoteDataSource.authStateChanges;
-  }
+  Stream<UserEntity?> get authStateChanges => remoteDataSource.authStateChanges;
 }

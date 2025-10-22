@@ -16,13 +16,9 @@ class AuthCheckRequested extends AuthEvent {
 
 /// Event to sign in a user
 class SignInRequested extends AuthEvent {
+  const SignInRequested({required this.email, required this.password});
   final String email;
   final String password;
-
-  const SignInRequested({
-    required this.email,
-    required this.password,
-  });
 
   @override
   List<Object?> get props => [email, password];
@@ -30,17 +26,16 @@ class SignInRequested extends AuthEvent {
 
 /// Event to sign up a new user
 class SignUpRequested extends AuthEvent {
-  final String email;
-  final String password;
-  final String name;
-  final UserType userType;
-
   const SignUpRequested({
     required this.email,
     required this.password,
     required this.name,
     required this.userType,
   });
+  final String email;
+  final String password;
+  final String name;
+  final UserType userType;
 
   @override
   List<Object?> get props => [email, password, name, userType];
@@ -53,9 +48,8 @@ class SignOutRequested extends AuthEvent {
 
 /// Event when authentication state changes
 class AuthStateChanged extends AuthEvent {
-  final UserEntity? user;
-
   const AuthStateChanged(this.user);
+  final UserEntity? user;
 
   @override
   List<Object?> get props => [user];

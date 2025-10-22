@@ -101,7 +101,7 @@ router.post('/subscribe', [
   body('userId').notEmpty().withMessage('userId is required'),
   body('workoutId').notEmpty().withMessage('workoutId is required'),
   body('paymentMethod').isIn(['stripe', 'paypal']).withMessage('paymentMethod must be either stripe or paypal'),
-  validateRequest
+  validateRequest,
 ], (req, res, next) => {
   try {
     const { userId, workoutId, paymentMethod, planType = 'monthly', paymentToken } = req.body;
@@ -137,7 +137,7 @@ router.post('/subscribe', [
     // Dynamic pricing based on plan type
     const pricing = {
       monthly: { amount: 9.99, savings: 0 },
-      yearly: { amount: 99.99, savings: 19.89 }
+      yearly: { amount: 99.99, savings: 19.89 },
     };
 
     const selectedPlan = pricing[planType] || pricing.monthly;
@@ -145,29 +145,29 @@ router.post('/subscribe', [
     // Mock subscription response
     const mockSubscription = {
       subscriptionId: `sub_${Date.now()}`,
-      userId: userId,
-      workoutId: workoutId,
+      userId,
+      workoutId,
       status: 'active',
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
-      planType: planType,
+      planType,
       amount: selectedPlan.amount,
       currency: 'USD',
       nextBillingDate: endDate.toISOString(),
-      paymentMethod: paymentMethod,
+      paymentMethod,
       savings: selectedPlan.savings,
       features: {
         unlimitedAccess: true,
         offlineDownloads: planType === 'yearly',
         prioritySupport: planType === 'yearly',
-        personalizedPlans: true
-      }
+        personalizedPlans: true,
+      },
     };
 
     // 201 Created - new resource (subscription) created
     res.status(201).json({
       success: true,
-      data: mockSubscription
+      data: mockSubscription,
     });
   } catch (error) {
     next(error);

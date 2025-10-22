@@ -30,8 +30,11 @@
     "swagger-ui-express": "^5.0.0"
   },
   "devDependencies": {
+    "@apidevtools/swagger-cli": "^4.0.4",
+    "@eslint/js": "^9.38.0",
+    "eslint": "^9.38.0",
+    "globals": "^16.4.0",
     "nodemon": "^3.0.1",
-    "redoc-cli": "^0.13.21",
-    "@apidevtools/swagger-cli": "^4.0.4"
+    "redoc-cli": "^0.13.21"
   }
 }

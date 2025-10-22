@@ -1,0 +1,162 @@
+name: Code Quality Analysis
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  flutter-analyze:
+    name: Flutter Static Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.5'
+          channel: 'stable'
+          cache: true
+
+      - name: Get Flutter dependencies
+        working-directory: src/frontend
+        run: flutter pub get
+
+      - name: Run Flutter Analyzer
+        working-directory: src/frontend
+        run: |
+          flutter analyze > analysis_output.txt 2>&1 || true
+          cat analysis_output.txt
+
+          # Count errors (critical issues)
+          ERROR_COUNT=$(grep -c "error •" analysis_output.txt || echo "0")
+          echo "Found $ERROR_COUNT errors"
+
+          # Fail if there are any critical errors
+          if [ "$ERROR_COUNT" -gt "0" ]; then
+            echo "❌ Flutter analysis failed with $ERROR_COUNT critical errors"
+            exit 1
+          fi
+
+          echo "✅ Flutter analysis passed with 0 critical errors"
+
+      - name: Upload Flutter analysis results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-analysis-results
+          path: src/frontend/analysis_output.txt
+
+  backend-lint:
+    name: Node.js Backend ESLint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: src/backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: src/backend
+        run: npm ci
+
+      - name: Run ESLint
+        working-directory: src/backend
+        run: |
+          npm run lint > lint_output.txt 2>&1 || true
+          cat lint_output.txt
+
+          # Check if there are any errors
+          if grep -q "✖" lint_output.txt; then
+            echo "❌ ESLint found errors in the code"
+            exit 1
+          fi
+
+          echo "✅ ESLint analysis passed with 0 errors"
+
+      - name: Upload ESLint results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eslint-results
+          path: src/backend/lint_output.txt
+
+  code-quality-summary:
+    name: Code Quality Summary
+    runs-on: ubuntu-latest
+    needs: [flutter-analyze, backend-lint]
+    if: always()
+
+    steps:
+      - name: Download Flutter results
+        uses: actions/download-artifact@v4
+        with:
+          name: flutter-analysis-results
+          path: ./results
+
+      - name: Download ESLint results
+        uses: actions/download-artifact@v4
+        with:
+          name: eslint-results
+          path: ./results
+
+      - name: Generate summary
+        run: |
+          echo "## 📊 Code Quality Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f ./results/analysis_output.txt ]; then
+            ERROR_COUNT=$(grep -c "error •" ./results/analysis_output.txt || echo "0")
+            WARNING_COUNT=$(grep -c "warning •" ./results/analysis_output.txt || echo "0")
+            INFO_COUNT=$(grep -c "info •" ./results/analysis_output.txt || echo "0")
+
+            echo "### Flutter Analysis Results" >> $GITHUB_STEP_SUMMARY
+            echo "- ❌ Errors: $ERROR_COUNT" >> $GITHUB_STEP_SUMMARY
+            echo "- ⚠️ Warnings: $WARNING_COUNT" >> $GITHUB_STEP_SUMMARY
+            echo "- ℹ️ Info: $INFO_COUNT" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ -f ./results/lint_output.txt ]; then
+            echo "### ESLint Results" >> $GITHUB_STEP_SUMMARY
+            if grep -q "✖" ./results/lint_output.txt; then
+              ESLINT_ERRORS=$(grep "✖" ./results/lint_output.txt | head -1)
+              echo "- $ESLINT_ERRORS" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "- ✅ No errors found" >> $GITHUB_STEP_SUMMARY
+            fi
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "### Quality Gates" >> $GITHUB_STEP_SUMMARY
+          if [ "$ERROR_COUNT" -eq "0" ] && ! grep -q "✖" ./results/lint_output.txt 2>/dev/null; then
+            echo "✅ All quality gates passed!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Quality gates failed - please fix critical errors" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Check quality gates
+        run: |
+          FLUTTER_ERRORS=$(grep -c "error •" ./results/analysis_output.txt || echo "0")
+          ESLINT_FAILED=$(grep -q "✖" ./results/lint_output.txt && echo "1" || echo "0")
+
+          if [ "$FLUTTER_ERRORS" -gt "0" ] || [ "$ESLINT_FAILED" -eq "1" ]; then
+            echo "Quality gates failed"
+            exit 1
+          fi
+
+          echo "Quality gates passed"

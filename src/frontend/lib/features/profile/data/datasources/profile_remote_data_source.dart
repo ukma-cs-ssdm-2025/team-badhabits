@@ -27,13 +27,9 @@ abstract class ProfileRemoteDataSource {
 
 /// Implementation of [ProfileRemoteDataSource]
 class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
+  ProfileRemoteDataSourceImpl({required this.firestore, required this.storage});
   final FirebaseFirestore firestore;
   final FirebaseStorage storage;
-
-  ProfileRemoteDataSourceImpl({
-    required this.firestore,
-    required this.storage,
-  });
 
   @override
   Future<UserModel> getUserProfile(String userId) async {
@@ -59,7 +55,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   }) async {
     try {
       // Build update data
-      final Map<String, dynamic> updateData = {};
+      final updateData = <String, dynamic>{};
       if (name != null) updateData['name'] = name;
       if (bio != null) updateData['bio'] = bio;
       if (avatarUrl != null) updateData['avatarUrl'] = avatarUrl;
@@ -86,15 +82,15 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   }) async {
     try {
       // Create reference to storage location
-      final String fileName = 'avatar_${DateTime.now().millisecondsSinceEpoch}.jpg';
-      final Reference ref = storage.ref().child('avatars/$userId/$fileName');
+      final fileName = 'avatar_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final ref = storage.ref().child('avatars/$userId/$fileName');
 
       // Upload file
-      final UploadTask uploadTask = ref.putFile(imageFile);
-      final TaskSnapshot snapshot = await uploadTask;
+      final uploadTask = ref.putFile(imageFile);
+      final snapshot = await uploadTask;
 
       // Get download URL
-      final String downloadUrl = await snapshot.ref.getDownloadURL();
+      final downloadUrl = await snapshot.ref.getDownloadURL();
 
       return downloadUrl;
     } catch (e) {

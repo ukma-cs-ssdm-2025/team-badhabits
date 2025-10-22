@@ -5,9 +5,8 @@ import '../repositories/profile_repository.dart';
 
 /// Use case for updating user profile
 class UpdateUserProfileUseCase {
-  final ProfileRepository repository;
-
   UpdateUserProfileUseCase(this.repository);
+  final ProfileRepository repository;
 
   /// Execute the update user profile operation
   ///
@@ -22,12 +21,10 @@ class UpdateUserProfileUseCase {
     String? name,
     String? bio,
     String? avatarUrl,
-  }) async {
-    return await repository.updateUserProfile(
-      userId: userId,
-      name: name,
-      bio: bio,
-      avatarUrl: avatarUrl,
-    );
-  }
+  }) async => repository.updateUserProfile(
+    userId: userId,
+    name: name,
+    bio: bio,
+    avatarUrl: avatarUrl,
+  );
 }

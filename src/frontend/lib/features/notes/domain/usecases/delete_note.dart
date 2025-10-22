@@ -4,16 +4,14 @@ import '../repositories/notes_repository.dart';
 
 /// Use case for deleting a note
 class DeleteNote {
-  final NotesRepository repository;
-
   DeleteNote(this.repository);
+  final NotesRepository repository;
 
   /// Execute the delete note operation
   ///
   /// [noteId] - ID of the note to delete
   ///
   /// Returns [void] on success or [Failure] on error
-  Future<Either<Failure, void>> call(String noteId) async {
-    return await repository.deleteNote(noteId);
-  }
+  Future<Either<Failure, void>> call(String noteId) async =>
+      repository.deleteNote(noteId);
 }

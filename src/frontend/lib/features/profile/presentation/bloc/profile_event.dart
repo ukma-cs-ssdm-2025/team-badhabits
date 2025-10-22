@@ -11,9 +11,8 @@ abstract class ProfileEvent extends Equatable {
 
 /// Event to load user profile
 class LoadProfile extends ProfileEvent {
-  final String userId;
-
   const LoadProfile(this.userId);
+  final String userId;
 
   @override
   List<Object?> get props => [userId];
@@ -21,15 +20,10 @@ class LoadProfile extends ProfileEvent {
 
 /// Event to update user profile
 class UpdateProfile extends ProfileEvent {
+  const UpdateProfile({required this.userId, this.name, this.bio});
   final String userId;
   final String? name;
   final String? bio;
-
-  const UpdateProfile({
-    required this.userId,
-    this.name,
-    this.bio,
-  });
 
   @override
   List<Object?> get props => [userId, name, bio];
@@ -37,13 +31,9 @@ class UpdateProfile extends ProfileEvent {
 
 /// Event to upload avatar
 class UploadAvatar extends ProfileEvent {
+  const UploadAvatar({required this.userId, required this.imageFile});
   final String userId;
   final File imageFile;
-
-  const UploadAvatar({
-    required this.userId,
-    required this.imageFile,
-  });
 
   @override
   List<Object?> get props => [userId, imageFile];

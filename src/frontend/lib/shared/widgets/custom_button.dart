@@ -1,27 +1,14 @@
 import 'package:flutter/material.dart';
 
 /// Custom button variants
-enum CustomButtonType {
-  primary,
-  secondary,
-  outlined,
-  text,
-}
+enum CustomButtonType { primary, secondary, outlined, text }
 
 /// Custom button widget with consistent styling
 class CustomButton extends StatelessWidget {
-  final String text;
-  final VoidCallback? onPressed;
-  final CustomButtonType type;
-  final bool isLoading;
-  final IconData? icon;
-  final double? width;
-  final double? height;
-
   const CustomButton({
-    super.key,
     required this.text,
     required this.onPressed,
+    super.key,
     this.type = CustomButtonType.primary,
     this.isLoading = false,
     this.icon,
@@ -31,9 +18,9 @@ class CustomButton extends StatelessWidget {
 
   /// Primary button constructor
   const CustomButton.primary({
-    super.key,
     required this.text,
     required this.onPressed,
+    super.key,
     this.isLoading = false,
     this.icon,
     this.width,
@@ -42,9 +29,9 @@ class CustomButton extends StatelessWidget {
 
   /// Secondary button constructor
   const CustomButton.secondary({
-    super.key,
     required this.text,
     required this.onPressed,
+    super.key,
     this.isLoading = false,
     this.icon,
     this.width,
@@ -53,9 +40,9 @@ class CustomButton extends StatelessWidget {
 
   /// Outlined button constructor
   const CustomButton.outlined({
-    super.key,
     required this.text,
     required this.onPressed,
+    super.key,
     this.isLoading = false,
     this.icon,
     this.width,
@@ -64,20 +51,27 @@ class CustomButton extends StatelessWidget {
 
   /// Text button constructor
   const CustomButton.text({
-    super.key,
     required this.text,
     required this.onPressed,
+    super.key,
     this.isLoading = false,
     this.icon,
     this.width,
     this.height,
   }) : type = CustomButtonType.text;
+  final String text;
+  final VoidCallback? onPressed;
+  final CustomButtonType type;
+  final bool isLoading;
+  final IconData? icon;
+  final double? width;
+  final double? height;
 
   @override
   Widget build(BuildContext context) {
-    final bool isDisabled = onPressed == null || isLoading;
+    final isDisabled = onPressed == null || isLoading;
 
-    final Widget buttonChild = isLoading
+    final buttonChild = isLoading
         ? const SizedBox(
             height: 20,
             width: 20,
@@ -87,17 +81,13 @@ class CustomButton extends StatelessWidget {
             ),
           )
         : icon != null
-            ? Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(icon),
-                  const SizedBox(width: 8),
-                  Text(text),
-                ],
-              )
-            : Text(text);
+        ? Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [Icon(icon), const SizedBox(width: 8), Text(text)],
+          )
+        : Text(text);
 
-    final Size? minimumSize = width != null || height != null
+    final minimumSize = width != null || height != null
         ? Size(width ?? double.infinity, height ?? 48)
         : null;
 
@@ -108,9 +98,7 @@ class CustomButton extends StatelessWidget {
           height: height,
           child: ElevatedButton(
             onPressed: isDisabled ? null : onPressed,
-            style: ElevatedButton.styleFrom(
-              minimumSize: minimumSize,
-            ),
+            style: ElevatedButton.styleFrom(minimumSize: minimumSize),
             child: buttonChild,
           ),
         );
@@ -136,9 +124,7 @@ class CustomButton extends StatelessWidget {
           height: height,
           child: OutlinedButton(
             onPressed: isDisabled ? null : onPressed,
-            style: OutlinedButton.styleFrom(
-              minimumSize: minimumSize,
-            ),
+            style: OutlinedButton.styleFrom(minimumSize: minimumSize),
             child: buttonChild,
           ),
         );
@@ -149,9 +135,7 @@ class CustomButton extends StatelessWidget {
           height: height,
           child: TextButton(
             onPressed: isDisabled ? null : onPressed,
-            style: TextButton.styleFrom(
-              minimumSize: minimumSize,
-            ),
+            style: TextButton.styleFrom(minimumSize: minimumSize),
             child: buttonChild,
           ),
         );

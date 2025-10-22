@@ -20,11 +20,8 @@ abstract class NotesFirestoreDataSource {
 
 /// Implementation of [NotesFirestoreDataSource]
 class NotesFirestoreDataSourceImpl implements NotesFirestoreDataSource {
+  NotesFirestoreDataSourceImpl({required this.firestore});
   final FirebaseFirestore firestore;
-
-  NotesFirestoreDataSourceImpl({
-    required this.firestore,
-  });
 
   @override
   Future<List<NoteModel>> getNotes(String userId) async {
@@ -35,9 +32,7 @@ class NotesFirestoreDataSourceImpl implements NotesFirestoreDataSource {
           .orderBy('createdAt', descending: true)
           .get();
 
-      return querySnapshot.docs
-          .map((doc) => NoteModel.fromFirestore(doc))
-          .toList();
+      return querySnapshot.docs.map(NoteModel.fromFirestore).toList();
     } catch (e) {
       throw Exception('Failed to get notes: $e');
     }

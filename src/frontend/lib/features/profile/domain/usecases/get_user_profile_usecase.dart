@@ -5,16 +5,14 @@ import '../repositories/profile_repository.dart';
 
 /// Use case for getting user profile
 class GetUserProfileUseCase {
-  final ProfileRepository repository;
-
   GetUserProfileUseCase(this.repository);
+  final ProfileRepository repository;
 
   /// Execute the get user profile operation
   ///
   /// [userId] - ID of the user to get profile for
   ///
   /// Returns [UserEntity] on success or [Failure] on error
-  Future<Either<Failure, UserEntity>> call(String userId) async {
-    return await repository.getUserProfile(userId);
-  }
+  Future<Either<Failure, UserEntity>> call(String userId) async =>
+      repository.getUserProfile(userId);
 }

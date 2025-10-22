@@ -1,6 +1,6 @@
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
-    show defaultTargetPlatform, kIsWeb, TargetPlatform;
+    show TargetPlatform, defaultTargetPlatform;
 
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
@@ -32,5 +32,4 @@ class DefaultFirebaseOptions {
     storageBucket: 'wellity-ce2a3.firebasestorage.app',
     iosBundleId: 'ua.wellity.frontend',
   );
-
 }

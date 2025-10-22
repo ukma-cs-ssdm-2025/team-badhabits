@@ -4,33 +4,20 @@ import 'package:equatable/equatable.dart';
 ///
 /// Represents what entity the note is attached to (e.g., habit, session, goal).
 class NoteAttachment extends Equatable {
+  const NoteAttachment({required this.type, required this.id});
+
   /// Type of entity the note is attached to
   final String type;
 
   /// ID of the entity the note is attached to
   final String id;
 
-  const NoteAttachment({
-    required this.type,
-    required this.id,
-  });
-
   @override
-  List<Object?> get props => [
-        type,
-        id,
-      ];
+  List<Object?> get props => [type, id];
 
   /// Copies the attachment with the ability to change individual fields
-  NoteAttachment copyWith({
-    String? type,
-    String? id,
-  }) {
-    return NoteAttachment(
-      type: type ?? this.type,
-      id: id ?? this.id,
-    );
-  }
+  NoteAttachment copyWith({String? type, String? id}) =>
+      NoteAttachment(type: type ?? this.type, id: id ?? this.id);
 }
 
 /// Note entity (domain layer)
@@ -38,6 +25,16 @@ class NoteAttachment extends Equatable {
 /// Represents a user note in the system.
 /// Independent of data sources and used in business logic.
 class Note extends Equatable {
+  const Note({
+    required this.id,
+    required this.userId,
+    required this.title,
+    required this.content,
+    required this.createdAt,
+    required this.updatedAt,
+    this.attachedTo,
+  });
+
   /// Unique note identifier
   final String id;
 
@@ -59,26 +56,16 @@ class Note extends Equatable {
   /// Optional attachment information (what entity this note is attached to)
   final NoteAttachment? attachedTo;
 
-  const Note({
-    required this.id,
-    required this.userId,
-    required this.title,
-    required this.content,
-    required this.createdAt,
-    required this.updatedAt,
-    this.attachedTo,
-  });
-
   @override
   List<Object?> get props => [
-        id,
-        userId,
-        title,
-        content,
-        createdAt,
-        updatedAt,
-        attachedTo,
-      ];
+    id,
+    userId,
+    title,
+    content,
+    createdAt,
+    updatedAt,
+    attachedTo,
+  ];
 
   /// Copies the entity with the ability to change individual fields
   Note copyWith({
@@ -89,15 +76,13 @@ class Note extends Equatable {
     DateTime? createdAt,
     DateTime? updatedAt,
     NoteAttachment? attachedTo,
-  }) {
-    return Note(
-      id: id ?? this.id,
-      userId: userId ?? this.userId,
-      title: title ?? this.title,
-      content: content ?? this.content,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
-      attachedTo: attachedTo ?? this.attachedTo,
-    );
-  }
+  }) => Note(
+    id: id ?? this.id,
+    userId: userId ?? this.userId,
+    title: title ?? this.title,
+    content: content ?? this.content,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    attachedTo: attachedTo ?? this.attachedTo,
+  );
 }

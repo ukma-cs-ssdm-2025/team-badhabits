@@ -1,6 +1,8 @@
+// ignore_for_file: avoid_print
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+
 import '../../domain/entities/note.dart';
 import '../bloc/notes_bloc.dart';
 import '../bloc/notes_event.dart';
@@ -8,13 +10,10 @@ import '../bloc/notes_state.dart';
 
 /// Page for creating and editing notes
 class CreateEditNotePage extends StatefulWidget {
+  const CreateEditNotePage({super.key, this.note});
+
   /// Note to edit (null for create mode)
   final Note? note;
-
-  const CreateEditNotePage({
-    super.key,
-    this.note,
-  });
 
   @override
   State<CreateEditNotePage> createState() => _CreateEditNotePageState();
@@ -33,9 +32,7 @@ class _CreateEditNotePageState extends State<CreateEditNotePage> {
   void initState() {
     super.initState();
     // Initialize controllers with existing note data if in edit mode
-    _titleController = TextEditingController(
-      text: widget.note?.title ?? '',
-    );
+    _titleController = TextEditingController(text: widget.note?.title ?? '');
     _contentController = TextEditingController(
       text: widget.note?.content ?? '',
     );
@@ -100,149 +97,137 @@ class _CreateEditNotePageState extends State<CreateEditNotePage> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
         );
       }
     }
   }
 
   @override
-  Widget build(BuildContext context) {
-    return BlocListener<NotesBloc, NotesState>(
-      listener: (context, state) {
-        print('📝 CreateEditNotePage state changed: ${state.runtimeType}');
-        if (state is NotesLoaded) {
-          print('✅ Note saved successfully, closing page with result=true');
-          // Note saved successfully
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                isEditMode
-                    ? 'Note updated successfully'
-                    : 'Note created successfully',
-              ),
-              backgroundColor: Colors.green,
+  Widget build(BuildContext context) => BlocListener<NotesBloc, NotesState>(
+    listener: (context, state) {
+      print('📝 CreateEditNotePage state changed: ${state.runtimeType}');
+      if (state is NotesLoaded) {
+        print('✅ Note saved successfully, closing page with result=true');
+        // Note saved successfully
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              isEditMode
+                  ? 'Note updated successfully'
+                  : 'Note created successfully',
             ),
-          );
-          // Return true to indicate successful save
-          Navigator.of(context).pop(true);
-        } else if (state is NotesError) {
-          // Error occurred
-          setState(() {
-            _isLoading = false;
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            isEditMode ? 'Edit Note' : 'Create Note',
+            backgroundColor: Colors.green,
           ),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: _isLoading
-                ? null
-                : () => Navigator.of(context).pop(),
-          ),
+        );
+        // Return true to indicate successful save
+        Navigator.of(context).pop(true);
+      } else if (state is NotesError) {
+        // Error occurred
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(state.message), backgroundColor: Colors.red),
+        );
+      }
+    },
+    child: Scaffold(
+      appBar: AppBar(
+        title: Text(isEditMode ? 'Edit Note' : 'Create Note'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
         ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Title field
-                TextFormField(
-                  controller: _titleController,
-                  decoration: const InputDecoration(
-                    labelText: 'Title',
-                    hintText: 'Enter note title',
-                    prefixIcon: Icon(Icons.title),
-                    border: OutlineInputBorder(),
-                    counterText: '',
-                  ),
-                  maxLength: 100,
-                  textInputAction: TextInputAction.next,
-                  enabled: !_isLoading,
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Please enter a title';
-                    }
-                    if (value.trim().length < 2) {
-                      return 'Title must be at least 2 characters';
-                    }
-                    return null;
-                  },
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Title field
+              TextFormField(
+                controller: _titleController,
+                decoration: const InputDecoration(
+                  labelText: 'Title',
+                  hintText: 'Enter note title',
+                  prefixIcon: Icon(Icons.title),
+                  border: OutlineInputBorder(),
+                  counterText: '',
                 ),
-                const SizedBox(height: 16),
+                maxLength: 100,
+                textInputAction: TextInputAction.next,
+                enabled: !_isLoading,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Please enter a title';
+                  }
+                  if (value.trim().length < 2) {
+                    return 'Title must be at least 2 characters';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
 
-                // Content field
-                TextFormField(
-                  controller: _contentController,
-                  decoration: const InputDecoration(
-                    labelText: 'Content',
-                    hintText: 'Enter note content',
-                    prefixIcon: Icon(Icons.description),
-                    border: OutlineInputBorder(),
-                    alignLabelWithHint: true,
-                  ),
-                  maxLines: 10,
-                  minLines: 5,
-                  textInputAction: TextInputAction.newline,
-                  enabled: !_isLoading,
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Please enter content';
-                    }
-                    if (value.trim().length < 5) {
-                      return 'Content must be at least 5 characters';
-                    }
-                    return null;
-                  },
+              // Content field
+              TextFormField(
+                controller: _contentController,
+                decoration: const InputDecoration(
+                  labelText: 'Content',
+                  hintText: 'Enter note content',
+                  prefixIcon: Icon(Icons.description),
+                  border: OutlineInputBorder(),
+                  alignLabelWithHint: true,
                 ),
-                const SizedBox(height: 24),
+                maxLines: 10,
+                minLines: 5,
+                textInputAction: TextInputAction.newline,
+                enabled: !_isLoading,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Please enter content';
+                  }
+                  if (value.trim().length < 5) {
+                    return 'Content must be at least 5 characters';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 24),
 
-                // Save button
-                ElevatedButton(
-                  onPressed: _isLoading ? null : _saveNote,
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(double.infinity, 48),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+              // Save button
+              ElevatedButton(
+                onPressed: _isLoading ? null : _saveNote,
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 48),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Text(
-                          'Save',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
+                ),
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
                         ),
-                ),
-              ],
-            ),
+                      )
+                    : const Text(
+                        'Save',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+              ),
+            ],
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
 }

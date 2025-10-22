@@ -5,9 +5,8 @@ import '../repositories/profile_repository.dart';
 
 /// Use case for uploading user avatar
 class UploadAvatarUseCase {
-  final ProfileRepository repository;
-
   UploadAvatarUseCase(this.repository);
+  final ProfileRepository repository;
 
   /// Execute the upload avatar operation
   ///
@@ -18,10 +17,5 @@ class UploadAvatarUseCase {
   Future<Either<Failure, String>> call({
     required String userId,
     required File imageFile,
-  }) async {
-    return await repository.uploadAvatar(
-      userId: userId,
-      imageFile: imageFile,
-    );
-  }
+  }) async => repository.uploadAvatar(userId: userId, imageFile: imageFile);
 }

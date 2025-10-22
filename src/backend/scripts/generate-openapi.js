@@ -82,7 +82,6 @@ async function generateOpenAPI() {
     console.log(`\n Generated file: ${OUTPUT_PATH}`);
     console.log(`Total endpoints: ${Object.keys(openAPISpec.paths || {}).length}`);
     console.log(`Components schemas: ${Object.keys(openAPISpec.components?.schemas || {}).length}`);
-
   } catch (error) {
     console.error('\n Error during OpenAPI generation:');
     console.error(error.message);
