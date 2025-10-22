@@ -60,3 +60,13 @@ class AuthStateChanged extends AuthEvent {
   @override
   List<Object?> get props => [user];
 }
+
+/// Event when user profile is updated
+class UserProfileUpdated extends AuthEvent {
+  final UserEntity user;
+
+  const UserProfileUpdated(this.user);
+
+  @override
+  List<Object?> get props => [user];
+}
