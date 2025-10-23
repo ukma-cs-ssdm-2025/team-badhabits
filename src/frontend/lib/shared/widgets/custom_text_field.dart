@@ -3,27 +3,6 @@ import 'package:flutter/services.dart';
 
 /// Custom text field widget with consistent styling
 class CustomTextField extends StatefulWidget {
-  final TextEditingController? controller;
-  final String? labelText;
-  final String? hintText;
-  final String? helperText;
-  final String? errorText;
-  final IconData? prefixIcon;
-  final Widget? suffixIcon;
-  final bool obscureText;
-  final TextInputType? keyboardType;
-  final TextCapitalization textCapitalization;
-  final int? maxLines;
-  final int? maxLength;
-  final bool enabled;
-  final bool readOnly;
-  final FormFieldValidator<String>? validator;
-  final ValueChanged<String>? onChanged;
-  final VoidCallback? onTap;
-  final List<TextInputFormatter>? inputFormatters;
-  final FocusNode? focusNode;
-  final TextInputAction? textInputAction;
-
   const CustomTextField({
     super.key,
     this.controller,
@@ -47,6 +26,26 @@ class CustomTextField extends StatefulWidget {
     this.focusNode,
     this.textInputAction,
   });
+  final TextEditingController? controller;
+  final String? labelText;
+  final String? hintText;
+  final String? helperText;
+  final String? errorText;
+  final IconData? prefixIcon;
+  final Widget? suffixIcon;
+  final bool obscureText;
+  final TextInputType? keyboardType;
+  final TextCapitalization textCapitalization;
+  final int? maxLines;
+  final int? maxLength;
+  final bool enabled;
+  final bool readOnly;
+  final FormFieldValidator<String>? validator;
+  final ValueChanged<String>? onChanged;
+  final VoidCallback? onTap;
+  final List<TextInputFormatter>? inputFormatters;
+  final FocusNode? focusNode;
+  final TextInputAction? textInputAction;
 
   @override
   State<CustomTextField> createState() => _CustomTextFieldState();
@@ -63,13 +62,15 @@ class _CustomTextFieldState extends State<CustomTextField> {
 
   @override
   Widget build(BuildContext context) {
-    Widget? suffixIcon = widget.suffixIcon;
+    var suffixIcon = widget.suffixIcon;
 
     // Add toggle visibility icon for password fields
     if (widget.obscureText && suffixIcon == null) {
       suffixIcon = IconButton(
         icon: Icon(
-          _obscureText ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+          _obscureText
+              ? Icons.visibility_outlined
+              : Icons.visibility_off_outlined,
         ),
         onPressed: () {
           setState(() {
@@ -108,12 +109,6 @@ class _CustomTextFieldState extends State<CustomTextField> {
 
 /// Email text field
 class EmailTextField extends StatelessWidget {
-  final TextEditingController? controller;
-  final String? labelText;
-  final String? hintText;
-  final FormFieldValidator<String>? validator;
-  final ValueChanged<String>? onChanged;
-
   const EmailTextField({
     super.key,
     this.controller,
@@ -122,40 +117,37 @@ class EmailTextField extends StatelessWidget {
     this.validator,
     this.onChanged,
   });
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomTextField(
-      controller: controller,
-      labelText: labelText ?? 'Email',
-      hintText: hintText ?? 'your.email@example.com',
-      prefixIcon: Icons.email_outlined,
-      keyboardType: TextInputType.emailAddress,
-      textInputAction: TextInputAction.next,
-      validator: validator ??
-          (value) {
-            if (value == null || value.isEmpty) {
-              return 'Please enter your email';
-            }
-            if (!value.contains('@')) {
-              return 'Please enter a valid email';
-            }
-            return null;
-          },
-      onChanged: onChanged,
-    );
-  }
-}
-
-/// Password text field
-class PasswordTextField extends StatelessWidget {
   final TextEditingController? controller;
   final String? labelText;
   final String? hintText;
   final FormFieldValidator<String>? validator;
   final ValueChanged<String>? onChanged;
-  final TextInputAction? textInputAction;
 
+  @override
+  Widget build(BuildContext context) => CustomTextField(
+    controller: controller,
+    labelText: labelText ?? 'Email',
+    hintText: hintText ?? 'your.email@example.com',
+    prefixIcon: Icons.email_outlined,
+    keyboardType: TextInputType.emailAddress,
+    textInputAction: TextInputAction.next,
+    validator:
+        validator ??
+        (value) {
+          if (value == null || value.isEmpty) {
+            return 'Please enter your email';
+          }
+          if (!value.contains('@')) {
+            return 'Please enter a valid email';
+          }
+          return null;
+        },
+    onChanged: onChanged,
+  );
+}
+
+/// Password text field
+class PasswordTextField extends StatelessWidget {
   const PasswordTextField({
     super.key,
     this.controller,
@@ -165,38 +157,38 @@ class PasswordTextField extends StatelessWidget {
     this.onChanged,
     this.textInputAction,
   });
+  final TextEditingController? controller;
+  final String? labelText;
+  final String? hintText;
+  final FormFieldValidator<String>? validator;
+  final ValueChanged<String>? onChanged;
+  final TextInputAction? textInputAction;
 
   @override
-  Widget build(BuildContext context) {
-    return CustomTextField(
-      controller: controller,
-      labelText: labelText ?? 'Password',
-      hintText: hintText ?? 'Enter your password',
-      prefixIcon: Icons.lock_outlined,
-      obscureText: true,
-      textInputAction: textInputAction ?? TextInputAction.done,
-      validator: validator ??
-          (value) {
-            if (value == null || value.isEmpty) {
-              return 'Please enter your password';
-            }
-            if (value.length < 6) {
-              return 'Password must be at least 6 characters';
-            }
-            return null;
-          },
-      onChanged: onChanged,
-    );
-  }
+  Widget build(BuildContext context) => CustomTextField(
+    controller: controller,
+    labelText: labelText ?? 'Password',
+    hintText: hintText ?? 'Enter your password',
+    prefixIcon: Icons.lock_outlined,
+    obscureText: true,
+    textInputAction: textInputAction ?? TextInputAction.done,
+    validator:
+        validator ??
+        (value) {
+          if (value == null || value.isEmpty) {
+            return 'Please enter your password';
+          }
+          if (value.length < 6) {
+            return 'Password must be at least 6 characters';
+          }
+          return null;
+        },
+    onChanged: onChanged,
+  );
 }
 
 /// Search text field
 class SearchTextField extends StatelessWidget {
-  final TextEditingController? controller;
-  final String? hintText;
-  final ValueChanged<String>? onChanged;
-  final VoidCallback? onClear;
-
   const SearchTextField({
     super.key,
     this.controller,
@@ -204,24 +196,26 @@ class SearchTextField extends StatelessWidget {
     this.onChanged,
     this.onClear,
   });
+  final TextEditingController? controller;
+  final String? hintText;
+  final ValueChanged<String>? onChanged;
+  final VoidCallback? onClear;
 
   @override
-  Widget build(BuildContext context) {
-    return CustomTextField(
-      controller: controller,
-      hintText: hintText ?? 'Search...',
-      prefixIcon: Icons.search,
-      suffixIcon: controller?.text.isNotEmpty ?? false
-          ? IconButton(
-              icon: const Icon(Icons.clear),
-              onPressed: () {
-                controller?.clear();
-                onClear?.call();
-              },
-            )
-          : null,
-      onChanged: onChanged,
-      textInputAction: TextInputAction.search,
-    );
-  }
+  Widget build(BuildContext context) => CustomTextField(
+    controller: controller,
+    hintText: hintText ?? 'Search...',
+    prefixIcon: Icons.search,
+    suffixIcon: controller?.text.isNotEmpty ?? false
+        ? IconButton(
+            icon: const Icon(Icons.clear),
+            onPressed: () {
+              controller?.clear();
+              onClear?.call();
+            },
+          )
+        : null,
+    onChanged: onChanged,
+    textInputAction: TextInputAction.search,
+  );
 }

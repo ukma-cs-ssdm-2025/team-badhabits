@@ -1,10 +1,8 @@
-import 'package:get_it/get_it.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+// ignore_for_file: cascade_invocations
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-
-// Core
-import '../theme/theme_cubit.dart';
+import 'package:get_it/get_it.dart';
 
 // Auth
 import '../../features/auth/data/datasources/auth_remote_data_source.dart';
@@ -15,16 +13,6 @@ import '../../features/auth/domain/usecases/sign_in_usecase.dart';
 import '../../features/auth/domain/usecases/sign_out_usecase.dart';
 import '../../features/auth/domain/usecases/sign_up_usecase.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
-
-// Profile
-import '../../features/profile/data/datasources/profile_remote_data_source.dart';
-import '../../features/profile/data/repositories/profile_repository_impl.dart';
-import '../../features/profile/domain/repositories/profile_repository.dart';
-import '../../features/profile/domain/usecases/get_user_profile_usecase.dart';
-import '../../features/profile/domain/usecases/update_user_profile_usecase.dart';
-import '../../features/profile/domain/usecases/upload_avatar_usecase.dart';
-import '../../features/profile/presentation/bloc/profile_bloc.dart';
-
 // Notes
 import '../../features/notes/data/datasources/notes_firestore_datasource.dart';
 import '../../features/notes/data/repositories/notes_repository_impl.dart';
@@ -34,6 +22,16 @@ import '../../features/notes/domain/usecases/delete_note.dart';
 import '../../features/notes/domain/usecases/get_notes.dart';
 import '../../features/notes/domain/usecases/update_note.dart';
 import '../../features/notes/presentation/bloc/notes_bloc.dart';
+// Profile
+import '../../features/profile/data/datasources/profile_remote_data_source.dart';
+import '../../features/profile/data/repositories/profile_repository_impl.dart';
+import '../../features/profile/domain/repositories/profile_repository.dart';
+import '../../features/profile/domain/usecases/get_user_profile_usecase.dart';
+import '../../features/profile/domain/usecases/update_user_profile_usecase.dart';
+import '../../features/profile/domain/usecases/upload_avatar_usecase.dart';
+import '../../features/profile/presentation/bloc/profile_bloc.dart';
+// Core
+import '../theme/theme_cubit.dart';
 
 final sl = GetIt.instance;
 
@@ -43,7 +41,7 @@ Future<void> init() async {
   // ============================================================================
 
   // Theme
-  sl.registerFactory(() => ThemeCubit());
+  sl.registerFactory(ThemeCubit.new);
 
   // ============================================================================
   // Features - Auth
@@ -68,17 +66,12 @@ Future<void> init() async {
 
   // Repository
   sl.registerLazySingleton<AuthRepository>(
-    () => AuthRepositoryImpl(
-      remoteDataSource: sl(),
-    ),
+    () => AuthRepositoryImpl(remoteDataSource: sl()),
   );
 
   // Data sources
   sl.registerLazySingleton<AuthRemoteDataSource>(
-    () => AuthRemoteDataSourceImpl(
-      firebaseAuth: sl(),
-      firestore: sl(),
-    ),
+    () => AuthRemoteDataSourceImpl(firebaseAuth: sl(), firestore: sl()),
   );
 
   // ============================================================================
@@ -101,17 +94,12 @@ Future<void> init() async {
 
   // Repository
   sl.registerLazySingleton<ProfileRepository>(
-    () => ProfileRepositoryImpl(
-      remoteDataSource: sl(),
-    ),
+    () => ProfileRepositoryImpl(remoteDataSource: sl()),
   );
 
   // Data sources
   sl.registerLazySingleton<ProfileRemoteDataSource>(
-    () => ProfileRemoteDataSourceImpl(
-      firestore: sl(),
-      storage: sl(),
-    ),
+    () => ProfileRemoteDataSourceImpl(firestore: sl(), storage: sl()),
   );
 
   // ============================================================================

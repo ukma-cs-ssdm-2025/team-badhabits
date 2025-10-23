@@ -1,10 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// App theme mode state
-enum AppThemeMode {
-  light,
-  dark,
-}
+enum AppThemeMode { light, dark }
 
 /// Cubit for managing app theme
 class ThemeCubit extends Cubit<AppThemeMode> {

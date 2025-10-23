@@ -9,11 +9,8 @@ import '../datasources/profile_remote_data_source.dart';
 ///
 /// Handles the business logic and error handling for profile operations
 class ProfileRepositoryImpl implements ProfileRepository {
+  ProfileRepositoryImpl({required this.remoteDataSource});
   final ProfileRemoteDataSource remoteDataSource;
-
-  ProfileRepositoryImpl({
-    required this.remoteDataSource,
-  });
 
   @override
   Future<Either<Failure, UserEntity>> getUserProfile(String userId) async {

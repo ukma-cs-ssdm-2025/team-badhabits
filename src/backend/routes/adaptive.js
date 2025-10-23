@@ -1,7 +1,7 @@
 const express = require('express');
 const { body } = require('express-validator');
 const validateRequest = require('../middleware/validateRequest');
-const { NotFoundError, BadRequestError } = require('../utils/errors');
+const { NotFoundError } = require('../utils/errors');
 const router = express.Router();
 
 /**
@@ -101,7 +101,7 @@ router.post('/recommend', [
   body('userId').notEmpty().withMessage('userId is required'),
   body('previousWorkoutId').notEmpty().withMessage('previousWorkoutId is required'),
   body('userRating').isInt({ min: 1, max: 5 }).withMessage('userRating must be between 1 and 5'),
-  validateRequest
+  validateRequest,
 ], (req, res, next) => {
   try {
     const { userId, previousWorkoutId, userRating, performanceMetrics } = req.body;
@@ -124,20 +124,20 @@ router.post('/recommend', [
         { name: 'Wall Push-ups', sets: 2, reps: 10, restSeconds: 90 },
         { name: 'Bodyweight Squats', sets: 2, reps: 12, restSeconds: 90 },
         { name: 'Knee Plank', sets: 2, reps: 1, restSeconds: 90 },
-        { name: 'Standing Lunges', sets: 2, reps: 8, restSeconds: 90 }
+        { name: 'Standing Lunges', sets: 2, reps: 8, restSeconds: 90 },
       ],
       intermediate: [
         { name: 'Push-ups', sets: 3, reps: 12, restSeconds: 60 },
         { name: 'Squats', sets: 4, reps: 15, restSeconds: 90 },
         { name: 'Plank', sets: 3, reps: 1, restSeconds: 60 },
-        { name: 'Lunges', sets: 3, reps: 10, restSeconds: 60 }
+        { name: 'Lunges', sets: 3, reps: 10, restSeconds: 60 },
       ],
       advanced: [
         { name: 'Diamond Push-ups', sets: 4, reps: 15, restSeconds: 45 },
         { name: 'Jump Squats', sets: 4, reps: 20, restSeconds: 60 },
         { name: 'Plank with Leg Raise', sets: 4, reps: 1, restSeconds: 45 },
-        { name: 'Jumping Lunges', sets: 4, reps: 12, restSeconds: 45 }
-      ]
+        { name: 'Jumping Lunges', sets: 4, reps: 12, restSeconds: 45 },
+      ],
     };
 
     // Dynamic duration based on difficulty and performance
@@ -152,19 +152,19 @@ router.post('/recommend', [
       title: `Full Body Strength - ${difficultyLevel.charAt(0).toUpperCase() + difficultyLevel.slice(1)}`,
       trainerId: 'trainer101',
       exercises: exercisesByDifficulty[difficultyLevel],
-      difficultyLevel: difficultyLevel,
-      estimatedDuration: estimatedDuration,
+      difficultyLevel,
+      estimatedDuration,
       adaptationReason: userRating >= 4
         ? 'Increased intensity based on positive rating and high completion rate'
         : userRating <= 2
           ? 'Reduced intensity based on difficulty feedback'
-          : 'Maintained current difficulty level'
+          : 'Maintained current difficulty level',
     };
 
     // 200 OK - successful recommendation generation
     res.status(200).json({
       success: true,
-      data: mockRecommendation
+      data: mockRecommendation,
     });
   } catch (error) {
     next(error);

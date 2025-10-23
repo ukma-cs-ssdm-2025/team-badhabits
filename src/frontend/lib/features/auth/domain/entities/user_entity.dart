@@ -1,16 +1,23 @@
 import 'package:equatable/equatable.dart';
 
 /// Enum for user type
-enum UserType {
-  regularUser,
-  trainer,
-}
+enum UserType { regularUser, trainer }
 
 /// User entity (domain layer)
 ///
 /// Represents basic user information in the system.
 /// Independent of data sources and used in business logic.
 class UserEntity extends Equatable {
+  const UserEntity({
+    required this.id,
+    required this.email,
+    required this.name,
+    required this.userType,
+    required this.createdAt,
+    this.bio,
+    this.avatarUrl,
+  });
+
   /// Unique user identifier
   final String id;
 
@@ -32,26 +39,16 @@ class UserEntity extends Equatable {
   /// Account creation date
   final DateTime createdAt;
 
-  const UserEntity({
-    required this.id,
-    required this.email,
-    required this.name,
-    required this.userType,
-    this.bio,
-    this.avatarUrl,
-    required this.createdAt,
-  });
-
   @override
   List<Object?> get props => [
-        id,
-        email,
-        name,
-        userType,
-        bio,
-        avatarUrl,
-        createdAt,
-      ];
+    id,
+    email,
+    name,
+    userType,
+    bio,
+    avatarUrl,
+    createdAt,
+  ];
 
   /// Copies the entity with the ability to change individual fields
   UserEntity copyWith({
@@ -62,15 +59,13 @@ class UserEntity extends Equatable {
     String? bio,
     String? avatarUrl,
     DateTime? createdAt,
-  }) {
-    return UserEntity(
-      id: id ?? this.id,
-      email: email ?? this.email,
-      name: name ?? this.name,
-      userType: userType ?? this.userType,
-      bio: bio ?? this.bio,
-      avatarUrl: avatarUrl ?? this.avatarUrl,
-      createdAt: createdAt ?? this.createdAt,
-    );
-  }
+  }) => UserEntity(
+    id: id ?? this.id,
+    email: email ?? this.email,
+    name: name ?? this.name,
+    userType: userType ?? this.userType,
+    bio: bio ?? this.bio,
+    avatarUrl: avatarUrl ?? this.avatarUrl,
+    createdAt: createdAt ?? this.createdAt,
+  );
 }

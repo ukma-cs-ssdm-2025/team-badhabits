@@ -148,7 +148,7 @@ const router = express.Router();
  */
 router.get('/recovery', [
   query('userId').notEmpty().withMessage('userId is required'),
-  validateRequest
+  validateRequest,
 ], (req, res, next) => {
   try {
     const { userId, lastWorkoutId, muscleGroup = 'upper' } = req.query;
@@ -166,7 +166,7 @@ router.get('/recovery', [
       upper: 24,
       lower: 48,
       core: 18,
-      full_body: 36
+      full_body: 36,
     };
 
     const estimatedRecoveryTime = recoveryTimes[muscleGroup] || 24;
@@ -187,51 +187,51 @@ router.get('/recovery', [
       upper: [
         { name: 'Chest stretch', duration: 30, targetMuscles: ['Pectorals', 'Anterior deltoids'] },
         { name: 'Shoulder stretch', duration: 30, targetMuscles: ['Deltoids', 'Rotator cuff'] },
-        { name: 'Tricep stretch', duration: 30, targetMuscles: ['Triceps brachii'] }
+        { name: 'Tricep stretch', duration: 30, targetMuscles: ['Triceps brachii'] },
       ],
       lower: [
         { name: 'Hamstring stretch', duration: 40, targetMuscles: ['Hamstrings', 'Calves'] },
         { name: 'Quad stretch', duration: 40, targetMuscles: ['Quadriceps'] },
-        { name: 'Hip flexor stretch', duration: 35, targetMuscles: ['Hip flexors', 'Glutes'] }
+        { name: 'Hip flexor stretch', duration: 35, targetMuscles: ['Hip flexors', 'Glutes'] },
       ],
       core: [
         { name: 'Cat-cow stretch', duration: 25, targetMuscles: ['Abdominals', 'Lower back'] },
         { name: 'Child\'s pose', duration: 30, targetMuscles: ['Core', 'Spine'] },
-        { name: 'Spinal twist', duration: 30, targetMuscles: ['Obliques', 'Back muscles'] }
+        { name: 'Spinal twist', duration: 30, targetMuscles: ['Obliques', 'Back muscles'] },
       ],
       full_body: [
         { name: 'Full body reach', duration: 30, targetMuscles: ['Full body'] },
         { name: 'Downward dog', duration: 35, targetMuscles: ['Hamstrings', 'Shoulders', 'Core'] },
-        { name: 'Side stretch', duration: 30, targetMuscles: ['Obliques', 'Lats'] }
-      ]
+        { name: 'Side stretch', duration: 30, targetMuscles: ['Obliques', 'Lats'] },
+      ],
     };
 
     // Mock recovery recommendations
     const mockRecommendations = {
-      userId: userId,
+      userId,
       generatedAt: now.toISOString(),
-      recoveryStatus: recoveryStatus,
-      estimatedRecoveryTime: estimatedRecoveryTime,
+      recoveryStatus,
+      estimatedRecoveryTime,
       lastWorkoutId: lastWorkoutId || null,
       targetMuscleGroup: muscleGroup,
       recommendations: {
-        restDays: restDays,
+        restDays,
         activeRecovery: [
           {
             activity: 'Light yoga',
             duration: 20,
-            benefits: 'Improves flexibility and reduces muscle tension'
+            benefits: 'Improves flexibility and reduces muscle tension',
           },
           {
             activity: 'Walking',
             duration: 30,
-            benefits: 'Promotes blood flow and aids recovery without strain'
+            benefits: 'Promotes blood flow and aids recovery without strain',
           },
           {
             activity: 'Foam rolling',
             duration: 15,
-            benefits: 'Releases muscle knots and improves mobility'
-          }
+            benefits: 'Releases muscle knots and improves mobility',
+          },
         ],
         nutrition: {
           protein: muscleGroup === 'lower' || muscleGroup === 'full_body'
@@ -242,7 +242,7 @@ router.get('/recovery', [
             : '2.5-3L water throughout the day',
           supplements: muscleGroup === 'lower'
             ? ['BCAAs', 'Omega-3', 'Vitamin D', 'Magnesium']
-            : ['BCAAs', 'Omega-3', 'Vitamin D']
+            : ['BCAAs', 'Omega-3', 'Vitamin D'],
         },
         sleep: {
           recommendedHours: recoveryStatus === 'needs_rest' ? 9 : 8.5,
@@ -250,10 +250,10 @@ router.get('/recovery', [
             'Maintain consistent sleep schedule',
             'Avoid screens 1hr before bed',
             'Keep room temperature cool (65-68°F)',
-            'Consider magnesium supplement before bed'
-          ]
+            'Consider magnesium supplement before bed',
+          ],
         },
-        stretching: stretchingByGroup[muscleGroup] || stretchingByGroup.upper
+        stretching: stretchingByGroup[muscleGroup] || stretchingByGroup.upper,
       },
       nextWorkoutRecommendation: {
         suggestedDate: nextWorkoutDate.toISOString(),
@@ -268,20 +268,20 @@ router.get('/recovery', [
           ? 'moderate'
           : recoveryStatus === 'partially_recovered'
             ? 'light-moderate'
-            : 'light'
+            : 'light',
       },
       warnings: [
         `Avoid heavy ${muscleGroup} body exercises for ${estimatedRecoveryTime}-${estimatedRecoveryTime + 24} hours`,
         'Listen to your body - extend rest if experiencing persistent soreness',
         'Ensure adequate protein intake for muscle repair',
-        ...(recoveryStatus === 'needs_rest' ? ['Consider taking an extra rest day before intense training'] : [])
-      ]
+        ...(recoveryStatus === 'needs_rest' ? ['Consider taking an extra rest day before intense training'] : []),
+      ],
     };
 
     // 200 OK - successful recommendation generation
     res.status(200).json({
       success: true,
-      data: mockRecommendations
+      data: mockRecommendations,
     });
   } catch (error) {
     next(error);

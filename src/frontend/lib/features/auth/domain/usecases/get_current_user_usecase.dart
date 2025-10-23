@@ -5,14 +5,12 @@ import '../repositories/auth_repository.dart';
 
 /// Use case for getting the current authenticated user
 class GetCurrentUserUseCase {
-  final AuthRepository repository;
-
   GetCurrentUserUseCase(this.repository);
+  final AuthRepository repository;
 
   /// Execute the get current user operation
   ///
   /// Returns [UserEntity] if authenticated or [Failure] if not
-  Future<Either<Failure, UserEntity>> call() async {
-    return await repository.getCurrentUser();
-  }
+  Future<Either<Failure, UserEntity>> call() async =>
+      repository.getCurrentUser();
 }

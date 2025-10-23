@@ -1,7 +1,7 @@
 const express = require('express');
 const { param, query } = require('express-validator');
 const validateRequest = require('../middleware/validateRequest');
-const { NotFoundError, BadRequestError } = require('../utils/errors');
+const { NotFoundError } = require('../utils/errors');
 const router = express.Router();
 
 /**
@@ -119,7 +119,7 @@ const router = express.Router();
 router.get('/trainer/:id', [
   param('id').notEmpty().withMessage('trainerId is required'),
   query('period').optional().isIn(['week', 'month', 'quarter', 'year']).withMessage('period must be one of: week, month, quarter, year'),
-  validateRequest
+  validateRequest,
 ], (req, res, next) => {
   try {
     const { id } = req.params;
@@ -135,7 +135,7 @@ router.get('/trainer/:id', [
       week: { mult: 0.25, newSubs: 20, revenue: 3000 },
       month: { mult: 1, newSubs: 87, revenue: 12487.50 },
       quarter: { mult: 3, newSubs: 245, revenue: 35420 },
-      year: { mult: 12, newSubs: 980, revenue: 142350 }
+      year: { mult: 12, newSubs: 980, revenue: 142350 },
     };
 
     const periodData = periodMultipliers[period] || periodMultipliers.month;
@@ -145,7 +145,7 @@ router.get('/trainer/:id', [
       week: { daily: 234, weekly: 567, monthly: 1089 },
       month: { daily: 289, weekly: 712, monthly: 1250 },
       quarter: { daily: 345, weekly: 892, monthly: 1450 },
-      year: { daily: 398, weekly: 1034, monthly: 1689 }
+      year: { daily: 398, weekly: 1034, monthly: 1689 },
     };
 
     const engagement = baseEngagement[period] || baseEngagement.month;
@@ -154,10 +154,10 @@ router.get('/trainer/:id', [
     const mockAnalytics = {
       trainerId: id,
       displayName: 'John Doe',
-      period: period,
+      period,
       dateRange: {
         start: new Date(Date.now() - (periodData.mult * 30 * 24 * 60 * 60 * 1000)).toISOString(),
-        end: new Date().toISOString()
+        end: new Date().toISOString(),
       },
       statistics: {
         totalWorkouts: Math.floor(45 * periodData.mult),
@@ -167,55 +167,55 @@ router.get('/trainer/:id', [
         totalRevenue: periodData.revenue,
         averageRating: 4.6,
         totalCompletions: Math.floor(5432 * periodData.mult),
-        completionRate: 87.5
+        completionRate: 87.5,
       },
       topWorkouts: [
         {
           workoutId: 'workout789',
           title: 'HIIT Cardio Blast',
           completions: Math.floor(892 * periodData.mult),
-          averageRating: 4.8
+          averageRating: 4.8,
         },
         {
           workoutId: 'workout234',
           title: 'Upper Body Strength',
           completions: Math.floor(765 * periodData.mult),
-          averageRating: 4.7
+          averageRating: 4.7,
         },
         {
           workoutId: 'workout567',
           title: 'Core & Abs Intensive',
           completions: Math.floor(654 * periodData.mult),
-          averageRating: 4.5
+          averageRating: 4.5,
         },
         {
           workoutId: 'workout890',
           title: 'Yoga Flow',
           completions: Math.floor(543 * periodData.mult),
-          averageRating: 4.9
+          averageRating: 4.9,
         },
         {
           workoutId: 'workout345',
           title: 'Leg Day Power',
           completions: Math.floor(432 * periodData.mult),
-          averageRating: 4.4
-        }
+          averageRating: 4.4,
+        },
       ],
       engagement: {
         dailyActiveUsers: engagement.daily,
         weeklyActiveUsers: engagement.weekly,
-        monthlyActiveUsers: engagement.monthly
+        monthlyActiveUsers: engagement.monthly,
       },
       trends: {
         subscriberGrowth: periodData.newSubs > 200 ? 'high' : periodData.newSubs > 50 ? 'moderate' : 'steady',
-        revenueGrowth: periodData.revenue > 100000 ? 'excellent' : periodData.revenue > 30000 ? 'good' : 'stable'
-      }
+        revenueGrowth: periodData.revenue > 100000 ? 'excellent' : periodData.revenue > 30000 ? 'good' : 'stable',
+      },
     };
 
     // 200 OK - successful statistics retrieval
     res.status(200).json({
       success: true,
-      data: mockAnalytics
+      data: mockAnalytics,
     });
   } catch (error) {
     next(error);

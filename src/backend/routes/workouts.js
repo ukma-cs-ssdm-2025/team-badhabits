@@ -112,7 +112,7 @@ const router = express.Router();
 router.post('/:id/verify', [
   param('id').notEmpty().withMessage('workout id is required'),
   body('verifiedBy').notEmpty().withMessage('verifiedBy is required'),
-  validateRequest
+  validateRequest,
 ], (req, res, next) => {
   try {
     const { id } = req.params;
@@ -131,8 +131,8 @@ router.post('/:id/verify', [
         recommendations: [
           'Improve video resolution to minimum 720p',
           'Add proper warm-up and cool-down instructions',
-          'Include safety warnings for high-intensity exercises'
-        ]
+          'Include safety warnings for high-intensity exercises',
+        ],
       };
       throw error;
     }
@@ -150,43 +150,43 @@ router.post('/:id/verify', [
     const mockVerification = {
       workoutId: id,
       isVerified: verificationStatus !== 'rejected',
-      verificationStatus: verificationStatus,
-      verifiedBy: verifiedBy,
+      verificationStatus,
+      verifiedBy,
       verifiedAt: new Date().toISOString(),
       verificationDetails: {
-        safetyScore: safetyScore,
-        qualityScore: qualityScore,
+        safetyScore,
+        qualityScore,
         overallScore: Math.round(overallScore),
         checks: {
           videoQuality: autoChecksPassed,
           exerciseForm: autoChecksPassed,
           instructionClarity: autoChecksPassed,
-          safetyGuidelines: autoChecksPassed
+          safetyGuidelines: autoChecksPassed,
         },
-        verificationNotes: verificationNotes || 'Workout meets all quality and safety standards'
+        verificationNotes: verificationNotes || 'Workout meets all quality and safety standards',
       },
       nextSteps: verificationStatus === 'approved'
         ? [
-            'Workout is now live and accessible to premium users',
-            'Added to trainer\'s verified workout list',
-            'Email notification sent to trainer'
-          ]
+          'Workout is now live and accessible to premium users',
+          'Added to trainer\'s verified workout list',
+          'Email notification sent to trainer',
+        ]
         : verificationStatus === 'approved_with_notes'
           ? [
-              'Workout is approved with recommendations',
-              'Consider addressing noted improvements for better quality',
-              'Notification sent to trainer with feedback'
-            ]
+            'Workout is approved with recommendations',
+            'Consider addressing noted improvements for better quality',
+            'Notification sent to trainer with feedback',
+          ]
           : [
-              'Workout requires revisions before approval',
-              'Trainer notified of required changes'
-            ]
+            'Workout requires revisions before approval',
+            'Trainer notified of required changes',
+          ],
     };
 
     // 200 OK - verification completed
     res.status(200).json({
       success: true,
-      data: mockVerification
+      data: mockVerification,
     });
   } catch (error) {
     next(error);

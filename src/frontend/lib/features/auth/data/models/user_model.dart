@@ -1,3 +1,4 @@
+// ignore_for_file: cascade_invocations
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../domain/entities/user_entity.dart';
 
@@ -11,62 +12,53 @@ class UserModel extends UserEntity {
     required super.email,
     required super.name,
     required super.userType,
+    required super.createdAt,
     super.bio,
     super.avatarUrl,
-    required super.createdAt,
   });
 
   /// Creates [UserModel] from [UserEntity]
-  factory UserModel.fromEntity(UserEntity entity) {
-    return UserModel(
-      id: entity.id,
-      email: entity.email,
-      name: entity.name,
-      userType: entity.userType,
-      bio: entity.bio,
-      avatarUrl: entity.avatarUrl,
-      createdAt: entity.createdAt,
-    );
-  }
+  factory UserModel.fromEntity(UserEntity entity) => UserModel(
+    id: entity.id,
+    email: entity.email,
+    name: entity.name,
+    userType: entity.userType,
+    bio: entity.bio,
+    avatarUrl: entity.avatarUrl,
+    createdAt: entity.createdAt,
+  );
 
   /// Creates [UserModel] from JSON (Map)
   ///
   /// Used for deserializing data from Firestore
-  factory UserModel.fromJson(Map<String, dynamic> json) {
-    return UserModel(
-      id: json['id'] as String,
-      email: json['email'] as String,
-      name: json['name'] as String,
-      userType: _userTypeFromString(json['userType'] as String),
-      bio: json['bio'] as String?,
-      avatarUrl: json['avatarUrl'] as String?,
-      createdAt: (json['createdAt'] as Timestamp).toDate(),
-    );
-  }
+  factory UserModel.fromJson(Map<String, dynamic> json) => UserModel(
+    id: json['id'] as String,
+    email: json['email'] as String,
+    name: json['name'] as String,
+    userType: _userTypeFromString(json['userType'] as String),
+    bio: json['bio'] as String?,
+    avatarUrl: json['avatarUrl'] as String?,
+    createdAt: (json['createdAt'] as Timestamp).toDate(),
+  );
 
   /// Creates [UserModel] from Firestore DocumentSnapshot
   factory UserModel.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
-    return UserModel.fromJson({
-      'id': doc.id,
-      ...data,
-    });
+    final data = doc.data()! as Map<String, dynamic>;
+    return UserModel.fromJson({'id': doc.id, ...data});
   }
 
   /// Converts [UserModel] to JSON (Map)
   ///
   /// Used for serializing data before saving to Firestore
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'email': email,
-      'name': name,
-      'userType': _userTypeToString(userType),
-      'bio': bio,
-      'avatarUrl': avatarUrl,
-      'createdAt': Timestamp.fromDate(createdAt),
-    };
-  }
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'email': email,
+    'name': name,
+    'userType': _userTypeToString(userType),
+    'bio': bio,
+    'avatarUrl': avatarUrl,
+    'createdAt': Timestamp.fromDate(createdAt),
+  };
 
   /// Converts [UserModel] to Map for Firestore (without id)
   ///
@@ -109,15 +101,13 @@ class UserModel extends UserEntity {
     String? bio,
     String? avatarUrl,
     DateTime? createdAt,
-  }) {
-    return UserModel(
-      id: id ?? this.id,
-      email: email ?? this.email,
-      name: name ?? this.name,
-      userType: userType ?? this.userType,
-      bio: bio ?? this.bio,
-      avatarUrl: avatarUrl ?? this.avatarUrl,
-      createdAt: createdAt ?? this.createdAt,
-    );
-  }
+  }) => UserModel(
+    id: id ?? this.id,
+    email: email ?? this.email,
+    name: name ?? this.name,
+    userType: userType ?? this.userType,
+    bio: bio ?? this.bio,
+    avatarUrl: avatarUrl ?? this.avatarUrl,
+    createdAt: createdAt ?? this.createdAt,
+  );
 }

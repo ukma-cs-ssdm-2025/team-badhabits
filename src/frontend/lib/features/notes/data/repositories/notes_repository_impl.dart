@@ -10,11 +10,8 @@ import '../models/note_model.dart';
 ///
 /// Handles the business logic and error handling for notes operations
 class NotesRepositoryImpl implements NotesRepository {
+  NotesRepositoryImpl({required this.datasource});
   final NotesFirestoreDataSource datasource;
-
-  NotesRepositoryImpl({
-    required this.datasource,
-  });
 
   @override
   Future<Either<Failure, List<Note>>> getNotes(String userId) async {
@@ -24,7 +21,7 @@ class NotesRepositoryImpl implements NotesRepository {
     } on FirebaseException catch (e) {
       return Left(ServerFailure('Firebase error: ${e.message}'));
     } catch (e) {
-      return Left(ServerFailure('Failed to get notes: ${e.toString()}'));
+      return Left(ServerFailure('Failed to get notes: $e'));
     }
   }
 
@@ -38,7 +35,7 @@ class NotesRepositoryImpl implements NotesRepository {
     } on FirebaseException catch (e) {
       return Left(ServerFailure('Firebase error: ${e.message}'));
     } catch (e) {
-      return Left(ServerFailure('Failed to create note: ${e.toString()}'));
+      return Left(ServerFailure('Failed to create note: $e'));
     }
   }
 
@@ -52,7 +49,7 @@ class NotesRepositoryImpl implements NotesRepository {
     } on FirebaseException catch (e) {
       return Left(ServerFailure('Firebase error: ${e.message}'));
     } catch (e) {
-      return Left(ServerFailure('Failed to update note: ${e.toString()}'));
+      return Left(ServerFailure('Failed to update note: $e'));
     }
   }
 
@@ -64,7 +61,7 @@ class NotesRepositoryImpl implements NotesRepository {
     } on FirebaseException catch (e) {
       return Left(ServerFailure('Firebase error: ${e.message}'));
     } catch (e) {
-      return Left(ServerFailure('Failed to delete note: ${e.toString()}'));
+      return Left(ServerFailure('Failed to delete note: $e'));
     }
   }
 }
