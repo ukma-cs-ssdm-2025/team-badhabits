@@ -11,9 +11,8 @@ abstract class NotesEvent extends Equatable {
 
 /// Event to load all notes for a user
 class LoadNotesEvent extends NotesEvent {
-  final String userId;
-
   const LoadNotesEvent(this.userId);
+  final String userId;
 
   @override
   List<Object?> get props => [userId];
@@ -21,9 +20,8 @@ class LoadNotesEvent extends NotesEvent {
 
 /// Event to create a new note
 class CreateNoteEvent extends NotesEvent {
-  final Note note;
-
   const CreateNoteEvent(this.note);
+  final Note note;
 
   @override
   List<Object?> get props => [note];
@@ -31,9 +29,8 @@ class CreateNoteEvent extends NotesEvent {
 
 /// Event to update an existing note
 class UpdateNoteEvent extends NotesEvent {
-  final Note note;
-
   const UpdateNoteEvent(this.note);
+  final Note note;
 
   @override
   List<Object?> get props => [note];
@@ -41,9 +38,8 @@ class UpdateNoteEvent extends NotesEvent {
 
 /// Event to delete a note
 class DeleteNoteEvent extends NotesEvent {
-  final String noteId;
-
   const DeleteNoteEvent(this.noteId);
+  final String noteId;
 
   @override
   List<Object?> get props => [noteId];

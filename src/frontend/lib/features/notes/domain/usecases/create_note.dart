@@ -5,16 +5,14 @@ import '../repositories/notes_repository.dart';
 
 /// Use case for creating a new note
 class CreateNote {
-  final NotesRepository repository;
-
   CreateNote(this.repository);
+  final NotesRepository repository;
 
   /// Execute the create note operation
   ///
   /// [note] - The note to create
   ///
   /// Returns [Note] on success or [Failure] on error
-  Future<Either<Failure, Note>> call(Note note) async {
-    return await repository.createNote(note);
-  }
+  Future<Either<Failure, Note>> call(Note note) async =>
+      repository.createNote(note);
 }

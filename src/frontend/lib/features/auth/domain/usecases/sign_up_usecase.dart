@@ -5,9 +5,8 @@ import '../repositories/auth_repository.dart';
 
 /// Use case for signing up a new user
 class SignUpUseCase {
-  final AuthRepository repository;
-
   SignUpUseCase(this.repository);
+  final AuthRepository repository;
 
   /// Execute the sign up operation
   ///
@@ -22,12 +21,10 @@ class SignUpUseCase {
     required String password,
     required String name,
     required UserType userType,
-  }) async {
-    return await repository.signUp(
-      email: email,
-      password: password,
-      name: name,
-      userType: userType,
-    );
-  }
+  }) async => repository.signUp(
+    email: email,
+    password: password,
+    name: name,
+    userType: userType,
+  );
 }

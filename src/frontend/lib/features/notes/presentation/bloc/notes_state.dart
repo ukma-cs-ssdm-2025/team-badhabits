@@ -21,9 +21,8 @@ class NotesLoading extends NotesState {
 
 /// Successfully loaded notes state
 class NotesLoaded extends NotesState {
-  final List<Note> notes;
-
   const NotesLoaded(this.notes);
+  final List<Note> notes;
 
   @override
   List<Object?> get props => [notes];
@@ -31,9 +30,8 @@ class NotesLoaded extends NotesState {
 
 /// Error state with error message
 class NotesError extends NotesState {
-  final String message;
-
   const NotesError(this.message);
+  final String message;
 
   @override
   List<Object?> get props => [message];

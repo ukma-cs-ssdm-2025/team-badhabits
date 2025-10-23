@@ -8,10 +8,7 @@ import '../models/user_model.dart';
 /// Handles direct communication with Firebase Auth and Firestore
 abstract class AuthRemoteDataSource {
   /// Sign in with email and password using Firebase Auth
-  Future<UserModel> signIn({
-    required String email,
-    required String password,
-  });
+  Future<UserModel> signIn({required String email, required String password});
 
   /// Sign up with email, password, name, and user type
   /// Creates user in Firebase Auth and stores user data in Firestore
@@ -34,13 +31,12 @@ abstract class AuthRemoteDataSource {
 
 /// Implementation of [AuthRemoteDataSource]
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
-  final FirebaseAuth firebaseAuth;
-  final FirebaseFirestore firestore;
-
   AuthRemoteDataSourceImpl({
     required this.firebaseAuth,
     required this.firestore,
   });
+  final FirebaseAuth firebaseAuth;
+  final FirebaseFirestore firestore;
 
   @override
   Future<UserModel> signIn({
@@ -149,26 +145,27 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
-  Stream<UserModel?> get authStateChanges {
-    return firebaseAuth.authStateChanges().asyncMap((firebaseUser) async {
-      if (firebaseUser == null) {
-        return null;
-      }
-
-      try {
-        final userDoc =
-            await firestore.collection('users').doc(firebaseUser.uid).get();
-
-        if (!userDoc.exists) {
+  Stream<UserModel?> get authStateChanges =>
+      firebaseAuth.authStateChanges().asyncMap((firebaseUser) async {
+        if (firebaseUser == null) {
           return null;
         }
 
-        return UserModel.fromFirestore(userDoc);
-      } catch (e) {
-        return null;
-      }
-    });
-  }
+        try {
+          final userDoc = await firestore
+              .collection('users')
+              .doc(firebaseUser.uid)
+              .get();
+
+          if (!userDoc.exists) {
+            return null;
+          }
+
+          return UserModel.fromFirestore(userDoc);
+        } catch (e) {
+          return null;
+        }
+      });
 
   /// Handle Firebase Auth exceptions and convert to readable messages
   Exception _handleAuthException(FirebaseAuthException e) {

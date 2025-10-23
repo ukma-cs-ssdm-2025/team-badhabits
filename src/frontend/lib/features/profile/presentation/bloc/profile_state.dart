@@ -21,9 +21,8 @@ class ProfileLoading extends ProfileState {
 
 /// State when profile is loaded successfully
 class ProfileLoaded extends ProfileState {
-  final UserEntity user;
-
   const ProfileLoaded(this.user);
+  final UserEntity user;
 
   @override
   List<Object?> get props => [user];
@@ -31,9 +30,8 @@ class ProfileLoaded extends ProfileState {
 
 /// State when profile update is in progress
 class ProfileUpdating extends ProfileState {
-  final UserEntity currentUser;
-
   const ProfileUpdating(this.currentUser);
+  final UserEntity currentUser;
 
   @override
   List<Object?> get props => [currentUser];
@@ -41,9 +39,8 @@ class ProfileUpdating extends ProfileState {
 
 /// State when profile update is successful
 class ProfileUpdateSuccess extends ProfileState {
-  final UserEntity user;
-
   const ProfileUpdateSuccess(this.user);
+  final UserEntity user;
 
   @override
   List<Object?> get props => [user];
@@ -51,9 +48,8 @@ class ProfileUpdateSuccess extends ProfileState {
 
 /// State when avatar upload is in progress
 class AvatarUploading extends ProfileState {
-  final UserEntity currentUser;
-
   const AvatarUploading(this.currentUser);
+  final UserEntity currentUser;
 
   @override
   List<Object?> get props => [currentUser];
@@ -61,9 +57,8 @@ class AvatarUploading extends ProfileState {
 
 /// State when avatar upload is successful
 class AvatarUploadSuccess extends ProfileState {
-  final UserEntity user;
-
   const AvatarUploadSuccess(this.user);
+  final UserEntity user;
 
   @override
   List<Object?> get props => [user];
@@ -71,9 +66,8 @@ class AvatarUploadSuccess extends ProfileState {
 
 /// State when profile operation fails
 class ProfileError extends ProfileState {
-  final String message;
-
   const ProfileError(this.message);
+  final String message;
 
   @override
   List<Object?> get props => [message];

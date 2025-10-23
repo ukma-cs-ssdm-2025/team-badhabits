@@ -9,7 +9,7 @@ const errorHandler = (err, req, res, next) => {
     stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
     url: req.originalUrl,
     method: req.method,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 
   // If headers already sent, delegate to Express default error handler
@@ -26,17 +26,17 @@ const errorHandler = (err, req, res, next) => {
   // Mongoose ValidationError
   if (err.name === 'ValidationError') {
     statusCode = 422;
-    const errors = Object.values(err.errors).map(e => ({
+    const errors = Object.values(err.errors).map((e) => ({
       field: e.path,
-      message: e.message
+      message: e.message,
     }));
     return res.status(statusCode).json({
       success: false,
       error: {
         code: 'VALIDATION_ERROR',
         message: 'Data validation error',
-        details: errors
-      }
+        details: errors,
+      },
     });
   }
 
@@ -69,8 +69,8 @@ const errorHandler = (err, req, res, next) => {
     success: false,
     error: {
       code: err.code || 'INTERNAL_ERROR',
-      message: message
-    }
+      message,
+    },
   };
 
   // Add stack trace only in development
@@ -83,7 +83,7 @@ const errorHandler = (err, req, res, next) => {
     errorResponse.error.details = err.errors;
   }
 
-  res.status(statusCode).json(errorResponse);
+  return res.status(statusCode).json(errorResponse);
 };
 
 module.exports = errorHandler;

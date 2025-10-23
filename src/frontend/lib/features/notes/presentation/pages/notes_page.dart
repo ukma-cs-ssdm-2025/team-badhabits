@@ -1,6 +1,10 @@
+// ignore_for_file: discarded_futures, inference_failure_on_instance_creation, inference_failure_on_function_invocation, avoid_print, dead_code, unawaited_futures, cascade_invocations
+import 'dart:async';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+
 import '../../../../core/di/injection_container.dart' as di;
 import '../../domain/entities/note.dart';
 import '../bloc/notes_bloc.dart';
@@ -72,7 +76,9 @@ class _NotesPageState extends State<NotesPage> {
 
   /// Delete selected notes
   Future<void> _deleteSelectedNotes(BuildContext context) async {
-    print('🗑️ Delete selected notes called, count: ${_selectedNoteIds.length}');
+    print(
+      '🗑️ Delete selected notes called, count: ${_selectedNoteIds.length}',
+    );
 
     if (_selectedNoteIds.isEmpty) {
       print('⚠️ No notes selected, returning');
@@ -108,9 +114,7 @@ class _NotesPageState extends State<NotesPage> {
               print('✅ Delete confirmed');
               Navigator.of(dialogContext).pop(true);
             },
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.red,
-            ),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('Delete'),
           ),
         ],
@@ -119,7 +123,7 @@ class _NotesPageState extends State<NotesPage> {
 
     print('Dialog result: $confirmed, mounted: $mounted');
 
-    if (confirmed == true && mounted) {
+    if (confirmed ?? false && mounted) {
       print('🔄 Deleting $count notes...');
 
       // Get current notes from state to store deleted ones
@@ -129,7 +133,9 @@ class _NotesPageState extends State<NotesPage> {
         setState(() {
           _deletedNotes.clear();
           _deletedNotes.addAll(
-            currentState.notes.where((note) => _selectedNoteIds.contains(note.id))
+            currentState.notes.where(
+              (note) => _selectedNoteIds.contains(note.id),
+            ),
           );
         });
       }
@@ -144,66 +150,63 @@ class _NotesPageState extends State<NotesPage> {
       }
 
       // Show confirmation message with UNDO option
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text('$count note${count > 1 ? 's' : ''} deleted'),
-          duration: const Duration(seconds: 3),
-          behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.only(
-            bottom: 80,
-            left: 16,
-            right: 16,
-          ),
-          action: SnackBarAction(
-            label: count > 1 ? 'UNDO ALL' : 'UNDO',
-            onPressed: () {
-              // Restore all deleted notes
-              if (_deletedNotes.isNotEmpty) {
-                print('🔄 Restoring ${_deletedNotes.length} notes...');
+      messenger
+          .showSnackBar(
+            SnackBar(
+              content: Text('$count note${count > 1 ? 's' : ''} deleted'),
+              duration: const Duration(seconds: 3),
+              behavior: SnackBarBehavior.floating,
+              margin: const EdgeInsets.only(bottom: 80, left: 16, right: 16),
+              action: SnackBarAction(
+                label: count > 1 ? 'UNDO ALL' : 'UNDO',
+                onPressed: () {
+                  // Restore all deleted notes
+                  if (_deletedNotes.isNotEmpty) {
+                    print('🔄 Restoring ${_deletedNotes.length} notes...');
 
-                // Create all notes in Firestore
-                for (final note in _deletedNotes) {
-                  notesBloc.add(CreateNoteEvent(note));
-                }
+                    // Create all notes in Firestore
+                    for (final note in _deletedNotes) {
+                      notesBloc.add(CreateNoteEvent(note));
+                    }
 
-                // Immediately reload to show restored notes (faster UI refresh)
-                Future.delayed(const Duration(milliseconds: 100), () {
-                  if (mounted) {
-                    notesBloc.add(LoadNotesEvent(userId));
+                    // Immediately reload to show restored notes (faster UI refresh)
+                    Future.delayed(const Duration(milliseconds: 100), () {
+                      if (mounted) {
+                        notesBloc.add(LoadNotesEvent(userId));
+                      }
+                    });
+
+                    // Clear stored notes
+                    setState(_deletedNotes.clear);
+
+                    // Hide current snackbar and show restoration confirmation
+                    messenger.hideCurrentSnackBar();
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          '$count note${count > 1 ? 's' : ''} restored',
+                        ),
+                        duration: const Duration(seconds: 2),
+                        behavior: SnackBarBehavior.floating,
+                        margin: const EdgeInsets.only(
+                          bottom: 80,
+                          left: 16,
+                          right: 16,
+                        ),
+                      ),
+                    );
                   }
-                });
-
-                // Clear stored notes
-                setState(() {
-                  _deletedNotes.clear();
-                });
-
-                // Hide current snackbar and show restoration confirmation
-                messenger.hideCurrentSnackBar();
-                messenger.showSnackBar(
-                  SnackBar(
-                    content: Text('$count note${count > 1 ? 's' : ''} restored'),
-                    duration: const Duration(seconds: 2),
-                    behavior: SnackBarBehavior.floating,
-                    margin: const EdgeInsets.only(
-                      bottom: 80,
-                      left: 16,
-                      right: 16,
-                    ),
-                  ),
-                );
-              }
-            },
-          ),
-        ),
-      ).closed.then((_) {
-        // Clear stored notes after SnackBar is dismissed
-        if (mounted) {
-          setState(() {
-            _deletedNotes.clear();
+                },
+              ),
+            ),
+          )
+          .closed
+          .then((_) {
+            // Clear stored notes after SnackBar is dismissed
+            if (mounted) {
+              setState(_deletedNotes.clear);
+            }
           });
-        }
-      });
 
       print('✅ Notes deleted, exiting selection mode');
 
@@ -266,110 +269,85 @@ class _NotesPageState extends State<NotesPage> {
       'Sep',
       'Oct',
       'Nov',
-      'Dec'
+      'Dec',
     ];
     return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }
 
   /// Show confirmation dialog before deleting note
-  Future<bool?> _showDeleteConfirmation(BuildContext context) async {
-    return await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete note?'),
-        content: const Text('You can undo this action from the notification.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
+  Future<bool?> _showDeleteConfirmation(BuildContext context) async =>
+      showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Delete note?'),
+          content: const Text(
+            'You can undo this action from the notification.',
           ),
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.red,
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Cancel'),
             ),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-  }
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Delete'),
+            ),
+          ],
+        ),
+      );
 
   /// Build empty state widget
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.note_alt_outlined,
-            size: 64,
-            color: Colors.grey[400],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No notes yet',
-            style: TextStyle(
-              fontSize: 18,
-              color: Colors.grey[600],
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Tap + to create a note',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[500],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget _buildEmptyState() => Center(
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(Icons.note_alt_outlined, size: 64, color: Colors.grey[400]),
+        const SizedBox(height: 16),
+        Text(
+          'No notes yet',
+          style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Tap + to create a note',
+          style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+        ),
+      ],
+    ),
+  );
 
   /// Build error state widget
-  Widget _buildErrorState(BuildContext context, String message) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.error_outline,
-            size: 64,
-            color: Colors.red[300],
+  Widget _buildErrorState(BuildContext context, String message) => Center(
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
+        const SizedBox(height: 16),
+        Text(
+          'Loading error',
+          style: TextStyle(fontSize: 18, color: Colors.grey[700]),
+        ),
+        const SizedBox(height: 8),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Text(
+            message,
+            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 16),
-          Text(
-            'Loading error',
-            style: TextStyle(
-              fontSize: 18,
-              color: Colors.grey[700],
-            ),
-          ),
-          const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: Text(
-              message,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton.icon(
-            onPressed: () {
-              context.read<NotesBloc>().add(LoadNotesEvent(userId));
-            },
-            icon: const Icon(Icons.refresh),
-            label: const Text('Try again'),
-          ),
-        ],
-      ),
-    );
-  }
+        ),
+        const SizedBox(height: 16),
+        ElevatedButton.icon(
+          onPressed: () {
+            context.read<NotesBloc>().add(LoadNotesEvent(userId));
+          },
+          icon: const Icon(Icons.refresh),
+          label: const Text('Try again'),
+        ),
+      ],
+    ),
+  );
 
   /// Build note list item
   Widget _buildNoteItem(BuildContext context, Note note) {
@@ -392,10 +370,7 @@ class _NotesPageState extends State<NotesPage> {
           color: Colors.red,
           borderRadius: BorderRadius.circular(12),
         ),
-        child: const Icon(
-          Icons.delete,
-          color: Colors.white,
-        ),
+        child: const Icon(Icons.delete, color: Colors.white),
       ),
       confirmDismiss: (direction) => _showDeleteConfirmation(context),
       onDismissed: (direction) {
@@ -412,65 +387,63 @@ class _NotesPageState extends State<NotesPage> {
         final messenger = ScaffoldMessenger.of(context);
         final bloc = context.read<NotesBloc>();
 
-        messenger.showSnackBar(
-          SnackBar(
-            content: const Text('Note deleted'),
-            duration: const Duration(seconds: 3),
-            behavior: SnackBarBehavior.floating,
-            margin: const EdgeInsets.only(
-              bottom: 80,
-              left: 16,
-              right: 16,
-            ),
-            action: SnackBarAction(
-              label: 'UNDO',
-              onPressed: () {
-                // Restore the deleted note
-                if (_deletedNotes.isNotEmpty) {
-                  final deletedNote = _deletedNotes.first;
-                  print('🔄 Restoring note: ${deletedNote.title}');
+        // Fire-and-forget: show SnackBar and clear state when dismissed
+        unawaited(
+          messenger
+              .showSnackBar(
+                SnackBar(
+                  content: const Text('Note deleted'),
+                  duration: const Duration(seconds: 3),
+                  behavior: SnackBarBehavior.floating,
+                  margin: const EdgeInsets.only(bottom: 80, left: 16, right: 16),
+                  action: SnackBarAction(
+                    label: 'UNDO',
+                    onPressed: () {
+                      // Restore the deleted note
+                      if (_deletedNotes.isNotEmpty) {
+                        final deletedNote = _deletedNotes.first;
+                        print('🔄 Restoring note: ${deletedNote.title}');
 
-                  // Create the note in Firestore
-                  bloc.add(CreateNoteEvent(deletedNote));
+                        // Create the note in Firestore
+                        bloc.add(CreateNoteEvent(deletedNote));
 
-                  // Immediately reload to show restored note (faster UI refresh)
-                  Future.delayed(const Duration(milliseconds: 100), () {
-                    if (mounted) {
-                      bloc.add(LoadNotesEvent(userId));
-                    }
-                  });
+                        // Immediately reload to show restored note (faster UI refresh)
+                        Future.delayed(const Duration(milliseconds: 100), () {
+                          if (mounted) {
+                            bloc.add(LoadNotesEvent(userId));
+                          }
+                        });
 
-                  // Clear stored note
-                  setState(() {
-                    _deletedNotes.clear();
-                  });
+                        // Clear stored note
+                        setState(_deletedNotes.clear);
 
-                  // Hide current snackbar and show restoration confirmation
-                  messenger.hideCurrentSnackBar();
-                  messenger.showSnackBar(
-                    const SnackBar(
-                      content: Text('Note restored'),
-                      duration: Duration(seconds: 2),
-                      behavior: SnackBarBehavior.floating,
-                      margin: EdgeInsets.only(
-                        bottom: 80,
-                        left: 16,
-                        right: 16,
-                      ),
-                    ),
-                  );
+                        // Hide current snackbar and show restoration confirmation
+                        messenger.hideCurrentSnackBar();
+                        messenger.showSnackBar(
+                          const SnackBar(
+                            content: Text('Note restored'),
+                            duration: Duration(seconds: 2),
+                            behavior: SnackBarBehavior.floating,
+                            margin: EdgeInsets.only(
+                              bottom: 80,
+                              left: 16,
+                              right: 16,
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                ),
+              )
+              .closed
+              .then((_) {
+                // Clear stored note after SnackBar is dismissed (timeout or action)
+                if (mounted) {
+                  setState(_deletedNotes.clear);
                 }
-              },
-            ),
-          ),
-        ).closed.then((_) {
-          // Clear stored note after SnackBar is dismissed (timeout or action)
-          if (mounted) {
-            setState(() {
-              _deletedNotes.clear();
-            });
-          }
-        });
+              }),
+        );
       },
       child: Card(
         elevation: 2,
@@ -493,17 +466,14 @@ class _NotesPageState extends State<NotesPage> {
           leading: _isSelectionMode
               ? Checkbox(
                   value: isSelected,
-                  onChanged: (bool? value) {
+                  onChanged: (value) {
                     _toggleNoteSelection(note.id);
                   },
                 )
               : null,
           title: Text(
             note.title,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -511,10 +481,7 @@ class _NotesPageState extends State<NotesPage> {
             padding: const EdgeInsets.only(top: 8),
             child: Text(
               contentPreview,
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontSize: 14,
-              ),
+              style: TextStyle(color: Colors.grey[600], fontSize: 14),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
@@ -525,10 +492,7 @@ class _NotesPageState extends State<NotesPage> {
             children: [
               Text(
                 formattedDate,
-                style: TextStyle(
-                  color: Colors.grey[500],
-                  fontSize: 12,
-                ),
+                style: TextStyle(color: Colors.grey[500], fontSize: 12),
               ),
               if (note.attachedTo != null)
                 Padding(
@@ -566,7 +530,7 @@ class _NotesPageState extends State<NotesPage> {
               ),
             );
             // Reload if note was saved
-            if (result == true && mounted) {
+            if (result ?? false && mounted) {
               notesBloc.add(LoadNotesEvent(userId));
             }
           },
@@ -576,34 +540,28 @@ class _NotesPageState extends State<NotesPage> {
   }
 
   /// Build notes list widget
-  Widget _buildNotesList(BuildContext context, List<Note> notes) {
-    return RefreshIndicator(
-      onRefresh: () async {
-        context.read<NotesBloc>().add(LoadNotesEvent(userId));
-        // Wait a bit for the bloc to process
-        await Future.delayed(const Duration(milliseconds: 500));
-      },
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: notes.length,
-        itemBuilder: (context, index) {
-          return _buildNoteItem(context, notes[index]);
+  Widget _buildNotesList(BuildContext context, List<Note> notes) =>
+      RefreshIndicator(
+        onRefresh: () async {
+          context.read<NotesBloc>().add(LoadNotesEvent(userId));
+          // Wait a bit for the bloc to process
+          await Future.delayed(const Duration(milliseconds: 500));
         },
-      ),
-    );
-  }
+        child: ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: notes.length,
+          itemBuilder: (context, index) =>
+              _buildNoteItem(context, notes[index]),
+        ),
+      );
 
   @override
   Widget build(BuildContext context) {
     // Handle unauthenticated user
     if (userId.isEmpty) {
       return Scaffold(
-        appBar: AppBar(
-          title: const Text('Notes'),
-        ),
-        body: const Center(
-          child: Text('Please sign in'),
-        ),
+        appBar: AppBar(title: const Text('Notes')),
+        body: const Center(child: Text('Please sign in')),
       );
     }
 
@@ -628,60 +586,56 @@ class _NotesPageState extends State<NotesPage> {
                 )
               : null,
           body: BlocBuilder<NotesBloc, NotesState>(
-          builder: (context, state) {
-            // NotesInitial and NotesLoading states
-            if (state is NotesInitial || state is NotesLoading) {
-              return const Center(
-                child: CircularProgressIndicator(),
-              );
-            }
-
-            // NotesLoaded state
-            if (state is NotesLoaded) {
-              if (state.notes.isEmpty) {
-                return _buildEmptyState();
+            builder: (context, state) {
+              // NotesInitial and NotesLoading states
+              if (state is NotesInitial || state is NotesLoading) {
+                return const Center(child: CircularProgressIndicator());
               }
-              return _buildNotesList(context, state.notes);
-            }
 
-            // NotesError state
-            if (state is NotesError) {
-              return _buildErrorState(context, state.message);
-            }
+              // NotesLoaded state
+              if (state is NotesLoaded) {
+                if (state.notes.isEmpty) {
+                  return _buildEmptyState();
+                }
+                return _buildNotesList(context, state.notes);
+              }
 
-            // Unknown state
-            return const Center(
-              child: Text('Unknown state'),
-            );
-          },
-        ),
-        floatingActionButton: _isSelectionMode
-            ? null // Hide FAB in selection mode
-            : Builder(
-          builder: (fabContext) => FloatingActionButton(
-            heroTag: 'notes_fab',
-            onPressed: () async {
-              // Get BLoC reference before navigation
-              final notesBloc = fabContext.read<NotesBloc>();
+              // NotesError state
+              if (state is NotesError) {
+                return _buildErrorState(context, state.message);
+              }
 
-              // Navigate to CreateEditNotePage in create mode
-              final result = await Navigator.of(fabContext).push<bool>(
-                MaterialPageRoute(
-                  builder: (_) => BlocProvider(
-                    create: (_) => di.sl<NotesBloc>(),
-                    child: const CreateEditNotePage(),
+              // Unknown state
+              return const Center(child: Text('Unknown state'));
+            },
+          ),
+          floatingActionButton: _isSelectionMode
+              ? null // Hide FAB in selection mode
+              : Builder(
+                  builder: (fabContext) => FloatingActionButton(
+                    heroTag: 'notes_fab',
+                    onPressed: () async {
+                      // Get BLoC reference before navigation
+                      final notesBloc = fabContext.read<NotesBloc>();
+
+                      // Navigate to CreateEditNotePage in create mode
+                      final result = await Navigator.of(fabContext).push<bool>(
+                        MaterialPageRoute(
+                          builder: (_) => BlocProvider(
+                            create: (_) => di.sl<NotesBloc>(),
+                            child: const CreateEditNotePage(),
+                          ),
+                        ),
+                      );
+
+                      // Reload if note was saved
+                      if (result ?? false && mounted) {
+                        notesBloc.add(LoadNotesEvent(userId));
+                      }
+                    },
+                    child: const Icon(Icons.add),
                   ),
                 ),
-              );
-
-              // Reload if note was saved
-              if (result == true && mounted) {
-                notesBloc.add(LoadNotesEvent(userId));
-              }
-            },
-            child: const Icon(Icons.add),
-          ),
-        ),
         ),
       ),
     );

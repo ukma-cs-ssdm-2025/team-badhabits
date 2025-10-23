@@ -10,14 +10,6 @@ import 'auth_state.dart';
 
 /// BLoC for managing authentication state
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  final SignInUseCase signInUseCase;
-  final SignUpUseCase signUpUseCase;
-  final SignOutUseCase signOutUseCase;
-  final GetCurrentUserUseCase getCurrentUserUseCase;
-  final AuthRepository authRepository;
-
-  StreamSubscription? _authStateSubscription;
-
   AuthBloc({
     required this.signInUseCase,
     required this.signUpUseCase,
@@ -36,6 +28,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       add(AuthStateChanged(user));
     });
   }
+  final SignInUseCase signInUseCase;
+  final SignUpUseCase signUpUseCase;
+  final SignOutUseCase signOutUseCase;
+  final GetCurrentUserUseCase getCurrentUserUseCase;
+  final AuthRepository authRepository;
+
+  StreamSubscription<dynamic>? _authStateSubscription;
 
   /// Handle auth check request
   Future<void> _onAuthCheckRequested(
@@ -106,10 +105,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   /// Handle auth state changes from Firebase
-  void _onAuthStateChanged(
-    AuthStateChanged event,
-    Emitter<AuthState> emit,
-  ) {
+  void _onAuthStateChanged(AuthStateChanged event, Emitter<AuthState> emit) {
     if (event.user != null) {
       emit(Authenticated(event.user!));
     } else {
@@ -118,8 +114,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   @override
-  Future<void> close() {
-    _authStateSubscription?.cancel();
+  Future<void> close() async {
+    await _authStateSubscription?.cancel();
     return super.close();
   }
 }

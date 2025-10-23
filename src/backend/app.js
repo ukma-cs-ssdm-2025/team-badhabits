@@ -27,13 +27,13 @@ app.get('/health', (req, res) => {
     status: 'ok',
     timestamp: new Date().toISOString(),
     service: 'Wellity Backend API',
-    version: '1.0.0'
+    version: '1.0.0',
   });
 });
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
   customCss: '.swagger-ui .topbar { display: none }',
-  customSiteTitle: 'Wellity API Documentation'
+  customSiteTitle: 'Wellity API Documentation',
 }));
 
 app.get('/api-docs-json', (req, res) => {
@@ -57,8 +57,8 @@ app.get('/', (req, res) => {
       payments: '/api/v1/payments/subscribe',
       analytics: '/api/v1/analytics/trainer/:id',
       workoutVerification: '/api/v1/workouts/:id/verify',
-      recoveryRecommendations: '/api/v1/recommendations/recovery'
-    }
+      recoveryRecommendations: '/api/v1/recommendations/recovery',
+    },
   });
 });
 

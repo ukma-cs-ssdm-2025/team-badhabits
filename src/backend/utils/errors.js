@@ -85,5 +85,5 @@ module.exports = {
   ForbiddenError,
   BadRequestError,
   ConflictError,
-  ValidationError
+  ValidationError,
 };

@@ -7,10 +7,6 @@ import 'profile_state.dart';
 
 /// BLoC for managing profile state
 class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
-  final GetUserProfileUseCase getUserProfileUseCase;
-  final UpdateUserProfileUseCase updateUserProfileUseCase;
-  final UploadAvatarUseCase uploadAvatarUseCase;
-
   ProfileBloc({
     required this.getUserProfileUseCase,
     required this.updateUserProfileUseCase,
@@ -20,6 +16,9 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     on<UpdateProfile>(_onUpdateProfile);
     on<UploadAvatar>(_onUploadAvatar);
   }
+  final GetUserProfileUseCase getUserProfileUseCase;
+  final UpdateUserProfileUseCase updateUserProfileUseCase;
+  final UploadAvatarUseCase uploadAvatarUseCase;
 
   /// Handle load profile event
   Future<void> _onLoadProfile(
@@ -42,12 +41,14 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     Emitter<ProfileState> emit,
   ) async {
     // Get current user from state
-    if (state is ProfileLoaded || state is ProfileUpdateSuccess || state is AvatarUploadSuccess) {
+    if (state is ProfileLoaded ||
+        state is ProfileUpdateSuccess ||
+        state is AvatarUploadSuccess) {
       final currentUser = state is ProfileLoaded
           ? (state as ProfileLoaded).user
           : state is ProfileUpdateSuccess
-              ? (state as ProfileUpdateSuccess).user
-              : (state as AvatarUploadSuccess).user;
+          ? (state as ProfileUpdateSuccess).user
+          : (state as AvatarUploadSuccess).user;
 
       emit(ProfileUpdating(currentUser));
 
@@ -57,14 +58,11 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         bio: event.bio,
       );
 
-      result.fold(
-        (failure) => emit(ProfileError(failure.message)),
-        (user) {
-          emit(ProfileUpdateSuccess(user));
-          // Return to loaded state after showing success
-          emit(ProfileLoaded(user));
-        },
-      );
+      result.fold((failure) => emit(ProfileError(failure.message)), (user) {
+        emit(ProfileUpdateSuccess(user));
+        // Return to loaded state after showing success
+        emit(ProfileLoaded(user));
+      });
     } else {
       emit(const ProfileError('Cannot update profile: profile not loaded'));
     }
@@ -76,12 +74,14 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     Emitter<ProfileState> emit,
   ) async {
     // Get current user from state
-    if (state is ProfileLoaded || state is ProfileUpdateSuccess || state is AvatarUploadSuccess) {
+    if (state is ProfileLoaded ||
+        state is ProfileUpdateSuccess ||
+        state is AvatarUploadSuccess) {
       final currentUser = state is ProfileLoaded
           ? (state as ProfileLoaded).user
           : state is ProfileUpdateSuccess
-              ? (state as ProfileUpdateSuccess).user
-              : (state as AvatarUploadSuccess).user;
+          ? (state as ProfileUpdateSuccess).user
+          : (state as AvatarUploadSuccess).user;
 
       emit(AvatarUploading(currentUser));
 
@@ -102,14 +102,13 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
             avatarUrl: avatarUrl,
           );
 
-          updateResult.fold(
-            (failure) => emit(ProfileError(failure.message)),
-            (user) {
-              emit(AvatarUploadSuccess(user));
-              // Return to loaded state after showing success
-              emit(ProfileLoaded(user));
-            },
-          );
+          updateResult.fold((failure) => emit(ProfileError(failure.message)), (
+            user,
+          ) {
+            emit(AvatarUploadSuccess(user));
+            // Return to loaded state after showing success
+            emit(ProfileLoaded(user));
+          });
         },
       );
     } else {

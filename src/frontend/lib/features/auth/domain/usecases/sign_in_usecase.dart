@@ -5,9 +5,8 @@ import '../repositories/auth_repository.dart';
 
 /// Use case for signing in a user
 class SignInUseCase {
-  final AuthRepository repository;
-
   SignInUseCase(this.repository);
+  final AuthRepository repository;
 
   /// Execute the sign in operation
   ///
@@ -18,10 +17,5 @@ class SignInUseCase {
   Future<Either<Failure, UserEntity>> call({
     required String email,
     required String password,
-  }) async {
-    return await repository.signIn(
-      email: email,
-      password: password,
-    );
-  }
+  }) async => repository.signIn(email: email, password: password);
 }

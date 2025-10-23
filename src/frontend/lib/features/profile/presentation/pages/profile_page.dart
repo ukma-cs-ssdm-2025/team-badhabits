@@ -1,5 +1,8 @@
+// ignore_for_file: deprecated_member_use, discarded_futures, inference_failure_on_instance_creation, inference_failure_on_function_invocation
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../../auth/domain/entities/user_entity.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
@@ -14,29 +17,26 @@ class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return BlocListener<AuthBloc, AuthState>(
-      listener: (context, authState) {
-        // Navigate back to root when user logs out
-        if (authState is Unauthenticated) {
-          Navigator.of(context).popUntil((route) => route.isFirst);
+  Widget build(BuildContext context) => BlocListener<AuthBloc, AuthState>(
+    listener: (context, authState) {
+      // Navigate back to root when user logs out
+      if (authState is Unauthenticated) {
+        Navigator.of(context).popUntil((route) => route.isFirst);
+      }
+    },
+    child: BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, authState) {
+        if (authState is! Authenticated) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
         }
-      },
-      child: BlocBuilder<AuthBloc, AuthState>(
-        builder: (context, authState) {
-          if (authState is! Authenticated) {
-            return const Scaffold(
-              body: Center(
-                child: CircularProgressIndicator(),
-              ),
-            );
-          }
 
         final userId = authState.user.id;
 
         return BlocProvider(
-          create: (context) => context.read<ProfileBloc>()
-            ..add(LoadProfile(userId)),
+          create: (context) =>
+              context.read<ProfileBloc>()..add(LoadProfile(userId)),
           child: Scaffold(
             appBar: AppBar(
               title: const Text('Profile'),
@@ -52,8 +52,8 @@ class ProfilePage extends StatelessWidget {
                           final user = state is ProfileLoaded
                               ? state.user
                               : state is ProfileUpdateSuccess
-                                  ? state.user
-                                  : (state as AvatarUploadSuccess).user;
+                              ? state.user
+                              : (state as AvatarUploadSuccess).user;
 
                           Navigator.of(context).push(
                             MaterialPageRoute(
@@ -98,9 +98,7 @@ class ProfilePage extends StatelessWidget {
               },
               builder: (context, state) {
                 if (state is ProfileLoading) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
+                  return const Center(child: CircularProgressIndicator());
                 }
 
                 if (state is ProfileLoaded ||
@@ -111,14 +109,15 @@ class ProfilePage extends StatelessWidget {
                   final user = state is ProfileLoaded
                       ? state.user
                       : state is ProfileUpdateSuccess
-                          ? state.user
-                          : state is AvatarUploadSuccess
-                              ? state.user
-                              : state is ProfileUpdating
-                                  ? state.currentUser
-                                  : (state as AvatarUploading).currentUser;
+                      ? state.user
+                      : state is AvatarUploadSuccess
+                      ? state.user
+                      : state is ProfileUpdating
+                      ? state.currentUser
+                      : (state as AvatarUploading).currentUser;
 
-                  final isUpdating = state is ProfileUpdating || state is AvatarUploading;
+                  final isUpdating =
+                      state is ProfileUpdating || state is AvatarUploading;
 
                   return SingleChildScrollView(
                     child: Column(
@@ -130,21 +129,29 @@ class ProfilePage extends StatelessWidget {
                           children: [
                             CircleAvatar(
                               radius: 60,
-                              backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-                              backgroundImage: user.avatarUrl != null && user.avatarUrl!.isNotEmpty
+                              backgroundColor: Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainerHighest,
+                              backgroundImage:
+                                  user.avatarUrl != null &&
+                                      user.avatarUrl!.isNotEmpty
                                   ? NetworkImage(user.avatarUrl!)
                                   : null,
-                              child: user.avatarUrl == null || user.avatarUrl!.isEmpty
+                              child:
+                                  user.avatarUrl == null ||
+                                      user.avatarUrl!.isEmpty
                                   ? Icon(
                                       Icons.person,
                                       size: 60,
-                                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurface.withOpacity(0.5),
                                     )
                                   : null,
                             ),
                             if (isUpdating)
                               Positioned.fill(
-                                child: Container(
+                                child: DecoratedBox(
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     color: Colors.black.withOpacity(0.5),
@@ -163,9 +170,8 @@ class ProfilePage extends StatelessWidget {
                         // Name
                         Text(
                           user.name,
-                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                          style: Theme.of(context).textTheme.headlineSmall
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 8),
 
@@ -182,14 +188,20 @@ class ProfilePage extends StatelessWidget {
                               Icon(
                                 Icons.email_outlined,
                                 size: 20,
-                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withOpacity(0.6),
                               ),
                               const SizedBox(width: 8),
                               Flexible(
                                 child: Text(
                                   user.email,
-                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                                  style: Theme.of(context).textTheme.bodyMedium
+                                      ?.copyWith(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface
+                                            .withOpacity(0.7),
                                       ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -207,7 +219,9 @@ class ProfilePage extends StatelessWidget {
                               width: double.infinity,
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainerHighest,
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
@@ -228,10 +242,14 @@ class ProfilePage extends StatelessWidget {
                                 : () {
                                     Navigator.of(context).push(
                                       MaterialPageRoute(
-                                        builder: (newContext) => BlocProvider.value(
-                                          value: context.read<ProfileBloc>(),
-                                          child: EditProfilePage(user: user),
-                                        ),
+                                        builder: (newContext) =>
+                                            BlocProvider.value(
+                                              value: context
+                                                  .read<ProfileBloc>(),
+                                              child: EditProfilePage(
+                                                user: user,
+                                              ),
+                                            ),
                                       ),
                                     );
                                   },
@@ -268,17 +286,14 @@ class ProfilePage extends StatelessWidget {
                   );
                 }
 
-                return const Center(
-                  child: Text('Unable to load profile'),
-                );
+                return const Center(child: Text('Unable to load profile'));
               },
             ),
           ),
         );
-        },
-      ),
-    );
-  }
+      },
+    ),
+  );
 
   Widget _buildUserTypeBadge(BuildContext context, UserType userType) {
     final isTrainer = userType == UserType.trainer;
@@ -288,7 +303,9 @@ class ProfilePage extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         color: isTrainer
-            ? (isDarkMode ? Colors.blue[900]!.withOpacity(0.3) : Colors.blue[100])
+            ? (isDarkMode
+                  ? Colors.blue[900]!.withOpacity(0.3)
+                  : Colors.blue[100])
             : Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(20),
       ),
@@ -333,9 +350,7 @@ class ProfilePage extends StatelessWidget {
               Navigator.of(dialogContext).pop();
               context.read<AuthBloc>().add(const SignOutRequested());
             },
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.red,
-            ),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('Sign Out'),
           ),
         ],
