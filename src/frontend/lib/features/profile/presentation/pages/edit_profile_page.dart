@@ -7,6 +7,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../auth/domain/entities/user_entity.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_event.dart';
 import '../bloc/profile_bloc.dart';
 import '../bloc/profile_event.dart';
 import '../bloc/profile_state.dart';
@@ -26,6 +28,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   late TextEditingController _bioController;
   final ImagePicker _imagePicker = ImagePicker();
   File? _selectedImage;
+  bool _shouldUpdateProfileAfterAvatar = false;
 
   @override
   void initState() {
@@ -98,19 +101,31 @@ class _EditProfilePageState extends State<EditProfilePage> {
   void _handleSave() {
     if (_formKey.currentState!.validate()) {
       final profileBloc = context.read<ProfileBloc>();
-
-      // Upload avatar if image is selected
-      if (_selectedImage != null) {
-        profileBloc.add(
-          UploadAvatar(userId: widget.user.id, imageFile: _selectedImage!),
-        );
-      }
-
-      // Update profile information
       final name = _nameController.text.trim();
       final bio = _bioController.text.trim();
 
-      if (name != widget.user.name || bio != widget.user.bio) {
+      final hasNameOrBioChange = name != widget.user.name || bio != widget.user.bio;
+      final hasImageChange = _selectedImage != null;
+
+      // If both avatar and profile need updating, upload avatar first
+      // Then update profile in the listener after avatar upload succeeds
+      if (hasImageChange && hasNameOrBioChange) {
+        _shouldUpdateProfileAfterAvatar = true;
+        profileBloc.add(
+          UploadAvatar(userId: widget.user.id, imageFile: _selectedImage!),
+        );
+      } else if (hasImageChange) {
+        // Only avatar needs updating
+        _shouldUpdateProfileAfterAvatar = false;
+        profileBloc.add(
+          UploadAvatar(
+            userId: widget.user.id,
+            imageFile: _selectedImage!,
+          ),
+        );
+      } else if (hasNameOrBioChange) {
+        // Only profile info needs updating
+        _shouldUpdateProfileAfterAvatar = false;
         profileBloc.add(
           UpdateProfile(
             userId: widget.user.id,
@@ -123,46 +138,72 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   @override
-  Widget build(BuildContext context) => BlocListener<ProfileBloc, ProfileState>(
-    listener: (context, state) {
-      if (state is ProfileUpdateSuccess || state is AvatarUploadSuccess) {
-        Navigator.of(context).pop();
-      } else if (state is ProfileError) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(state.message), backgroundColor: Colors.red),
-        );
-      }
-    },
-    child: Scaffold(
-      appBar: AppBar(
-        title: const Text('Edit Profile'),
-        actions: [
-          BlocBuilder<ProfileBloc, ProfileState>(
-            builder: (context, state) {
-              final isUpdating =
-                  state is ProfileUpdating || state is AvatarUploading;
-              return TextButton(
-                onPressed: isUpdating ? null : _handleSave,
-                style: TextButton.styleFrom(foregroundColor: Colors.white),
-                child: isUpdating
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Text('Save'),
-              );
-            },
-          ),
-        ],
-      ),
-      body: BlocBuilder<ProfileBloc, ProfileState>(
-        builder: (context, state) {
-          final isUpdating =
-              state is ProfileUpdating || state is AvatarUploading;
+  Widget build(BuildContext context) {
+    return BlocListener<ProfileBloc, ProfileState>(
+      listener: (context, state) {
+        if (state is AvatarUploadSuccess && _shouldUpdateProfileAfterAvatar) {
+          // Avatar uploaded successfully, now update profile info
+          _shouldUpdateProfileAfterAvatar = false;
+          final name = _nameController.text.trim();
+          final bio = _bioController.text.trim();
+
+          context.read<ProfileBloc>().add(
+            UpdateProfile(
+              userId: widget.user.id,
+              name: name.isNotEmpty ? name : null,
+              bio: bio.isNotEmpty ? bio : null,
+            ),
+          );
+        } else if (state is ProfileUpdateSuccess ||
+            (state is AvatarUploadSuccess && !_shouldUpdateProfileAfterAvatar)) {
+          // Update AuthBloc with new user data
+          final updatedUser = state is ProfileUpdateSuccess
+              ? state.user
+              : (state as AvatarUploadSuccess).user;
+          context.read<AuthBloc>().add(UserProfileUpdated(updatedUser));
+
+          // All operations completed successfully
+          Navigator.of(context).pop();
+        } else if (state is ProfileError) {
+          _shouldUpdateProfileAfterAvatar = false; // Reset on error
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Edit Profile'),
+          actions: [
+            BlocBuilder<ProfileBloc, ProfileState>(
+              builder: (context, state) {
+                final isUpdating = state is ProfileUpdating || state is AvatarUploading;
+                return TextButton(
+                  onPressed: isUpdating ? null : _handleSave,
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.white,
+                  ),
+                  child: isUpdating
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text('Save'),
+                );
+              },
+            ),
+          ],
+        ),
+        body: BlocBuilder<ProfileBloc, ProfileState>(
+          builder: (context, state) {
+            final isUpdating = state is ProfileUpdating || state is AvatarUploading;
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(24),

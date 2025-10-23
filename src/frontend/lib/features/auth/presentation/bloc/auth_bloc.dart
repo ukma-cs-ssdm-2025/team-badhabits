@@ -22,6 +22,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<SignUpRequested>(_onSignUpRequested);
     on<SignOutRequested>(_onSignOutRequested);
     on<AuthStateChanged>(_onAuthStateChanged);
+    on<UserProfileUpdated>(_onUserProfileUpdated);
 
     // Listen to auth state changes
     _authStateSubscription = authRepository.authStateChanges.listen((user) {
@@ -110,6 +111,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(Authenticated(event.user!));
     } else {
       emit(const Unauthenticated());
+    }
+  }
+
+  /// Handle user profile update
+  void _onUserProfileUpdated(
+    UserProfileUpdated event,
+    Emitter<AuthState> emit,
+  ) {
+    // Only update if currently authenticated
+    if (state is Authenticated) {
+      emit(Authenticated(event.user));
     }
   }
 
