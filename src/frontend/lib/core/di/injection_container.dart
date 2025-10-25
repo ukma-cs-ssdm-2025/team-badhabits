@@ -188,7 +188,7 @@ Future<void> init() async {
   // Data sources
   sl.registerLazySingleton<WorkoutsFirestoreDataSource>(
     () => WorkoutsFirestoreDataSource(
-      firestore: sl(),
+      firestoreDb: sl(),
       realtimeDatabase: sl(),
       auth: sl(),
     ),

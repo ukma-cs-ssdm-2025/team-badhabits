@@ -11,12 +11,12 @@ import 'package:frontend/features/workouts/data/models/workout_session_model.dar
 /// Uses both Firestore (for CRUD) and Realtime Database (for active sessions - FR-013)
 class WorkoutsFirestoreDataSource {
   WorkoutsFirestoreDataSource({
-    required this.firestore,
+    required this.firestoreDb,
     required this.realtimeDatabase,
     required this.auth,
   });
 
-  final firestore.FirebaseFirestore firestore;
+  final firestore.FirebaseFirestore firestoreDb;
   final FirebaseDatabase realtimeDatabase;
   final FirebaseAuth auth;
 
@@ -32,7 +32,7 @@ class WorkoutsFirestoreDataSource {
   /// Returns personalized workouts from /users/{userId}/personalized_workouts
   Future<List<WorkoutModel>> getWorkouts() async {
     try {
-      final snapshot = await firestore
+      final snapshot = await firestoreDb
           .collection('users')
           .doc(_userId)
           .collection('personalized_workouts')
@@ -64,7 +64,7 @@ class WorkoutsFirestoreDataSource {
 
       // If not found, get from public catalog
       final catalogDoc =
-          await firestore.collection('workouts').doc(workoutId).get();
+          await firestoreDb.collection('workouts').doc(workoutId).get();
 
       if (!catalogDoc.exists) {
         throw ServerException('Workout not found');
@@ -85,7 +85,7 @@ class WorkoutsFirestoreDataSource {
     String? difficulty,
   }) async {
     try {
-      dynamic query = this.firestore
+      dynamic query = firestoreDb
           .collection('users')
           .doc(_userId)
           .collection('personalized_workouts');
@@ -139,7 +139,7 @@ class WorkoutsFirestoreDataSource {
       }
 
       // Create new session
-      final sessionId = firestore
+      final sessionId = firestoreDb
           .collection('users')
           .doc(_userId)
           .collection('workout_sessions')
@@ -156,7 +156,7 @@ class WorkoutsFirestoreDataSource {
       );
 
       // Save to Firestore
-      await firestore
+      await firestoreDb
           .collection('users')
           .doc(_userId)
           .collection('workout_sessions')
@@ -220,7 +220,7 @@ class WorkoutsFirestoreDataSource {
     String? notes,
   }) async {
     try {
-      final sessionRef = firestore
+      final sessionRef = firestoreDb
           .collection('users')
           .doc(_userId)
           .collection('workout_sessions')
@@ -251,7 +251,7 @@ class WorkoutsFirestoreDataSource {
       await realtimeDatabase.ref('active_sessions').child(_userId).remove();
 
       // Save rating to workout_ratings collection for backend adaptation
-      await firestore
+      await firestoreDb
           .collection('users')
           .doc(_userId)
           .collection('workout_ratings')
@@ -271,7 +271,7 @@ class WorkoutsFirestoreDataSource {
   /// Get workout history
   Future<List<WorkoutSessionModel>> getWorkoutHistory() async {
     try {
-      final snapshot = await firestore
+      final snapshot = await firestoreDb
           .collection('users')
           .doc(_userId)
           .collection('workout_sessions')
