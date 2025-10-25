@@ -107,7 +107,7 @@ class WorkoutsBloc extends Bloc<WorkoutsEvent, WorkoutsState> {
     emit(const WorkoutsLoading());
 
     final result = await startWorkoutSession(
-      StartWorkoutSessionParams(
+      usecase.StartWorkoutSessionParams(
         workoutId: event.workoutId,
         workoutTitle: event.workoutTitle,
       ),
@@ -142,7 +142,7 @@ class WorkoutsBloc extends Bloc<WorkoutsEvent, WorkoutsState> {
     emit(const WorkoutsLoading());
 
     final result = await completeWorkoutSession(
-      CompleteWorkoutSessionParams(
+      usecase.CompleteWorkoutSessionParams(
         sessionId: event.sessionId,
         difficultyRating: event.difficultyRating,
         enjoymentRating: event.enjoymentRating,
@@ -164,7 +164,7 @@ class WorkoutsBloc extends Bloc<WorkoutsEvent, WorkoutsState> {
     emit(const WorkoutsLoading());
 
     final result = await getRecommendedWorkout(
-      GetRecommendedWorkoutParams(
+      usecase.GetRecommendedWorkoutParams(
         workoutId: event.workoutId,
         difficultyRating: event.difficultyRating,
       ),

@@ -85,7 +85,7 @@ class WorkoutsFirestoreDataSource {
     String? difficulty,
   }) async {
     try {
-      Query<Map<String, dynamic>> query = firestore
+      var query = firestore
           .collection('users')
           .doc(_userId)
           .collection('personalized_workouts');
