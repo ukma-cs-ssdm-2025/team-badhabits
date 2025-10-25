@@ -23,6 +23,16 @@
 
 [decisions](docs/decisions) записи архітектурних рішень додатку
 
+## 🚀 Production Deployment
+
+**Backend API:** [https://wellity-backend-production.up.railway.app](https://wellity-backend-production.up.railway.app)
+
+**API Documentation:** [https://wellity-backend-production.up.railway.app/api-docs](https://wellity-backend-production.up.railway.app/api-docs)
+
+**Platform:** Railway.app | **Region:** Europe West | **Status:** ✅ Always On
+
+[Deployment Documentation](docs/deployment/railway-deployment.md)
+
 ## Структура проєкту
 
 ```bash
