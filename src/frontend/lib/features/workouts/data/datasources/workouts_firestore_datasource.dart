@@ -64,7 +64,7 @@ class WorkoutsFirestoreDataSource {
 
       // If not found, get from public catalog
       final catalogDoc =
-          await firestoreDbDb.collection('workouts').doc(workoutId).get();
+          await firestoreDb.collection('workouts').doc(workoutId).get();
 
       if (!catalogDoc.exists) {
         throw ServerException('Workout not found');
