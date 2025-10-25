@@ -50,7 +50,7 @@ class WorkoutsFirestoreDataSource {
   Future<WorkoutModel> getWorkoutById(String workoutId) async {
     try {
       // First try to get from personalized workouts
-      final personalizedDoc = await firestore
+      final personalizedDoc = await firestoreDb
           .collection('users')
           .doc(_userId)
           .collection('personalized_workouts')
@@ -64,7 +64,7 @@ class WorkoutsFirestoreDataSource {
 
       // If not found, get from public catalog
       final catalogDoc =
-          await firestoreDb.collection('workouts').doc(workoutId).get();
+          await firestoreDbDb.collection('workouts').doc(workoutId).get();
 
       if (!catalogDoc.exists) {
         throw ServerException('Workout not found');
@@ -192,7 +192,7 @@ class WorkoutsFirestoreDataSource {
       final sessionId = data['session_id'] as String;
 
       // Get session details from Firestore
-      final sessionDoc = await firestore
+      final sessionDoc = await firestoreDb
           .collection('users')
           .doc(_userId)
           .collection('workout_sessions')
