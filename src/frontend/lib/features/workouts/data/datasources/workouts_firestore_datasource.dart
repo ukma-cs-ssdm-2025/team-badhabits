@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart' hide Query;
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:frontend/core/error/exceptions.dart';
@@ -85,7 +85,7 @@ class WorkoutsFirestoreDataSource {
     String? difficulty,
   }) async {
     try {
-      var query = firestore
+      Query<Map<String, dynamic>> query = firestore
           .collection('users')
           .doc(_userId)
           .collection('personalized_workouts');
