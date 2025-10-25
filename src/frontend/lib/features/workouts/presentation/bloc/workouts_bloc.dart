@@ -1,13 +1,16 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/core/error/failures.dart';
-import 'package:frontend/features/workouts/domain/usecases/complete_workout_session.dart';
+import 'package:frontend/features/workouts/domain/usecases/complete_workout_session.dart'
+    as usecase;
 import 'package:frontend/features/workouts/domain/usecases/get_active_workout_session.dart';
 import 'package:frontend/features/workouts/domain/usecases/get_filtered_workouts.dart';
-import 'package:frontend/features/workouts/domain/usecases/get_recommended_workout.dart';
+import 'package:frontend/features/workouts/domain/usecases/get_recommended_workout.dart'
+    as usecase;
 import 'package:frontend/features/workouts/domain/usecases/get_workout_by_id.dart';
 import 'package:frontend/features/workouts/domain/usecases/get_workout_history.dart';
 import 'package:frontend/features/workouts/domain/usecases/get_workouts.dart';
-import 'package:frontend/features/workouts/domain/usecases/start_workout_session.dart';
+import 'package:frontend/features/workouts/domain/usecases/start_workout_session.dart'
+    as usecase;
 import 'package:frontend/features/workouts/presentation/bloc/workouts_event.dart';
 import 'package:frontend/features/workouts/presentation/bloc/workouts_state.dart';
 
@@ -39,10 +42,10 @@ class WorkoutsBloc extends Bloc<WorkoutsEvent, WorkoutsState> {
   final GetWorkouts getWorkouts;
   final GetWorkoutById getWorkoutById;
   final GetFilteredWorkouts getFilteredWorkouts;
-  final StartWorkoutSession startWorkoutSession;
+  final usecase.StartWorkoutSession startWorkoutSession;
   final GetActiveWorkoutSession getActiveWorkoutSession;
-  final CompleteWorkoutSession completeWorkoutSession;
-  final GetRecommendedWorkout getRecommendedWorkout;
+  final usecase.CompleteWorkoutSession completeWorkoutSession;
+  final usecase.GetRecommendedWorkout getRecommendedWorkout;
   final GetWorkoutHistory getWorkoutHistory;
 
   /// Handle LoadWorkouts event
