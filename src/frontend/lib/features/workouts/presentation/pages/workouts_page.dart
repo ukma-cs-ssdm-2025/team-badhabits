@@ -315,7 +315,7 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
                   ),
                   _buildInfoChip(
                     icon: Icons.local_fire_department,
-                    label: '${workout.caloriesBurned} kcal',
+                    label: '${workout.estimatedCalories} kcal',
                   ),
                   if (workout.exercises.isNotEmpty)
                     _buildInfoChip(

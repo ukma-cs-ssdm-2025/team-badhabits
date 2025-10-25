@@ -125,7 +125,7 @@ class WorkoutsBloc extends Bloc<WorkoutsEvent, WorkoutsState> {
   ) async {
     emit(const WorkoutsLoading());
 
-    final result = await getActiveWorkoutSession(NoParams());
+    final result = await getActiveWorkoutSession();
 
     result.fold(
       (failure) => emit(WorkoutsError(message: _mapFailureToMessage(failure))),

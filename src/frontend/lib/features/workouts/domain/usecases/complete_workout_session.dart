@@ -11,7 +11,8 @@ class CompleteWorkoutSession {
 
   final WorkoutsRepository repository;
 
-  Future<Either<Failure, void>> call(Params params) async =>
+  Future<Either<Failure, void>> call(
+          CompleteWorkoutSessionParams params) async =>
       repository.completeWorkoutSession(
         sessionId: params.sessionId,
         difficultyRating: params.difficultyRating,
@@ -21,8 +22,8 @@ class CompleteWorkoutSession {
 }
 
 /// Parameters for completing workout session
-class Params extends Equatable {
-  const Params({
+class CompleteWorkoutSessionParams extends Equatable {
+  const CompleteWorkoutSessionParams({
     required this.sessionId,
     required this.difficultyRating,
     this.enjoymentRating,

@@ -13,7 +13,8 @@ class GetRecommendedWorkout {
 
   final WorkoutsRepository repository;
 
-  Future<Either<Failure, Workout>> call(Params params) async =>
+  Future<Either<Failure, Workout>> call(
+          GetRecommendedWorkoutParams params) async =>
       repository.getRecommendedWorkout(
         workoutId: params.workoutId,
         difficultyRating: params.difficultyRating,
@@ -21,8 +22,9 @@ class GetRecommendedWorkout {
 }
 
 /// Parameters for getting recommended workout
-class Params extends Equatable {
-  const Params({required this.workoutId, required this.difficultyRating});
+class GetRecommendedWorkoutParams extends Equatable {
+  const GetRecommendedWorkoutParams(
+      {required this.workoutId, required this.difficultyRating});
 
   final String workoutId;
   final int difficultyRating; // 1-5 (1=too easy, 5=too hard)

@@ -12,7 +12,8 @@ class StartWorkoutSession {
 
   final WorkoutsRepository repository;
 
-  Future<Either<Failure, WorkoutSession>> call(Params params) async =>
+  Future<Either<Failure, WorkoutSession>> call(
+          StartWorkoutSessionParams params) async =>
       repository.startWorkoutSession(
         workoutId: params.workoutId,
         workoutTitle: params.workoutTitle,
@@ -20,8 +21,9 @@ class StartWorkoutSession {
 }
 
 /// Parameters for starting workout session
-class Params extends Equatable {
-  const Params({required this.workoutId, required this.workoutTitle});
+class StartWorkoutSessionParams extends Equatable {
+  const StartWorkoutSessionParams(
+      {required this.workoutId, required this.workoutTitle});
 
   final String workoutId;
   final String workoutTitle;
