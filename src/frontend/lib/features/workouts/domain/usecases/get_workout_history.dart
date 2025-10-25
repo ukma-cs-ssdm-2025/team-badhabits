@@ -12,13 +12,7 @@ class GetWorkoutHistory {
 
   final WorkoutsRepository repository;
 
-  Future<Either<Failure, List<WorkoutSession>>> call(NoParams params) async {
+  Future<Either<Failure, List<WorkoutSession>>> call() async {
     return await repository.getWorkoutHistory();
   }
-}
-
-/// No parameters needed
-class NoParams extends Equatable {
-  @override
-  List<Object> get props => [];
 }

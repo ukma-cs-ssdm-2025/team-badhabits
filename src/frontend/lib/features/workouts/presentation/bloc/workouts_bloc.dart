@@ -52,7 +52,7 @@ class WorkoutsBloc extends Bloc<WorkoutsEvent, WorkoutsState> {
   ) async {
     emit(const WorkoutsLoading());
 
-    final result = await getWorkouts(NoParams());
+    final result = await getWorkouts();
 
     result.fold(
       (failure) => emit(WorkoutsError(message: _mapFailureToMessage(failure))),
@@ -67,9 +67,7 @@ class WorkoutsBloc extends Bloc<WorkoutsEvent, WorkoutsState> {
   ) async {
     emit(const WorkoutsLoading());
 
-    final result = await getWorkoutById(
-      GetWorkoutByIdParams(workoutId: event.workoutId),
-    );
+    final result = await getWorkoutById(event.workoutId);
 
     result.fold(
       (failure) => emit(WorkoutsError(message: _mapFailureToMessage(failure))),
@@ -182,7 +180,7 @@ class WorkoutsBloc extends Bloc<WorkoutsEvent, WorkoutsState> {
   ) async {
     emit(const WorkoutsLoading());
 
-    final result = await getWorkoutHistory(NoParams());
+    final result = await getWorkoutHistory();
 
     result.fold(
       (failure) => emit(WorkoutsError(message: _mapFailureToMessage(failure))),
