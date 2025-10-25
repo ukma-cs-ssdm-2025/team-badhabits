@@ -92,10 +92,8 @@ class WorkoutsFirestoreDataSource {
 
       // Apply filters
       if (duration != null) {
-        query =
-            query.where('duration_minutes', isLessThanOrEqualTo: duration + 5);
-        query =
-            query.where('duration_minutes', isGreaterThanOrEqualTo: duration - 5);
+        query = query.where('duration_minutes',
+            isLessThanOrEqualTo: duration + 5, isGreaterThanOrEqualTo: duration - 5);
       }
 
       if (difficulty != null) {
