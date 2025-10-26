@@ -84,7 +84,8 @@ class WorkoutsFirestoreDataSource {
     String? difficulty,
   }) async {
     try {
-      dynamic query = firestoreDb.collection('workouts');
+      firestore.Query<Map<String, dynamic>> query =
+          firestoreDb.collection('workouts');
 
       // Apply filters
       if (duration != null) {
@@ -96,7 +97,7 @@ class WorkoutsFirestoreDataSource {
         query = query.where('difficulty', isEqualTo: difficulty);
       }
 
-      final snapshot = await query.get() as firestore.QuerySnapshot<Map<String, dynamic>>;
+      final snapshot = await query.get();
       var workouts = snapshot.docs
           .map((doc) => WorkoutModel.fromJson({...doc.data(), 'id': doc.id}))
           .toList();

@@ -1,7 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frontend/core/di/injection_container.dart' as di;
 import 'package:frontend/features/workouts/domain/entities/workout.dart';
 import 'package:frontend/features/workouts/presentation/bloc/workouts_bloc.dart';
 import 'package:frontend/features/workouts/presentation/bloc/workouts_event.dart';
@@ -85,13 +84,21 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Filters',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                const Expanded(
+                  child: Text(
+                    'Filters',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
                 ),
                 if (hasFilters)
                   TextButton(
                     onPressed: () => _clearFilters(context),
+                    style: TextButton.styleFrom(
+                      textStyle: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                     child: const Text('Clear all'),
                   ),
               ],
@@ -433,10 +440,8 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
       );
     }
 
-    return BlocProvider(
-      create: (context) => di.sl<WorkoutsBloc>()..add(const LoadWorkouts()),
-      child: Scaffold(
-        body: BlocBuilder<WorkoutsBloc, WorkoutsState>(
+    return Scaffold(
+      body: BlocBuilder<WorkoutsBloc, WorkoutsState>(
           builder: (context, state) {
             // Loading state
             if (state is WorkoutsInitial || state is WorkoutsLoading) {
@@ -454,32 +459,41 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
             // Filtered workouts state
             if (state is FilteredWorkoutsLoaded) {
               if (state.workouts.isEmpty) {
-                return Column(
-                  children: [
-                    _buildFiltersSection(context),
-                    Expanded(
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.search_off,
-                                size: 64, color: Colors.grey[400]),
-                            const SizedBox(height: 16),
-                            Text(
-                              'No workouts match filters',
-                              style: TextStyle(
-                                  fontSize: 18, color: Colors.grey[600]),
-                            ),
-                            const SizedBox(height: 16),
-                            TextButton(
-                              onPressed: () => _clearFilters(context),
-                              child: const Text('Clear filters'),
-                            ),
-                          ],
+                return SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      _buildFiltersSection(context),
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.5,
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.search_off,
+                                  size: 64, color: Colors.grey[400]),
+                              const SizedBox(height: 16),
+                              Text(
+                                'No workouts match filters',
+                                style: TextStyle(
+                                    fontSize: 18, color: Colors.grey[600]),
+                              ),
+                              const SizedBox(height: 16),
+                              TextButton(
+                                onPressed: () => _clearFilters(context),
+                                style: TextButton.styleFrom(
+                                  textStyle: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                child: const Text('Clear filters'),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 );
               }
               return _buildWorkoutsList(context, state.workouts);
@@ -508,7 +522,6 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
           icon: const Icon(Icons.play_arrow),
           label: const Text('Start Workout'),
         ),
-      ),
     );
   }
 }

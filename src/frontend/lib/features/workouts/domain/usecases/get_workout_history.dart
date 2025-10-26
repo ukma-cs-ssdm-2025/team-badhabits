@@ -1,5 +1,4 @@
 import 'package:dartz/dartz.dart';
-import 'package:equatable/equatable.dart';
 import 'package:frontend/core/error/failures.dart';
 import 'package:frontend/features/workouts/domain/entities/workout_session.dart';
 import 'package:frontend/features/workouts/domain/repositories/workouts_repository.dart';
