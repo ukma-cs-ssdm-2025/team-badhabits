@@ -8,8 +8,13 @@ import 'package:frontend/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:frontend/features/auth/presentation/bloc/auth_event.dart';
 import 'package:frontend/features/auth/presentation/bloc/auth_state.dart';
 import 'package:frontend/features/auth/presentation/pages/login_page.dart';
+import 'package:frontend/features/habits/data/models/habit_entry_hive_model.dart';
+import 'package:frontend/features/habits/data/models/habit_field_hive_model.dart';
+import 'package:frontend/features/habits/data/models/habit_hive_model.dart';
+import 'package:frontend/features/habits/data/services/habit_sync_service.dart';
 import 'package:frontend/firebase_options.dart';
 import 'package:frontend/shared/widgets/main_navigation.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,8 +22,24 @@ void main() async {
   // Initialize Firebase
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
+  // Initialize Hive for local storage
+  await Hive.initFlutter();
+
+  // Register Hive adapters
+  Hive
+    ..registerAdapter(HabitFieldHiveModelAdapter())
+    ..registerAdapter(HabitHiveModelAdapter())
+    ..registerAdapter(HabitEntryHiveModelAdapter());
+
+  // Open Hive boxes
+  await Hive.openBox<HabitHiveModel>('habits');
+  await Hive.openBox<HabitEntryHiveModel>('habit_entries');
+
   // Initialize dependency injection
   await di.init();
+
+  // Start habit sync service
+  di.sl<HabitSyncService>().startListening();
 
   runApp(const MyApp());
 }

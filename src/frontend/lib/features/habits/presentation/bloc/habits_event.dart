@@ -75,3 +75,18 @@ class LoadEntryForDateEvent extends HabitsEvent {
   @override
   List<Object?> get props => [habitId, date];
 }
+
+/// Event to load habit statistics
+class LoadHabitStatisticsEvent extends HabitsEvent {
+  const LoadHabitStatisticsEvent({
+    required this.userId,
+    required this.habitId,
+    this.days = 30,
+  });
+  final String userId;
+  final String habitId;
+  final int days;
+
+  @override
+  List<Object?> get props => [userId, habitId, days];
+}
