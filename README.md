@@ -4,25 +4,38 @@
 
 [![CI Test](https://github.com/ukma-cs-ssdm-2025/team-badhabits/actions/workflows/flutter-ci.yml/badge.svg?branch=main)](https://github.com/ukma-cs-ssdm-2025/team-badhabits/actions/workflows/flutter-ci.yml)
 
+## 📄 General Docs
 
+  - Уся документація проекту щодо реалізації програмного забезпечення: [docs](docs)
 
-[ProjectDescription.md](ProjectDescription.md) - опис та функціонал проекту  <br>
+  - Окремі посилання:
 
-[TeamCharter.md](TeamCharter.md) - інформація про організацію процесів впровадження <br> та контролю співпраці, а також 
-спільного робочого середовища команди проекту
+    - [ProjectDescription.md](ProjectDescription.md) - опис та функціонал проекту  <br>
+    
+    - [TeamCharter.md](TeamCharter.md) - інформація про організацію процесів впровадження <br> та контролю співпраці, а також 
+    спільного робочого середовища команди проекту
+    
+    - [requirements.md](docs/requirements/requirements.md) - FR & NFR проекту
+    
+    - [rtm.md](docs/requirements/rtm.md) - матриця простежуваності вимог проекту
+    
+    - [user-stories.md](docs/requirements/user-stories.md) - користувацькі історії
+    
+    - [architecture](docs/architecture/high-level-design.md) - загальний огляд архітектури додатку
+    
+    - [diagrams](docs/diagrams) - uml-представлення імплементування додатку
+    
+    - [decisions](docs/decisions) - записи архітектурних рішень додатку
+  
+    - [api](docs/api) - загальна інформація про api
+    
+    - [code-quality](docs/code-quality) - документування оцінки якості коду
+  
+    - [testing](docs/testing) - документування тестування
 
-[requirements.md](docs/requirements/requirements.md) - FR & NFR проекту
+## ▶️ Запуск проекту
 
-[rtm.md](docs/requirements/rtm.md) - матриця простежуваності вимог проекту
-
-[user-stories.md](docs/requirements/user-stories.md) - користувацькі історії
-
-[architecture](docs/architecture/high-level-design.md) - загальний огляд архітектури додатку
-
-[diagrams](docs/diagrams) - uml-представлення імплементування додатку
-
-[decisions](docs/decisions) записи архітектурних рішень додатку
-
+Інструкцію можна знайти ось тут:  [setup](src\frontend\SETUP.md).
 ## 🚀 Production Deployment
 
 **Backend API:** [https://wellity-backend-production.up.railway.app](https://wellity-backend-production.up.railway.app)
@@ -31,9 +44,9 @@
 
 **Platform:** Railway.app | **Region:** Europe West | **Status:** ✅ Always On
 
-[Deployment Documentation](docs/deployment/railway-deployment.md)
+[deployment documentation](docs/deployment/railway-deployment.md)
 
-## Структура проєкту
+## 🕸️ Структура проєкту
 
 ```bash
 team-badhabits/
@@ -46,10 +59,16 @@ team-badhabits/
 │   ├── frontend/
 │   └── shared/
 ├── docs/
+│   ├── api/
 │   ├── architecture/
+│   ├── code-quality/
 │   ├── decisions/
+│   ├── deployment/
 │   ├── diagrams/
-│   └── requirements/
+│   ├── requirements/
+│   ├── testing/
+│   ├── RELEASES.md
+│   └── index.html
 ├── tests/
 ├── Labs/
 ├── README.md
@@ -57,7 +76,7 @@ team-badhabits/
 └── ProjectDescription.md
 ```
 
-## Контакти команди авторів проекту:
+## 📞 Контакти команди авторів проекту:
 - Андрій (GitHub: @kepeld)
 - Дарина (GitHub: @dahl1a-bloom)
 - Давид (GitHub: @DavydKod)
