@@ -183,56 +183,70 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
   }
 
   /// Build empty state widget
-  Widget _buildEmptyState() => Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.fitness_center_outlined,
-                size: 64, color: Colors.grey[400]),
-            const SizedBox(height: 16),
-            Text(
-              'No workouts available',
-              style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+  Widget _buildEmptyState() => Column(
+        children: [
+          _buildActiveSessionBanner(context),
+          Expanded(
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.fitness_center_outlined,
+                      size: 64, color: Colors.grey[400]),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No workouts available',
+                    style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Check back later for personalized workouts',
+                    style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              'Check back later for personalized workouts',
-              style: TextStyle(fontSize: 14, color: Colors.grey[500]),
-            ),
-          ],
-        ),
+          ),
+        ],
       );
 
   /// Build error state widget
-  Widget _buildErrorState(BuildContext context, String message) => Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
-            const SizedBox(height: 16),
-            Text(
-              'Loading error',
-              style: TextStyle(fontSize: 18, color: Colors.grey[700]),
-            ),
-            const SizedBox(height: 8),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32),
-              child: Text(
-                message,
-                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                textAlign: TextAlign.center,
+  Widget _buildErrorState(BuildContext context, String message) => Column(
+        children: [
+          _buildActiveSessionBanner(context),
+          Expanded(
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Loading error',
+                    style: TextStyle(fontSize: 18, color: Colors.grey[700]),
+                  ),
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                    child: Text(
+                      message,
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      context.read<WorkoutsBloc>().add(const LoadWorkouts());
+                    },
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Try again'),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: () {
-                context.read<WorkoutsBloc>().add(const LoadWorkouts());
-              },
-              icon: const Icon(Icons.refresh),
-              label: const Text('Try again'),
-            ),
-          ],
-        ),
+          ),
+        ],
       );
 
   /// Build workout card
@@ -419,11 +433,6 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
   Widget _buildActiveSessionBanner(BuildContext context) {
     if (_activeSession == null) return const SizedBox.shrink();
 
-    final elapsed = DateTime.now().difference(_activeSession!.startedAt);
-    final minutes = elapsed.inMinutes;
-    final seconds = elapsed.inSeconds % 60;
-    final timeText = '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
-
     return Card(
       margin: const EdgeInsets.all(16),
       color: Colors.green.withValues(alpha: 0.1),
@@ -473,12 +482,22 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 2),
-                  Text(
-                    'Time: $timeText',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
-                    ),
+                  StreamBuilder(
+                    stream: Stream.periodic(const Duration(seconds: 1)),
+                    builder: (context, snapshot) {
+                      final elapsed = DateTime.now().difference(_activeSession!.startedAt);
+                      final minutes = elapsed.inMinutes;
+                      final seconds = elapsed.inSeconds % 60;
+                      final timeText = '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+
+                      return Text(
+                        'Time: $timeText',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[600],
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -495,6 +514,10 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
                     ),
                   ),
                 );
+                // Check for active session after returning
+                if (context.mounted) {
+                  context.read<WorkoutsBloc>().add(const LoadActiveWorkoutSession());
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green,
@@ -567,6 +590,7 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
                 return SingleChildScrollView(
                   child: Column(
                     children: [
+                      _buildActiveSessionBanner(context),
                       _buildFiltersSection(context),
                       SizedBox(
                         height: MediaQuery.of(context).size.height * 0.5,
@@ -661,6 +685,10 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
                   ),
                 ),
               );
+              // Check for active session after returning
+              if (context.mounted) {
+                context.read<WorkoutsBloc>().add(const LoadActiveWorkoutSession());
+              }
             } else {
               // Check for active session (FR-013)
               context.read<WorkoutsBloc>().add(const LoadActiveWorkoutSession());
@@ -684,6 +712,10 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
                     ),
                   ),
                 );
+                // Check for active session after returning
+                if (context.mounted) {
+                  context.read<WorkoutsBloc>().add(const LoadActiveWorkoutSession());
+                }
               } else {
                 // No active session - show message
                 ScaffoldMessenger.of(context).showSnackBar(

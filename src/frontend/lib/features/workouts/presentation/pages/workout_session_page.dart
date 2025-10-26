@@ -43,87 +43,91 @@ class _WorkoutSessionPageState extends State<WorkoutSessionPage> {
   }
 
   void _completeSession(BuildContext context) {
+    final workoutsBloc = context.read<WorkoutsBloc>();
+
     showDialog<void>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Complete Workout'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('How difficult was this workout?'),
-              const SizedBox(height: 8),
-              Slider(
-                value: _difficultyRating.toDouble(),
-                min: 1,
-                max: 5,
-                divisions: 4,
-                label: _difficultyRating.toString(),
-                onChanged: (value) {
-                  setState(() {
-                    _difficultyRating = value.toInt();
-                  });
-                },
-              ),
-              Text(
-                'Difficulty: $_difficultyRating/5',
-                style: const TextStyle(fontSize: 12),
-              ),
-              const SizedBox(height: 16),
-              const Text('How much did you enjoy it?'),
-              const SizedBox(height: 8),
-              Slider(
-                value: _enjoymentRating.toDouble(),
-                min: 1,
-                max: 5,
-                divisions: 4,
-                label: _enjoymentRating.toString(),
-                onChanged: (value) {
-                  setState(() {
-                    _enjoymentRating = value.toInt();
-                  });
-                },
-              ),
-              Text(
-                'Enjoyment: $_enjoymentRating/5',
-                style: const TextStyle(fontSize: 12),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _notesController,
-                decoration: const InputDecoration(
-                  labelText: 'Notes (optional)',
-                  hintText: 'How did you feel during this workout?',
-                  border: OutlineInputBorder(),
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (builderContext, setStateDialog) => AlertDialog(
+          title: const Text('Complete Workout'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('How difficult was this workout?'),
+                const SizedBox(height: 8),
+                Slider(
+                  value: _difficultyRating.toDouble(),
+                  min: 1,
+                  max: 5,
+                  divisions: 4,
+                  label: _difficultyRating.toString(),
+                  onChanged: (value) {
+                    setStateDialog(() {
+                      _difficultyRating = value.toInt();
+                    });
+                  },
                 ),
-                maxLines: 3,
-              ),
-            ],
+                Text(
+                  'Difficulty: $_difficultyRating/5',
+                  style: const TextStyle(fontSize: 12),
+                ),
+                const SizedBox(height: 16),
+                const Text('How much did you enjoy it?'),
+                const SizedBox(height: 8),
+                Slider(
+                  value: _enjoymentRating.toDouble(),
+                  min: 1,
+                  max: 5,
+                  divisions: 4,
+                  label: _enjoymentRating.toString(),
+                  onChanged: (value) {
+                    setStateDialog(() {
+                      _enjoymentRating = value.toInt();
+                    });
+                  },
+                ),
+                Text(
+                  'Enjoyment: $_enjoymentRating/5',
+                  style: const TextStyle(fontSize: 12),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _notesController,
+                  decoration: const InputDecoration(
+                    labelText: 'Notes (optional)',
+                    hintText: 'How did you feel during this workout?',
+                    border: OutlineInputBorder(),
+                  ),
+                  maxLines: 3,
+                ),
+              ],
+            ),
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(dialogContext);
+                workoutsBloc.add(
+                  CompleteWorkoutSession(
+                    sessionId: widget.session.id,
+                    difficultyRating: _difficultyRating,
+                    enjoymentRating: _enjoymentRating,
+                    notes: _notesController.text.isEmpty
+                        ? null
+                        : _notesController.text,
+                  ),
+                );
+              },
+              child: const Text('Complete'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(dialogContext);
-              context.read<WorkoutsBloc>().add(
-                    CompleteWorkoutSession(
-                      sessionId: widget.session.id,
-                      difficultyRating: _difficultyRating,
-                      enjoymentRating: _enjoymentRating,
-                      notes: _notesController.text.isEmpty
-                          ? null
-                          : _notesController.text,
-                    ),
-                  );
-            },
-            child: const Text('Complete'),
-          ),
-        ],
       ),
     );
   }
