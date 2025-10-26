@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/features/workouts/domain/entities/workout.dart';
+import 'package:frontend/features/workouts/domain/entities/workout_session.dart';
 import 'package:frontend/features/workouts/presentation/bloc/workouts_bloc.dart';
 import 'package:frontend/features/workouts/presentation/bloc/workouts_event.dart';
 import 'package:frontend/features/workouts/presentation/bloc/workouts_state.dart';
@@ -23,6 +24,9 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
   int? _selectedDuration; // 15, 30, 45 minutes
   String? _selectedDifficulty; // beginner, intermediate, advanced
   List<String> _selectedEquipment = []; // dumbbells, resistance_bands, etc.
+
+  // Active session tracking
+  WorkoutSession? _activeSession;
 
   @override
   void initState() {
@@ -411,6 +415,102 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
     );
   }
 
+  /// Build active session banner
+  Widget _buildActiveSessionBanner(BuildContext context) {
+    if (_activeSession == null) return const SizedBox.shrink();
+
+    final elapsed = DateTime.now().difference(_activeSession!.startedAt);
+    final minutes = elapsed.inMinutes;
+    final seconds = elapsed.inSeconds % 60;
+    final timeText = '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+
+    return Card(
+      margin: const EdgeInsets.all(16),
+      color: Colors.green.withValues(alpha: 0.1),
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.green.withValues(alpha: 0.3), width: 1),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: Colors.green.withValues(alpha: 0.2),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.fitness_center,
+                color: Colors.green,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Active Workout',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.green,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    _activeSession!.workoutTitle,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Time: $timeText',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final workoutsBloc = context.read<WorkoutsBloc>();
+                await Navigator.push<void>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => BlocProvider.value(
+                      value: workoutsBloc,
+                      child: WorkoutSessionPage(session: _activeSession!),
+                    ),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text('Continue'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   /// Build workouts list
   Widget _buildWorkoutsList(BuildContext context, List<Workout> workouts) {
     return RefreshIndicator(
@@ -420,12 +520,16 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
       },
       child: ListView.builder(
         padding: const EdgeInsets.only(bottom: 80),
-        itemCount: workouts.length + 1, // +1 for filters section
+        itemCount: workouts.length + (_activeSession != null ? 2 : 1), // +1 for filters, +1 for banner if active
         itemBuilder: (context, index) {
-          if (index == 0) {
+          if (index == 0 && _activeSession != null) {
+            return _buildActiveSessionBanner(context);
+          }
+          final adjustedIndex = _activeSession != null ? index - 1 : index;
+          if (adjustedIndex == 0) {
             return _buildFiltersSection(context);
           }
-          return _buildWorkoutCard(context, workouts[index - 1]);
+          return _buildWorkoutCard(context, workouts[adjustedIndex - 1]);
         },
       ),
     );
@@ -509,21 +613,25 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
               return const Center(child: CircularProgressIndicator());
             }
 
-            // Active session loaded - reload workouts list
+            // Active session loaded - store session and reload workouts
             if (state is ActiveWorkoutSessionLoaded) {
-              if (state.session != null) {
-                // If there's an active session, FAB will handle navigation
-                // Just reload workouts list
-                Future.microtask(() {
-                  context.read<WorkoutsBloc>().add(const LoadWorkouts());
+              // Store the active session
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                setState(() {
+                  _activeSession = state.session;
                 });
-              }
+                // Reload workouts list to show the banner
+                context.read<WorkoutsBloc>().add(const LoadWorkouts());
+              });
               return const Center(child: CircularProgressIndicator());
             }
 
-            // Session completed - reload workouts
+            // Session completed - clear active session and reload workouts
             if (state is WorkoutSessionCompleted) {
-              Future.microtask(() {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                setState(() {
+                  _activeSession = null;
+                });
                 context.read<WorkoutsBloc>().add(const LoadWorkouts());
               });
               return const Center(child: CircularProgressIndicator());
@@ -541,41 +649,55 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
         floatingActionButton: FloatingActionButton.extended(
           heroTag: 'workouts_fab',
           onPressed: () async {
-            // Check for active session (FR-013)
-            context.read<WorkoutsBloc>().add(const LoadActiveWorkoutSession());
-
-            // Wait for state update
-            await Future<void>.delayed(const Duration(milliseconds: 500));
-
-            if (!context.mounted) return;
-
-            final state = context.read<WorkoutsBloc>().state;
-
-            if (state is ActiveWorkoutSessionLoaded && state.session != null) {
-              // Navigate to active session
+            if (_activeSession != null) {
+              // Navigate to active session directly
               final workoutsBloc = context.read<WorkoutsBloc>();
-              Navigator.push<void>(
+              await Navigator.push<void>(
                 context,
                 MaterialPageRoute(
                   builder: (context) => BlocProvider.value(
                     value: workoutsBloc,
-                    child: WorkoutSessionPage(session: state.session!),
+                    child: WorkoutSessionPage(session: _activeSession!),
                   ),
                 ),
               );
             } else {
-              // No active session - show message
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content:
-                      Text('Please select a workout from the list to start'),
-                  duration: Duration(seconds: 2),
-                ),
-              );
+              // Check for active session (FR-013)
+              context.read<WorkoutsBloc>().add(const LoadActiveWorkoutSession());
+
+              // Wait for state update
+              await Future<void>.delayed(const Duration(milliseconds: 500));
+
+              if (!context.mounted) return;
+
+              final state = context.read<WorkoutsBloc>().state;
+
+              if (state is ActiveWorkoutSessionLoaded && state.session != null) {
+                // Navigate to active session
+                final workoutsBloc = context.read<WorkoutsBloc>();
+                await Navigator.push<void>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => BlocProvider.value(
+                      value: workoutsBloc,
+                      child: WorkoutSessionPage(session: state.session!),
+                    ),
+                  ),
+                );
+              } else {
+                // No active session - show message
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content:
+                        Text('Please select a workout from the list to start'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              }
             }
           },
-          icon: const Icon(Icons.play_arrow),
-          label: const Text('Start Workout'),
+          icon: Icon(_activeSession != null ? Icons.play_arrow : Icons.play_arrow),
+          label: Text(_activeSession != null ? 'Continue Workout' : 'Start Workout'),
         ),
     );
   }
