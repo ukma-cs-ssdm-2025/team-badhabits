@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:frontend/features/habits/domain/entities/habit.dart';
+import 'package:frontend/features/habits/domain/usecases/get_habit_statistics.dart';
 
 /// Base class for habits states
 abstract class HabitsState extends Equatable {
@@ -53,4 +54,19 @@ class HabitsError extends HabitsState {
 
   @override
   List<Object?> get props => [message];
+}
+
+/// Successfully loaded habit statistics state
+class HabitStatisticsLoaded extends HabitsState {
+  const HabitStatisticsLoaded({
+    required this.statistics,
+    required this.habit,
+    required this.entries,
+  });
+  final HabitStatistics statistics;
+  final Habit habit;
+  final List<HabitEntry> entries;
+
+  @override
+  List<Object?> get props => [statistics, habit, entries];
 }

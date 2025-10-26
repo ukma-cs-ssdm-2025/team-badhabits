@@ -1,0 +1,38 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow read/write only to authenticated users
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Habits collection - owner only access (with userId check)
+    match /habits/{habitId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+
+      // Habit entries (subcollection) - owner only access
+      match /entries/{entryId} {
+        allow read: if request.auth != null && get(/databases/$(database)/documents/habits/$(habitId)).data.userId == request.auth.uid;
+        allow create: if request.auth != null && get(/databases/$(database)/documents/habits/$(habitId)).data.userId == request.auth.uid;
+        allow update, delete: if request.auth != null && get(/databases/$(database)/documents/habits/$(habitId)).data.userId == request.auth.uid;
+      }
+    }
+
+    match /workouts/{workoutId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Notes collection - owner only access (with userId check)
+    match /notes/{noteId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+
+    match /achievements/{achievementId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

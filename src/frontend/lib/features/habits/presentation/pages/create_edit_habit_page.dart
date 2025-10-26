@@ -21,10 +21,44 @@ class CreateEditHabitPage extends StatefulWidget {
 class _CreateEditHabitPageState extends State<CreateEditHabitPage> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
+  late TextEditingController _descriptionController;
   bool _isLoading = false;
 
   // Fields list
   List<_FieldData> _fields = [];
+
+  // New fields for UX improvement
+  String? _selectedCategory;
+  String _selectedIcon = 'track_changes';
+
+  // Categories
+  final _categories = [
+    'Fitness',
+    'Health',
+    'Productivity',
+    'Learning',
+    'Mindfulness',
+    'Social',
+    'Finance',
+    'Hobbies',
+    'Other',
+  ];
+
+  // Icons
+  final _habitIcons = {
+    'track_changes': Icons.track_changes,
+    'fitness': Icons.fitness_center,
+    'water': Icons.water_drop,
+    'book': Icons.book,
+    'meditation': Icons.self_improvement,
+    'sleep': Icons.bedtime,
+    'food': Icons.restaurant,
+    'work': Icons.work,
+    'study': Icons.school,
+    'run': Icons.directions_run,
+    'bike': Icons.directions_bike,
+    'heart': Icons.favorite,
+  };
 
   /// Check if in edit mode
   bool get isEditMode => widget.habit != null;
@@ -32,8 +66,9 @@ class _CreateEditHabitPageState extends State<CreateEditHabitPage> {
   @override
   void initState() {
     super.initState();
-    // Initialize controller with existing habit data if in edit mode
+    // Initialize controllers with existing habit data if in edit mode
     _nameController = TextEditingController(text: widget.habit?.name ?? '');
+    _descriptionController = TextEditingController(text: '');
 
     // Initialize fields from existing habit or with one empty field
     if (widget.habit != null) {
@@ -54,6 +89,7 @@ class _CreateEditHabitPageState extends State<CreateEditHabitPage> {
   @override
   void dispose() {
     _nameController.dispose();
+    _descriptionController.dispose();
     for (final field in _fields) {
       field.dispose();
     }
@@ -73,6 +109,173 @@ class _CreateEditHabitPageState extends State<CreateEditHabitPage> {
       _fields[index].dispose();
       _fields.removeAt(index);
     });
+  }
+
+  /// Show templates bottom sheet
+  Future<void> _showTemplatesBottomSheet() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        maxChildSize: 0.9,
+        minChildSize: 0.5,
+        expand: false,
+        builder: (context, scrollController) => Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                'Habit Templates',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+            ),
+            const Divider(),
+            Expanded(
+              child: ListView(
+                controller: scrollController,
+                children: [
+                  _buildTemplateCard(
+                    title: 'Drink Water',
+                    description: 'Track daily water intake',
+                    icon: Icons.water_drop,
+                    iconKey: 'water',
+                    category: 'Health',
+                    fields: [
+                      _FieldData(label: 'Glasses', unit: 'glasses'),
+                    ],
+                  ),
+                  _buildTemplateCard(
+                    title: 'Morning Exercise',
+                    description: 'Track workout duration',
+                    icon: Icons.fitness_center,
+                    iconKey: 'fitness',
+                    category: 'Fitness',
+                    fields: [
+                      _FieldData(label: 'Duration', unit: 'minutes'),
+                      _FieldData(type: 'rating', label: 'Intensity'),
+                    ],
+                  ),
+                  _buildTemplateCard(
+                    title: 'Reading',
+                    description: 'Track daily reading',
+                    icon: Icons.book,
+                    iconKey: 'book',
+                    category: 'Learning',
+                    fields: [
+                      _FieldData(label: 'Pages', unit: 'pages'),
+                      _FieldData(label: 'Minutes', unit: 'min'),
+                    ],
+                  ),
+                  _buildTemplateCard(
+                    title: 'Meditation',
+                    description: 'Daily mindfulness practice',
+                    icon: Icons.self_improvement,
+                    iconKey: 'meditation',
+                    category: 'Mindfulness',
+                    fields: [
+                      _FieldData(label: 'Duration', unit: 'minutes'),
+                      _FieldData(type: 'rating', label: 'Focus Level'),
+                    ],
+                  ),
+                  _buildTemplateCard(
+                    title: 'Sleep Tracking',
+                    description: 'Monitor sleep quality',
+                    icon: Icons.bedtime,
+                    iconKey: 'sleep',
+                    category: 'Health',
+                    fields: [
+                      _FieldData(label: 'Hours', unit: 'hours'),
+                      _FieldData(type: 'rating', label: 'Quality'),
+                    ],
+                  ),
+                  _buildTemplateCard(
+                    title: 'Study Time',
+                    description: 'Track learning sessions',
+                    icon: Icons.school,
+                    iconKey: 'study',
+                    category: 'Learning',
+                    fields: [
+                      _FieldData(label: 'Minutes', unit: 'min'),
+                      _FieldData(type: 'text', label: 'Topic'),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Build template card widget
+  Widget _buildTemplateCard({
+    required String title,
+    required String description,
+    required IconData icon,
+    required String iconKey,
+    required String category,
+    required List<_FieldData> fields,
+  }) =>
+      Card(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: ListTile(
+          leading: CircleAvatar(
+            backgroundColor: Colors.blue.shade100,
+            child: Icon(icon, color: Colors.blue),
+          ),
+          title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+          subtitle: Text(description),
+          trailing: Chip(
+            label: Text(category, style: const TextStyle(fontSize: 11)),
+            backgroundColor: Colors.grey.shade200,
+          ),
+          onTap: () {
+            Navigator.pop(context);
+            _applyTemplate(title, description, category, iconKey, fields);
+          },
+        ),
+      );
+
+  /// Apply template to form
+  void _applyTemplate(
+    String name,
+    String description,
+    String category,
+    String iconKey,
+    List<_FieldData> fields,
+  ) {
+    setState(() {
+      _nameController.text = name;
+      _descriptionController.text = description;
+      _selectedCategory = category;
+      _selectedIcon = iconKey;
+
+      // Clear existing fields and add template fields
+      for (final field in _fields) {
+        field.dispose();
+      }
+      _fields = fields
+          .map(
+            (f) => _FieldData(
+              type: f.type,
+              label: f.labelController.text,
+              unit: f.unitController.text,
+            ),
+          )
+          .toList();
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Template applied! You can customize it.'),
+        backgroundColor: Colors.green,
+      ),
+    );
   }
 
   /// Save habit (create or update)
@@ -192,6 +395,17 @@ class _CreateEditHabitPageState extends State<CreateEditHabitPage> {
           icon: const Icon(Icons.arrow_back),
           onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
         ),
+        actions: [
+          if (!isEditMode)
+            TextButton.icon(
+              onPressed: _isLoading ? null : _showTemplatesBottomSheet,
+              icon: const Icon(Icons.lightbulb_outline),
+              label: const Text('Templates'),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+              ),
+            ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -222,6 +436,141 @@ class _CreateEditHabitPageState extends State<CreateEditHabitPage> {
                   }
                   return null;
                 },
+              ),
+              const SizedBox(height: 24),
+
+              // Description field
+              TextFormField(
+                controller: _descriptionController,
+                decoration: const InputDecoration(
+                  labelText: 'Description (optional)',
+                  hintText: 'What is this habit about?',
+                  prefixIcon: Icon(Icons.description),
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 3,
+                maxLength: 200,
+                textInputAction: TextInputAction.next,
+                enabled: !_isLoading,
+              ),
+              const SizedBox(height: 24),
+
+              // Category selector
+              DropdownButtonFormField<String>(
+                value: _selectedCategory,
+                decoration: const InputDecoration(
+                  labelText: 'Category',
+                  prefixIcon: Icon(Icons.category),
+                  border: OutlineInputBorder(),
+                ),
+                items: _categories
+                    .map(
+                      (cat) => DropdownMenuItem(
+                        value: cat,
+                        child: Text(cat),
+                      ),
+                    )
+                    .toList(),
+                onChanged: _isLoading
+                    ? null
+                    : (value) {
+                        setState(() {
+                          _selectedCategory = value;
+                        });
+                      },
+              ),
+              const SizedBox(height: 24),
+
+              // Icon picker section
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Choose Icon',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    children: _habitIcons.entries.map((entry) {
+                      final isSelected = _selectedIcon == entry.key;
+                      return InkWell(
+                        onTap: _isLoading
+                            ? null
+                            : () {
+                                setState(() {
+                                  _selectedIcon = entry.key;
+                                });
+                              },
+                        child: Container(
+                          width: 56,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? Theme.of(context).primaryColor
+                                : Colors.grey.shade200,
+                            borderRadius: BorderRadius.circular(12),
+                            border: isSelected
+                                ? Border.all(
+                                    color: Theme.of(context).primaryColor,
+                                    width: 2,
+                                  )
+                                : null,
+                          ),
+                          child: Icon(
+                            entry.value,
+                            color: isSelected
+                                ? Colors.white
+                                : Colors.grey.shade700,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 32),
+
+              // Info card about tracking fields
+              Card(
+                color: Colors.blue.shade50,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.info_outline, color: Colors.blue.shade700),
+                          const SizedBox(width: 8),
+                          Text(
+                            'About Tracking Fields',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: Colors.blue.shade900,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Tracking fields define what you want to measure each day.\n\n'
+                        'Examples:\n'
+                        '• Number: glasses of water, minutes exercised\n'
+                        '• Rating: mood (1-5 stars), energy level\n'
+                        '• Text: journal entry, notes',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.blue.shade900,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
               const SizedBox(height: 24),
 
