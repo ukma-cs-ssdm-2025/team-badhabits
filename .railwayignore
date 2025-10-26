@@ -1,0 +1,41 @@
+# Railway deployment ignore file
+# Exclude unnecessary files from deployment
+
+# Frontend (not needed on backend server)
+src/frontend/
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Development files
+.git/
+.github/
+.vscode/
+*.log
+*.lock
+
+# Test files
+src/backend/tests/
+src/backend/coverage/
+
+# Environment files (will be set via Railway dashboard)
+.env
+.env.*
+
+# Build artifacts
+node_modules/
+dist/
+build/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+NUL
+*.tmp
+check.md
+BACKEND_BUGS_REPORT.md
+FRONTEND_BUGS_REPORT.md
