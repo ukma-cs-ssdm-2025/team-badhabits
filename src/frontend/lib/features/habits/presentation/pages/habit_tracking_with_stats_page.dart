@@ -95,6 +95,11 @@ class _HabitTrackingWithStatsPageState extends State<HabitTrackingWithStatsPage>
       title: Text(widget.habit.name),
       bottom: TabBar(
         controller: _tabController,
+        labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+        unselectedLabelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal),
+        labelColor: Theme.of(context).colorScheme.onPrimary,
+        unselectedLabelColor: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.7),
+        indicatorColor: Theme.of(context).colorScheme.onPrimary,
         tabs: const [
           Tab(icon: Icon(Icons.add_circle), text: 'Track'),
           Tab(icon: Icon(Icons.bar_chart), text: 'Statistics'),
@@ -390,22 +395,8 @@ class _HabitTrackingWithStatsPageState extends State<HabitTrackingWithStatsPage>
       ),
     );
 
-    // Reload data
-    context.read<HabitsBloc>().add(
-          LoadHabitStatisticsEvent(
-            userId: widget.habit.userId,
-            habitId: widget.habit.id,
-            days: _selectedPeriod,
-          ),
-        );
-
-    final now = DateTime.now();
-    final thirtyDaysAgo = now.subtract(const Duration(days: 30));
-    context.read<HabitsBloc>().add(
-          LoadEntriesEvent(widget.habit.id, thirtyDaysAgo, now),
-        );
-
     // Switch to History tab
+    // Note: The tab listener will automatically load data when switching
     _tabController.animateTo(2);
   }
 
@@ -576,15 +567,14 @@ class _HabitTrackingWithStatsPageState extends State<HabitTrackingWithStatsPage>
   /// Build period selector chips
   Widget _buildPeriodSelector() => Container(
     padding: const EdgeInsets.all(16),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+    child: Wrap(
+      alignment: WrapAlignment.center,
+      spacing: 8,
+      runSpacing: 8,
       children: [
         _buildPeriodChip('7D', 7),
-        const SizedBox(width: 8),
         _buildPeriodChip('14D', 14),
-        const SizedBox(width: 8),
         _buildPeriodChip('30D', 30),
-        const SizedBox(width: 8),
         _buildPeriodChip('3M', 90),
       ],
     ),

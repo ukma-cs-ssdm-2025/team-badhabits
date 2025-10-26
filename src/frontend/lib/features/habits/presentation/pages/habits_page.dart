@@ -89,12 +89,13 @@ class _HabitsPageState extends State<HabitsPage> {
       );
 
   /// Build empty state widget
-  Widget _buildEmptyState(BuildContext context) => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
+  Widget _buildEmptyState(BuildContext context) => SingleChildScrollView(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
               Icon(
                 Icons.track_changes,
                 size: 120,
@@ -162,13 +163,20 @@ class _HabitsPageState extends State<HabitsPage> {
                     ),
                   );
                 },
+                style: TextButton.styleFrom(
+                  textStyle: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
                 icon: const Icon(Icons.info_outline),
                 label: const Text('View Tutorial'),
               ),
             ],
           ),
         ),
-      );
+      ),
+    );
 
   /// Build error state widget
   Widget _buildErrorState(BuildContext context, String message) => Center(
