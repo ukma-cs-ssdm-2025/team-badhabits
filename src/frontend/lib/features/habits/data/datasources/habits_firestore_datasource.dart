@@ -120,9 +120,13 @@ class HabitsFirestoreDataSourceImpl implements HabitsFirestoreDataSource {
   ) async {
     try {
       // Update the habit document's entries map field
-      // Structure: entries.{date} = {field values}
+      // Structure: entries.{date}_{timestamp} = {field values}
+      // Using timestamp allows multiple entries per day
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final entryKey = '${entry.date}_$timestamp';
+
       await firestore.collection('habits').doc(habitId).update({
-        'entries.${entry.date}': entry.values,
+        'entries.$entryKey': entry.values,
       });
 
       return entry;
@@ -161,14 +165,17 @@ class HabitsFirestoreDataSourceImpl implements HabitsFirestoreDataSource {
       final startDateStr = _formatDate(startDate);
       final endDateStr = _formatDate(endDate);
 
-      for (final dateStr in entriesMap.keys) {
+      for (final entryKey in entriesMap.keys) {
+        // Parse key format: {date}_{timestamp} or legacy {date}
+        final dateStr = entryKey.split('_')[0];
+
         // Check if date is within range
         if (dateStr.compareTo(startDateStr) >= 0 &&
             dateStr.compareTo(endDateStr) <= 0) {
           entries.add(
             HabitEntryModel(
               date: dateStr,
-              values: Map<String, dynamic>.from(entriesMap[dateStr] as Map),
+              values: Map<String, dynamic>.from(entriesMap[entryKey] as Map),
             ),
           );
         }
@@ -204,14 +211,26 @@ class HabitsFirestoreDataSourceImpl implements HabitsFirestoreDataSource {
       // Extract entries map
       final entriesMap = data['entries'] as Map<String, dynamic>? ?? {};
 
-      // Check if entry exists for the given date
-      if (!entriesMap.containsKey(date)) {
+      // Find all entries for the given date (keys: {date}_{timestamp} or legacy {date})
+      final matchingEntries = <String, Map<String, dynamic>>{};
+      for (final entryKey in entriesMap.keys) {
+        final entryDate = entryKey.split('_')[0];
+        if (entryDate == date) {
+          matchingEntries[entryKey] = Map<String, dynamic>.from(entriesMap[entryKey] as Map);
+        }
+      }
+
+      if (matchingEntries.isEmpty) {
         return null;
       }
 
+      // If multiple entries exist for the same date, return the latest one
+      final sortedKeys = matchingEntries.keys.toList()..sort((a, b) => b.compareTo(a));
+      final latestKey = sortedKeys.first;
+
       return HabitEntryModel(
         date: date,
-        values: Map<String, dynamic>.from(entriesMap[date] as Map),
+        values: matchingEntries[latestKey]!,
       );
     } catch (e) {
       throw Exception('Failed to get habit entry for date: $e');
