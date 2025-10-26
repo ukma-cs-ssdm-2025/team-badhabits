@@ -35,7 +35,10 @@
 
 ## ▶️ Запуск проекту
 
-Інструкцію можна знайти ось тут:  [setup](src\frontend\SETUP.md).
+- Остання верісія apk проекту: [latest_android_apk](latest_android_apk)
+
+- Інструкцію, як локально запустити проект на комп'ютері, можна знайти ось тут:  [setup](src\frontend\SETUP.md).
+
 ## 🚀 Production Deployment
 
 **Backend API:** [https://wellity-backend-production.up.railway.app](https://wellity-backend-production.up.railway.app)
