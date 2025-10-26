@@ -71,9 +71,14 @@ team-badhabits/
 │   └── index.html
 ├── tests/
 ├── Labs/
+├── .gitignore
+├── .railwayignore
+├── CHANGELOG.md
+├── ProjectDescription.md
 ├── README.md
 ├── TeamCharter.md
-└── ProjectDescription.md
+├── firestore.rules
+└── railway.json
 ```
 
 ## 📞 Контакти команди авторів проекту:
