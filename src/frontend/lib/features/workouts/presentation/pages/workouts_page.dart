@@ -6,6 +6,7 @@ import 'package:frontend/features/workouts/domain/entities/workout.dart';
 import 'package:frontend/features/workouts/presentation/bloc/workouts_bloc.dart';
 import 'package:frontend/features/workouts/presentation/bloc/workouts_event.dart';
 import 'package:frontend/features/workouts/presentation/bloc/workouts_state.dart';
+import 'package:frontend/features/workouts/presentation/pages/workout_details_page.dart';
 
 /// Workouts page showing list of personalized workouts
 class WorkoutsPage extends StatefulWidget {
@@ -231,11 +232,15 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () {
-          // TODO: Navigate to workout details page
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text('Opening workout: ${workout.title}'),
-                duration: const Duration(seconds: 1)),
+          final workoutsBloc = context.read<WorkoutsBloc>();
+          Navigator.push(
+            context,
+            MaterialPageRoute<void>(
+              builder: (context) => BlocProvider.value(
+                value: workoutsBloc,
+                child: WorkoutDetailsPage(workout: workout),
+              ),
+            ),
           );
         },
         child: Padding(

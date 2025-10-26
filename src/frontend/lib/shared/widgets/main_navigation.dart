@@ -12,6 +12,8 @@ import 'package:frontend/features/habits/presentation/pages/habits_page.dart';
 import 'package:frontend/features/notes/presentation/pages/notes_page.dart';
 import 'package:frontend/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:frontend/features/profile/presentation/pages/profile_page.dart';
+import 'package:frontend/features/workouts/presentation/bloc/workouts_bloc.dart';
+import 'package:frontend/features/workouts/presentation/bloc/workouts_event.dart';
 import 'package:frontend/features/workouts/presentation/pages/workouts_page.dart';
 
 class MainNavigation extends StatefulWidget {
@@ -23,13 +25,26 @@ class MainNavigation extends StatefulWidget {
 
 class _MainNavigationState extends State<MainNavigation> {
   int _currentIndex = 0;
+  late final WorkoutsBloc _workoutsBloc;
 
-  final List<Widget> _pages = const [
-    NotesPage(),
-    HabitsPage(),
-    WorkoutsPage(),
-    AchievementsPage(),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _workoutsBloc = di.sl<WorkoutsBloc>()..add(const LoadWorkouts());
+  }
+
+  @override
+  void dispose() {
+    _workoutsBloc.close();
+    super.dispose();
+  }
+
+  List<Widget> get _pages => [
+        const NotesPage(),
+        const HabitsPage(),
+        const WorkoutsPage(),
+        const AchievementsPage(),
+      ];
 
   final List<String> _pageTitles = const [
     'Notes',
@@ -50,8 +65,10 @@ class _MainNavigationState extends State<MainNavigation> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
+  Widget build(BuildContext context) => BlocProvider.value(
+        value: _workoutsBloc,
+        child: Scaffold(
+          appBar: AppBar(
       title: Text(_pageTitles[_currentIndex]),
       actions: [
         // Theme toggle button
@@ -136,5 +153,6 @@ class _MainNavigationState extends State<MainNavigation> {
         ),
       ],
     ),
-  );
+        ),
+      );
 }

@@ -24,20 +24,21 @@ class ExerciseModel extends Exercise {
 
   /// Create ExerciseModel from JSON
   factory ExerciseModel.fromJson(Map<String, dynamic> json) => ExerciseModel(
-        id: json['id'] as String,
+        id: json['id'] as String? ?? '', // Auto-generate if missing
         name: json['name'] as String,
         description: json['description'] as String? ?? '',
-        sets: json['sets'] as int,
-        reps: json['reps'] as int,
+        sets: json['sets'] as int? ?? 1,
+        reps: json['reps'] as int? ?? 0, // 0 for time-based exercises
         weight: json['weight_kg'] != null
             ? (json['weight_kg'] as num).toDouble()
             : null,
         durationSeconds: json['duration_seconds'] as int?,
-        restSeconds: json['rest_seconds'] as int,
-        difficulty: json['difficulty'] as int,
-        affectedAreas: (json['affected_areas'] as List<dynamic>)
-            .map((e) => e as String)
-            .toList(),
+        restSeconds: json['rest_seconds'] as int? ?? 60, // Default 60 seconds rest
+        difficulty: json['difficulty'] as int? ?? 1, // Default difficulty 1
+        affectedAreas: (json['affected_areas'] as List<dynamic>?)
+                ?.map((e) => e as String)
+                .toList() ??
+            [], // Empty list if not specified
         equipment: json['equipment'] as String?,
         caloriesBurned: json['calories_burned'] as int?,
         videoUrl: json['video_url'] as String?,

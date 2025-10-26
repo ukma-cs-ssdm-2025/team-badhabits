@@ -27,15 +27,14 @@ class WorkoutsFirestoreDataSource {
     return user.uid;
   }
 
-  /// Get all workouts for current user
+  /// Get all workouts from public catalog
   ///
-  /// Returns personalized workouts from /users/{userId}/personalized_workouts
+  /// Returns all available workouts from /workouts collection
   Future<List<WorkoutModel>> getWorkouts() async {
     try {
       final snapshot = await firestoreDb
-          .collection('users')
-          .doc(_userId)
-          .collection('personalized_workouts')
+          .collection('workouts')
+          .orderBy('created_at', descending: true)
           .get();
 
       return snapshot.docs
@@ -76,7 +75,7 @@ class WorkoutsFirestoreDataSource {
     }
   }
 
-  /// Get filtered workouts
+  /// Get filtered workouts from public catalog
   ///
   /// Filters by duration, equipment, and difficulty
   Future<List<WorkoutModel>> getFilteredWorkouts({
@@ -85,10 +84,7 @@ class WorkoutsFirestoreDataSource {
     String? difficulty,
   }) async {
     try {
-      dynamic query = firestoreDb
-          .collection('users')
-          .doc(_userId)
-          .collection('personalized_workouts');
+      dynamic query = firestoreDb.collection('workouts');
 
       // Apply filters
       if (duration != null) {

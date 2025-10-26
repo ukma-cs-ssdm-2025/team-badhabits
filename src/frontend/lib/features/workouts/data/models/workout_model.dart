@@ -31,7 +31,7 @@ class WorkoutModel extends Workout {
   /// Create WorkoutModel from JSON
   factory WorkoutModel.fromJson(Map<String, dynamic> json) => WorkoutModel(
         id: json['id'] as String,
-        userId: json['user_id'] as String,
+        userId: json['user_id'] as String? ?? '', // Optional for public workouts
         title: json['title'] as String,
         description: json['description'] as String? ?? '',
         exercises: (json['exercises'] as List<dynamic>)
@@ -41,7 +41,7 @@ class WorkoutModel extends Workout {
             json['total_duration_minutes'] as int,
         estimatedCalories: json['estimated_calories'] as int,
         difficulty: json['difficulty'] as String,
-        difficultyScore: json['difficulty_score'] as int,
+        difficultyScore: json['difficulty_score'] as int? ?? 1, // Default to 1
         isAdaptive: json['is_adaptive'] as bool? ?? false,
         equipmentRequired: (json['equipment_required'] as List<dynamic>?)
                 ?.map((e) => e as String)
@@ -50,12 +50,15 @@ class WorkoutModel extends Workout {
         targetMuscleGroups: (json['target_muscle_groups'] as List<dynamic>?)
                 ?.map((e) => e as String)
                 .toList() ??
+            (json['target_areas'] as List<dynamic>?) // Fallback to target_areas
+                ?.map((e) => e as String)
+                .toList() ??
             [],
         isVerified: json['is_verified'] as bool? ?? false,
         isPublic: json['is_public'] as bool? ?? true,
         accessType: json['access_type'] as String? ?? 'free',
         price: json['price'] != null ? (json['price'] as num).toDouble() : null,
-        createdBy: json['created_by'] as String,
+        createdBy: json['created_by'] as String? ?? 'system', // Default to 'system' for public workouts
         createdAt: json['created_at'] is String
             ? DateTime.parse(json['created_at'] as String)
             : (json['created_at'] as DateTime),
@@ -64,7 +67,8 @@ class WorkoutModel extends Workout {
             : (json['updated_at'] as DateTime),
         tags: (json['tags'] as List<dynamic>?)
             ?.map((e) => e as String)
-            .toList(),
+            .toList() ??
+            (json['category'] != null ? [json['category'] as String] : null), // Fallback to category
       );
 
   /// Convert WorkoutModel to JSON

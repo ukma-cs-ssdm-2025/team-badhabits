@@ -7,3 +7,10 @@
 **/android/key.properties
 **/android/*.jks
 **/android/*.keystore
+
+# Firebase Admin SDK
+firebase-admin-key.json
+
+# Node modules
+node_modules/
+package-lock.json
