@@ -59,6 +59,21 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
     context.read<WorkoutsBloc>().add(const LoadWorkouts());
   }
 
+  /// Check if any filters are active
+  bool get _hasActiveFilters =>
+      _selectedDuration != null ||
+      _selectedDifficulty != null ||
+      _selectedEquipment.isNotEmpty;
+
+  /// Reload workouts with current filters
+  void _reloadWorkouts(BuildContext context) {
+    if (_hasActiveFilters) {
+      _applyFilters(context);
+    } else {
+      context.read<WorkoutsBloc>().add(const LoadWorkouts());
+    }
+  }
+
   /// Build filter chip
   Widget _buildFilterChip({
     required String label,
@@ -237,7 +252,7 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
                   const SizedBox(height: 16),
                   ElevatedButton.icon(
                     onPressed: () {
-                      context.read<WorkoutsBloc>().add(const LoadWorkouts());
+                      _reloadWorkouts(context);
                     },
                     icon: const Icon(Icons.refresh),
                     label: const Text('Try again'),
@@ -538,7 +553,7 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
   Widget _buildWorkoutsList(BuildContext context, List<Workout> workouts) {
     return RefreshIndicator(
       onRefresh: () async {
-        context.read<WorkoutsBloc>().add(const LoadWorkouts());
+        _reloadWorkouts(context);
         await Future.delayed(const Duration(milliseconds: 500));
       },
       child: ListView.builder(
@@ -632,7 +647,7 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
             if (state is WorkoutSessionStarted) {
               // Trigger reload of workouts after session starts
               Future.microtask(() {
-                context.read<WorkoutsBloc>().add(const LoadWorkouts());
+                _reloadWorkouts(context);
               });
               return const Center(child: CircularProgressIndicator());
             }
@@ -645,7 +660,7 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
                   _activeSession = state.session;
                 });
                 // Reload workouts list to show the banner
-                context.read<WorkoutsBloc>().add(const LoadWorkouts());
+                _reloadWorkouts(context);
               });
               return const Center(child: CircularProgressIndicator());
             }
@@ -656,7 +671,7 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
                 setState(() {
                   _activeSession = null;
                 });
-                context.read<WorkoutsBloc>().add(const LoadWorkouts());
+                _reloadWorkouts(context);
               });
               return const Center(child: CircularProgressIndicator());
             }

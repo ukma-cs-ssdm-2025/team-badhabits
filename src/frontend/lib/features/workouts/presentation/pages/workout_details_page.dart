@@ -10,10 +10,29 @@ import 'package:frontend/features/workouts/presentation/pages/workout_session_pa
 /// Workout Details Page
 ///
 /// Displays detailed information about a workout and allows starting a session
-class WorkoutDetailsPage extends StatelessWidget {
+class WorkoutDetailsPage extends StatefulWidget {
   const WorkoutDetailsPage({required this.workout, super.key});
 
   final Workout workout;
+
+  @override
+  State<WorkoutDetailsPage> createState() => _WorkoutDetailsPageState();
+}
+
+class _WorkoutDetailsPageState extends State<WorkoutDetailsPage> {
+  bool _hasActiveSession = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Check for active session on init
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await Future<void>.delayed(Duration.zero);
+      if (mounted) {
+        context.read<WorkoutsBloc>().add(const LoadActiveWorkoutSession());
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +41,7 @@ class WorkoutDetailsPage extends StatelessWidget {
         title: const Text('Workout Details'),
         actions: [
           // Verified badge in app bar
-          if (workout.isVerified)
+          if (widget.workout.isVerified)
             const Padding(
               padding: EdgeInsets.only(right: 16),
               child: Icon(Icons.verified, color: Colors.green),
@@ -43,13 +62,21 @@ class WorkoutDetailsPage extends StatelessWidget {
                 ),
               ),
             );
+          } else if (state is ActiveWorkoutSessionLoaded) {
+            // Update active session state
+            setState(() {
+              _hasActiveSession = state.session != null;
+            });
           } else if (state is WorkoutsError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: Colors.red,
-              ),
-            );
+            // Only show error if it's not about active session conflict
+            if (!state.message.contains('already has an active')) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
           }
         },
         child: SingleChildScrollView(
@@ -62,9 +89,9 @@ class WorkoutDetailsPage extends StatelessWidget {
               const SizedBox(height: 16),
 
               // Description
-              if (workout.description.isNotEmpty) ...[
+              if (widget.workout.description.isNotEmpty) ...[
                 Text(
-                  workout.description,
+                  widget.workout.description,
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.grey[700],
@@ -79,7 +106,7 @@ class WorkoutDetailsPage extends StatelessWidget {
               const SizedBox(height: 24),
 
               // Equipment section
-              if (workout.equipmentRequired.isNotEmpty) ...[
+              if (widget.workout.equipmentRequired.isNotEmpty) ...[
                 _buildEquipmentSection(context),
                 const SizedBox(height: 24),
               ],
@@ -103,7 +130,7 @@ class WorkoutDetailsPage extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          workout.title,
+          widget.workout.title,
           style: const TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.bold,
@@ -115,7 +142,7 @@ class WorkoutDetailsPage extends StatelessWidget {
           runSpacing: 8,
           children: [
             // Verified badge
-            if (workout.isVerified)
+            if (widget.workout.isVerified)
               Chip(
                 avatar: const Icon(Icons.verified, size: 16, color: Colors.green),
                 label: const Text('Verified'),
@@ -123,7 +150,7 @@ class WorkoutDetailsPage extends StatelessWidget {
                 side: BorderSide.none,
               ),
             // Adaptive badge
-            if (workout.isAdaptive)
+            if (widget.workout.isAdaptive)
               Chip(
                 avatar: const Icon(Icons.auto_fix_high, size: 16, color: Colors.purple),
                 label: const Text('Adaptive'),
@@ -133,13 +160,13 @@ class WorkoutDetailsPage extends StatelessWidget {
             // Difficulty badge
             Chip(
               label: Text(
-                workout.difficulty.toUpperCase(),
+                widget.workout.difficulty.toUpperCase(),
                 style: TextStyle(
-                  color: _getDifficultyColor(workout.difficulty),
+                  color: _getDifficultyColor(widget.workout.difficulty),
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              backgroundColor: _getDifficultyColor(workout.difficulty).withValues(alpha: 0.1),
+              backgroundColor: _getDifficultyColor(widget.workout.difficulty).withValues(alpha: 0.1),
               side: BorderSide.none,
             ),
           ],
@@ -157,17 +184,17 @@ class WorkoutDetailsPage extends StatelessWidget {
           children: [
             _buildStatItem(
               Icons.timer_outlined,
-              '${workout.durationMinutes} min',
+              '${widget.workout.durationMinutes} min',
               'Duration',
             ),
             _buildStatItem(
               Icons.local_fire_department_outlined,
-              '${workout.estimatedCalories} cal',
+              '${widget.workout.estimatedCalories} cal',
               'Calories',
             ),
             _buildStatItem(
               Icons.fitness_center_outlined,
-              '${workout.exercises.length} exercises',
+              '${widget.workout.exercises.length} exercises',
               'Exercises',
             ),
           ],
@@ -214,7 +241,7 @@ class WorkoutDetailsPage extends StatelessWidget {
         Wrap(
           spacing: 8,
           runSpacing: 8,
-          children: workout.equipmentRequired
+          children: widget.workout.equipmentRequired
               .map(
                 (equipment) => Chip(
                   avatar: const Icon(Icons.fitness_center, size: 16),
@@ -239,7 +266,7 @@ class WorkoutDetailsPage extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        ...workout.exercises.asMap().entries.map((entry) {
+        ...widget.workout.exercises.asMap().entries.map((entry) {
           final index = entry.key;
           final exercise = entry.value;
           return Card(
@@ -312,14 +339,14 @@ class WorkoutDetailsPage extends StatelessWidget {
           width: double.infinity,
           height: 56,
           child: ElevatedButton.icon(
-            onPressed: isLoading
+            onPressed: (isLoading || _hasActiveSession)
                 ? null
                 : () {
                     // Start workout session (FR-013)
                     context.read<WorkoutsBloc>().add(
                           StartWorkoutSession(
-                            workoutId: workout.id,
-                            workoutTitle: workout.title,
+                            workoutId: widget.workout.id,
+                            workoutTitle: widget.workout.title,
                           ),
                         );
                   },
@@ -334,11 +361,13 @@ class WorkoutDetailsPage extends StatelessWidget {
                   )
                 : const Icon(Icons.play_arrow, size: 28),
             label: Text(
-              isLoading ? 'Starting...' : 'Start Workout',
+              _hasActiveSession
+                  ? 'Complete Active Session'
+                  : (isLoading ? 'Starting...' : 'Start Workout'),
               style: const TextStyle(fontSize: 18),
             ),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
+              backgroundColor: _hasActiveSession ? Colors.grey : Colors.green,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -349,6 +378,7 @@ class WorkoutDetailsPage extends StatelessWidget {
       },
     );
   }
+
 
   Color _getDifficultyColor(String difficulty) {
     switch (difficulty.toLowerCase()) {
