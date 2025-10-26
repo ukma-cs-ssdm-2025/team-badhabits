@@ -265,6 +265,28 @@ class WorkoutsFirestoreDataSource {
     }
   }
 
+  /// Cancel workout session
+  Future<void> cancelWorkoutSession({required String sessionId}) async {
+    try {
+      final sessionRef = firestoreDb
+          .collection('users')
+          .doc(_userId)
+          .collection('workout_sessions')
+          .doc(sessionId);
+
+      // Update session status to cancelled
+      await sessionRef.update({
+        'status': 'cancelled',
+        'completed_at': DateTime.now().toIso8601String(),
+      });
+
+      // Remove lock from Realtime Database
+      await realtimeDatabase.ref('active_sessions').child(_userId).remove();
+    } catch (e) {
+      throw ServerException('Failed to cancel workout session: $e');
+    }
+  }
+
   /// Get workout history
   Future<List<WorkoutSessionModel>> getWorkoutHistory() async {
     try {

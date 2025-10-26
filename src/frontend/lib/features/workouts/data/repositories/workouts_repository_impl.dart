@@ -125,6 +125,20 @@ class WorkoutsRepositoryImpl implements WorkoutsRepository {
   }
 
   @override
+  Future<Either<Failure, void>> cancelWorkoutSession({
+    required String sessionId,
+  }) async {
+    try {
+      await firestoreDataSource.cancelWorkoutSession(sessionId: sessionId);
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Failed to cancel workout session: $e'));
+    }
+  }
+
+  @override
   Future<Either<Failure, Workout>> getRecommendedWorkout({
     required String workoutId,
     required int difficultyRating,

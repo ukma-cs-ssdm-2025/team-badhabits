@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/features/workouts/domain/entities/exercise.dart';
 import 'package:frontend/features/workouts/domain/entities/workout.dart';
 import 'package:frontend/features/workouts/presentation/bloc/workouts_bloc.dart';
 import 'package:frontend/features/workouts/presentation/bloc/workouts_event.dart';
 import 'package:frontend/features/workouts/presentation/bloc/workouts_state.dart';
+import 'package:frontend/features/workouts/presentation/pages/workout_session_page.dart';
 
 /// Workout Details Page
 ///
@@ -30,14 +32,17 @@ class WorkoutDetailsPage extends StatelessWidget {
       body: BlocListener<WorkoutsBloc, WorkoutsState>(
         listener: (context, state) {
           if (state is WorkoutSessionStarted) {
-            // Navigate to active session page (TODO: implement)
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Workout session started: ${state.session.id}'),
-                backgroundColor: Colors.green,
+            // Navigate to active session page
+            final workoutsBloc = context.read<WorkoutsBloc>();
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute<void>(
+                builder: (context) => BlocProvider.value(
+                  value: workoutsBloc,
+                  child: WorkoutSessionPage(session: state.session),
+                ),
               ),
             );
-            Navigator.pop(context);
           } else if (state is WorkoutsError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -274,7 +279,7 @@ class WorkoutDetailsPage extends StatelessWidget {
     );
   }
 
-  String _buildExerciseDetails(dynamic exercise) {
+  String _buildExerciseDetails(Exercise exercise) {
     final details = <String>[];
 
     if (exercise.sets > 0) {
@@ -285,9 +290,9 @@ class WorkoutDetailsPage extends StatelessWidget {
       details.add('${exercise.reps} reps');
     }
 
-    if (exercise.durationSeconds != null && exercise.durationSeconds > 0) {
-      final minutes = exercise.durationSeconds ~/ 60;
-      final seconds = exercise.durationSeconds % 60;
+    if (exercise.durationSeconds != null && exercise.durationSeconds! > 0) {
+      final minutes = exercise.durationSeconds! ~/ 60;
+      final seconds = exercise.durationSeconds! % 60;
       if (minutes > 0) {
         details.add('${minutes}m ${seconds}s');
       } else {

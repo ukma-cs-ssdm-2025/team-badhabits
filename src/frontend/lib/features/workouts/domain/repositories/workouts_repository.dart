@@ -54,6 +54,13 @@ abstract class WorkoutsRepository {
     String? notes,
   });
 
+  /// Cancel workout session
+  ///
+  /// Cancels active session and removes lock from Realtime Database
+  Future<Either<Failure, void>> cancelWorkoutSession({
+    required String sessionId,
+  });
+
   /// Get recommended workout based on user ratings
   ///
   /// Calls Railway backend API for adaptive recommendation (FR-014)

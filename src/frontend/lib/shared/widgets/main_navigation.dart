@@ -30,7 +30,9 @@ class _MainNavigationState extends State<MainNavigation> {
   @override
   void initState() {
     super.initState();
-    _workoutsBloc = di.sl<WorkoutsBloc>()..add(const LoadWorkouts());
+    _workoutsBloc = di.sl<WorkoutsBloc>()
+      ..add(const LoadWorkouts())
+      ..add(const LoadActiveWorkoutSession());
   }
 
   @override

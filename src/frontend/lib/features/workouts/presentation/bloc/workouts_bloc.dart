@@ -1,5 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/core/error/failures.dart';
+import 'package:frontend/features/workouts/domain/usecases/cancel_workout_session.dart'
+    as usecase;
 import 'package:frontend/features/workouts/domain/usecases/complete_workout_session.dart'
     as usecase;
 import 'package:frontend/features/workouts/domain/usecases/get_active_workout_session.dart';
@@ -26,6 +28,7 @@ class WorkoutsBloc extends Bloc<WorkoutsEvent, WorkoutsState> {
     required this.startWorkoutSession,
     required this.getActiveWorkoutSession,
     required this.completeWorkoutSession,
+    required this.cancelWorkoutSession,
     required this.getRecommendedWorkout,
     required this.getWorkoutHistory,
   }) : super(const WorkoutsInitial()) {
@@ -35,6 +38,7 @@ class WorkoutsBloc extends Bloc<WorkoutsEvent, WorkoutsState> {
     on<StartWorkoutSession>(_onStartWorkoutSession);
     on<LoadActiveWorkoutSession>(_onLoadActiveWorkoutSession);
     on<CompleteWorkoutSession>(_onCompleteWorkoutSession);
+    on<CancelWorkoutSession>(_onCancelWorkoutSession);
     on<GetRecommendedWorkout>(_onGetRecommendedWorkout);
     on<LoadWorkoutHistory>(_onLoadWorkoutHistory);
   }
@@ -45,6 +49,7 @@ class WorkoutsBloc extends Bloc<WorkoutsEvent, WorkoutsState> {
   final usecase.StartWorkoutSession startWorkoutSession;
   final GetActiveWorkoutSession getActiveWorkoutSession;
   final usecase.CompleteWorkoutSession completeWorkoutSession;
+  final usecase.CancelWorkoutSession cancelWorkoutSession;
   final usecase.GetRecommendedWorkout getRecommendedWorkout;
   final GetWorkoutHistory getWorkoutHistory;
 
@@ -148,6 +153,23 @@ class WorkoutsBloc extends Bloc<WorkoutsEvent, WorkoutsState> {
         enjoymentRating: event.enjoymentRating,
         notes: event.notes,
       ),
+    );
+
+    result.fold(
+      (failure) => emit(WorkoutsError(message: _mapFailureToMessage(failure))),
+      (_) => emit(const WorkoutSessionCompleted()),
+    );
+  }
+
+  /// Handle CancelWorkoutSession event
+  Future<void> _onCancelWorkoutSession(
+    CancelWorkoutSession event,
+    Emitter<WorkoutsState> emit,
+  ) async {
+    emit(const WorkoutsLoading());
+
+    final result = await cancelWorkoutSession(
+      usecase.CancelWorkoutSessionParams(sessionId: event.sessionId),
     );
 
     result.fold(

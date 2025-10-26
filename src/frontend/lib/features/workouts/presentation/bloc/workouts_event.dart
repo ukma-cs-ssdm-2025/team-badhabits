@@ -81,6 +81,16 @@ class CompleteWorkoutSession extends WorkoutsEvent {
       ];
 }
 
+/// Event to cancel workout session
+class CancelWorkoutSession extends WorkoutsEvent {
+  const CancelWorkoutSession({required this.sessionId});
+
+  final String sessionId;
+
+  @override
+  List<Object?> get props => [sessionId];
+}
+
 /// Event to get recommended workout based on difficulty rating (FR-014)
 class GetRecommendedWorkout extends WorkoutsEvent {
   const GetRecommendedWorkout({

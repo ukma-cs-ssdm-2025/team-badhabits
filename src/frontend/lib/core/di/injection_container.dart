@@ -37,6 +37,7 @@ import '../../features/workouts/data/datasources/workouts_api_datasource.dart';
 import '../../features/workouts/data/datasources/workouts_firestore_datasource.dart';
 import '../../features/workouts/data/repositories/workouts_repository_impl.dart';
 import '../../features/workouts/domain/repositories/workouts_repository.dart';
+import '../../features/workouts/domain/usecases/cancel_workout_session.dart';
 import '../../features/workouts/domain/usecases/complete_workout_session.dart';
 import '../../features/workouts/domain/usecases/get_active_workout_session.dart';
 import '../../features/workouts/domain/usecases/get_filtered_workouts.dart';
@@ -161,6 +162,7 @@ Future<void> init() async {
       startWorkoutSession: sl(),
       getActiveWorkoutSession: sl(),
       completeWorkoutSession: sl(),
+      cancelWorkoutSession: sl(),
       getRecommendedWorkout: sl(),
       getWorkoutHistory: sl(),
     ),
@@ -173,6 +175,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => StartWorkoutSession(sl()));
   sl.registerLazySingleton(() => GetActiveWorkoutSession(sl()));
   sl.registerLazySingleton(() => CompleteWorkoutSession(sl()));
+  sl.registerLazySingleton(() => CancelWorkoutSession(sl()));
   sl.registerLazySingleton(() => GetRecommendedWorkout(sl()));
   sl.registerLazySingleton(() => GetWorkoutHistory(sl()));
 

@@ -6,6 +6,7 @@ import 'package:frontend/features/workouts/presentation/bloc/workouts_bloc.dart'
 import 'package:frontend/features/workouts/presentation/bloc/workouts_event.dart';
 import 'package:frontend/features/workouts/presentation/bloc/workouts_state.dart';
 import 'package:frontend/features/workouts/presentation/pages/workout_details_page.dart';
+import 'package:frontend/features/workouts/presentation/pages/workout_session_page.dart';
 
 /// Workouts page showing list of personalized workouts
 class WorkoutsPage extends StatefulWidget {
@@ -499,6 +500,35 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
               return _buildWorkoutsList(context, state.workouts);
             }
 
+            // Workout session started - reload workouts list
+            if (state is WorkoutSessionStarted) {
+              // Trigger reload of workouts after session starts
+              Future.microtask(() {
+                context.read<WorkoutsBloc>().add(const LoadWorkouts());
+              });
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            // Active session loaded - reload workouts list
+            if (state is ActiveWorkoutSessionLoaded) {
+              if (state.session != null) {
+                // If there's an active session, FAB will handle navigation
+                // Just reload workouts list
+                Future.microtask(() {
+                  context.read<WorkoutsBloc>().add(const LoadWorkouts());
+                });
+              }
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            // Session completed - reload workouts
+            if (state is WorkoutSessionCompleted) {
+              Future.microtask(() {
+                context.read<WorkoutsBloc>().add(const LoadWorkouts());
+              });
+              return const Center(child: CircularProgressIndicator());
+            }
+
             // Error state
             if (state is WorkoutsError) {
               return _buildErrorState(context, state.message);
@@ -510,14 +540,39 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
         ),
         floatingActionButton: FloatingActionButton.extended(
           heroTag: 'workouts_fab',
-          onPressed: () {
-            // TODO: Check for active session (FR-013)
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Workout session feature coming soon'),
-                duration: Duration(seconds: 2),
-              ),
-            );
+          onPressed: () async {
+            // Check for active session (FR-013)
+            context.read<WorkoutsBloc>().add(const LoadActiveWorkoutSession());
+
+            // Wait for state update
+            await Future<void>.delayed(const Duration(milliseconds: 500));
+
+            if (!context.mounted) return;
+
+            final state = context.read<WorkoutsBloc>().state;
+
+            if (state is ActiveWorkoutSessionLoaded && state.session != null) {
+              // Navigate to active session
+              final workoutsBloc = context.read<WorkoutsBloc>();
+              Navigator.push<void>(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => BlocProvider.value(
+                    value: workoutsBloc,
+                    child: WorkoutSessionPage(session: state.session!),
+                  ),
+                ),
+              );
+            } else {
+              // No active session - show message
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content:
+                      Text('Please select a workout from the list to start'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            }
           },
           icon: const Icon(Icons.play_arrow),
           label: const Text('Start Workout'),
