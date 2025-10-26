@@ -95,6 +95,8 @@ class _HabitTrackingWithStatsPageState extends State<HabitTrackingWithStatsPage>
       title: Text(widget.habit.name),
       bottom: TabBar(
         controller: _tabController,
+        labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+        unselectedLabelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal),
         tabs: const [
           Tab(icon: Icon(Icons.add_circle), text: 'Track'),
           Tab(icon: Icon(Icons.bar_chart), text: 'Statistics'),
