@@ -198,7 +198,7 @@
 
 ## 9. Підписи
 
-- [] Андрій (GitHub: @kepeld)
-- [] Дарина (GitHub: @dahl1a-bloom)
+- [x] Андрій (GitHub: @kepeld)
+- [x] Дарина (GitHub: @dahl1a-bloom)
 - [] Давид (GitHub: @DavydKod)
-- [] Дмитро (GitHub: @AvdieienkoDmytro)
+- [x] Дмитро (GitHub: @AvdieienkoDmytro)
