@@ -5,6 +5,7 @@ import 'package:frontend/features/habits/domain/usecases/create_habit.dart';
 import 'package:frontend/features/habits/domain/usecases/delete_habit.dart';
 import 'package:frontend/features/habits/domain/usecases/get_entry_for_date.dart';
 import 'package:frontend/features/habits/domain/usecases/get_habit_entries.dart';
+import 'package:frontend/features/habits/domain/usecases/get_habit_statistics.dart';
 import 'package:frontend/features/habits/domain/usecases/get_habits.dart';
 import 'package:frontend/features/habits/domain/usecases/update_habit.dart';
 import 'package:frontend/features/habits/presentation/bloc/habits_event.dart';
@@ -20,6 +21,7 @@ class HabitsBloc extends Bloc<HabitsEvent, HabitsState> {
     required this.addHabitEntry,
     required this.getHabitEntries,
     required this.getEntryForDate,
+    required this.getHabitStatistics,
   }) : super(const HabitsInitial()) {
     on<LoadHabitsEvent>(_onLoadHabits);
     on<CreateHabitEvent>(_onCreateHabit);
@@ -28,6 +30,7 @@ class HabitsBloc extends Bloc<HabitsEvent, HabitsState> {
     on<AddEntryEvent>(_onAddEntry);
     on<LoadEntriesEvent>(_onLoadEntries);
     on<LoadEntryForDateEvent>(_onLoadEntryForDate);
+    on<LoadHabitStatisticsEvent>(_onLoadHabitStatistics);
   }
   final GetHabits getHabits;
   final CreateHabit createHabit;
@@ -36,6 +39,7 @@ class HabitsBloc extends Bloc<HabitsEvent, HabitsState> {
   final AddHabitEntry addHabitEntry;
   final GetHabitEntries getHabitEntries;
   final GetEntryForDate getEntryForDate;
+  final GetHabitStatistics getHabitStatistics;
 
   /// Handle load habits request
   Future<void> _onLoadHabits(
@@ -216,6 +220,59 @@ class HabitsBloc extends Bloc<HabitsEvent, HabitsState> {
           print('🟡 HabitsBloc: No entry found for date ${event.date}');
         }
         emit(EntryForDateLoaded(entry));
+      },
+    );
+  }
+
+  /// Handle load habit statistics request
+  Future<void> _onLoadHabitStatistics(
+    LoadHabitStatisticsEvent event,
+    Emitter<HabitsState> emit,
+  ) async {
+    print('🔵 HabitsBloc: Loading statistics for habit ${event.habitId}...');
+    emit(const HabitsLoading());
+
+    final endDate = DateTime.now();
+    final startDate = endDate.subtract(Duration(days: event.days));
+
+    final statisticsResult = await getHabitStatistics(
+      event.userId,
+      event.habitId,
+      startDate,
+      endDate,
+    );
+
+    await statisticsResult.fold(
+      (failure) async {
+        print('🔴 HabitsBloc: Load statistics failed - ${failure.message}');
+        emit(HabitsError(failure.message));
+      },
+      (statistics) async {
+        print('🟢 HabitsBloc: Statistics loaded successfully');
+
+        // Load entries for charts
+        final entriesResult = await getHabitEntries(
+          event.habitId,
+          startDate,
+          endDate,
+        );
+
+        entriesResult.fold(
+          (failure) {
+            print('🔴 HabitsBloc: Load entries failed - ${failure.message}');
+            emit(HabitsError(failure.message));
+          },
+          (entries) {
+            print('🟢 HabitsBloc: Loaded ${entries.length} entries');
+            emit(
+              HabitStatisticsLoaded(
+                statistics: statistics,
+                habit: statistics.habit,
+                entries: entries,
+              ),
+            );
+          },
+        );
       },
     );
   }
