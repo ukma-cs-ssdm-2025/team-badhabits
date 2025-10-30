@@ -4,27 +4,23 @@ on:
     branches: [ main ]
   pull_request:
     types: [opened, synchronize, reopened]
-
 jobs:
   sonarcloud:
     name: Analyze with SonarCloud
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
       - name: Set up Dart
         uses: dart-lang/setup-dart@v1
         with:
           sdk: stable
-
       - name: Install dependencies
         run: dart pub get
-
       - name: Run static analysis
-        run: dart analyze- name: SonarCloud Scan
+        run: dart analyze
+      - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
