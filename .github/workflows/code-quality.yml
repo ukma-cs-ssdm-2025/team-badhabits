@@ -22,7 +22,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.5'
+          flutter-version: '3.27.1'
           channel: 'stable'
           cache: true
 
@@ -80,8 +80,9 @@ jobs:
           npm run lint > lint_output.txt 2>&1 || true
           cat lint_output.txt
 
-          # Check if there are any errors
-          if grep -q "✖" lint_output.txt; then
+          # Check if there are any errors (not warnings)
+          # ESLint outputs "error" for errors and "warning" for warnings
+          if grep -qE "^\s+[0-9]+:[0-9]+\s+error\s+" lint_output.txt; then
             echo "❌ ESLint found errors in the code"
             exit 1
           fi
@@ -133,8 +134,8 @@ jobs:
 
           if [ -f ./results/lint_output.txt ]; then
             echo "### ESLint Results" >> $GITHUB_STEP_SUMMARY
-            if grep -q "✖" ./results/lint_output.txt; then
-              ESLINT_ERRORS=$(grep "✖" ./results/lint_output.txt | head -1)
+            if grep -qE "^\s+[0-9]+:[0-9]+\s+error\s+" ./results/lint_output.txt; then
+              ESLINT_ERRORS=$(grep -E "^\s+[0-9]+:[0-9]+\s+error\s+" ./results/lint_output.txt | head -1)
               echo "- $ESLINT_ERRORS" >> $GITHUB_STEP_SUMMARY
             else
               echo "- ✅ No errors found" >> $GITHUB_STEP_SUMMARY
@@ -143,7 +144,7 @@ jobs:
           fi
 
           echo "### Quality Gates" >> $GITHUB_STEP_SUMMARY
-          if [ "$ERROR_COUNT" -eq "0" ] && ! grep -q "✖" ./results/lint_output.txt 2>/dev/null; then
+          if [ "$ERROR_COUNT" -eq "0" ] && ! grep -qE "^\s+[0-9]+:[0-9]+\s+error\s+" ./results/lint_output.txt 2>/dev/null; then
             echo "✅ All quality gates passed!" >> $GITHUB_STEP_SUMMARY
           else
             echo "❌ Quality gates failed - please fix critical errors" >> $GITHUB_STEP_SUMMARY
@@ -152,7 +153,7 @@ jobs:
       - name: Check quality gates
         run: |
           FLUTTER_ERRORS=$(grep -c "error •" ./results/analysis_output.txt || echo "0")
-          ESLINT_FAILED=$(grep -q "✖" ./results/lint_output.txt && echo "1" || echo "0")
+          ESLINT_FAILED=$(grep -qE "^\s+[0-9]+:[0-9]+\s+error\s+" ./results/lint_output.txt && echo "1" || echo "0")
 
           if [ "$FLUTTER_ERRORS" -gt "0" ] || [ "$ESLINT_FAILED" -eq "1" ]; then
             echo "Quality gates failed"

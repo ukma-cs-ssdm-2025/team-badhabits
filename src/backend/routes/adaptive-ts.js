@@ -15,7 +15,7 @@ const mockAdaptiveService = {
     const { AdaptiveWorkoutService } = require('../services/AdaptiveWorkoutService');
     const service = new AdaptiveWorkoutService();
     return service.generateWorkout(userData);
-  }
+  },
 };
 
 /**
@@ -50,7 +50,7 @@ router.post(
       .isIn(['beginner', 'intermediate', 'advanced', 'expert'])
       .withMessage('Invalid fitness_level'),
   ],
-  async (req, res, next) => {
+  (req, res, next) => {
     try {
       // Validate request
       const errors = validationResult(req);
@@ -71,7 +71,7 @@ router.post(
       const workout = mockAdaptiveService.generateWorkout(user_data);
 
       // Return response
-      res.json({
+      return res.json({
         success: true,
         data: {
           workout,
@@ -79,7 +79,7 @@ router.post(
         },
       });
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 );

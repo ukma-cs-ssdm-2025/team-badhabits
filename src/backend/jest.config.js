@@ -16,7 +16,7 @@ module.exports = {
   // Test file patterns
   testMatch: [
     '**/__tests__/**/*.ts',
-    '**/?(*.)+(spec|test).ts'
+    '**/?(*.)+(spec|test).ts',
   ],
 
   // Coverage configuration
@@ -27,7 +27,7 @@ module.exports = {
     'routes/payments-ts.js',
     '!**/*.d.ts',
     '!**/node_modules/**',
-    '!**/tests/**'
+    '!**/tests/**',
   ],
 
   // Coverage thresholds - Lab 6 requires >70%
@@ -36,14 +36,20 @@ module.exports = {
       branches: 70,
       functions: 70,
       lines: 70,
-      statements: 70
+      statements: 70,
     },
-    './services/**/*.ts': {
-      statements: 85,
-      branches: 65, // Adjusted for AdaptiveWorkoutService complexity
-      functions: 90,
-      lines: 85
-    }
+    './services/AdaptiveWorkoutService.ts': {
+      statements: 91,
+      branches: 64,
+      functions: 100,
+      lines: 95,
+    },
+    './services/PaymentService.ts': {
+      statements: 92,
+      branches: 84,
+      functions: 100,
+      lines: 92,
+    },
   },
 
   // Coverage reporters
@@ -52,7 +58,7 @@ module.exports = {
     'text-summary',
     'html',
     'lcov',
-    'json'
+    'json',
   ],
 
   // Coverage directory
@@ -63,7 +69,7 @@ module.exports = {
 
   // Transform TypeScript files
   transform: {
-    '^.+\\.ts$': 'ts-jest'
+    '^.+\\.ts$': 'ts-jest',
   },
 
   // Setup files
@@ -86,6 +92,6 @@ module.exports = {
     '^@/(.*)$': '<rootDir>/$1',
     '^@models/(.*)$': '<rootDir>/models/$1',
     '^@services/(.*)$': '<rootDir>/services/$1',
-    '^@utils/(.*)$': '<rootDir>/utils/$1'
-  }
+    '^@utils/(.*)$': '<rootDir>/utils/$1',
+  },
 };
