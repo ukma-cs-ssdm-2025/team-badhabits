@@ -1,13 +1,12 @@
-/**
- * Widget Tests - Login Screen
- *
- * Tests UI interactions and validation:
- * - Form rendering
- * - Email validation
- * - Password validation
- * - Button interactions
- * - State changes (password visibility toggle)
- */
+/// Widget Tests - Login Screen
+///
+/// Tests UI interactions and validation:
+/// - Form rendering
+/// - Email validation
+/// - Password validation
+/// - Button interactions
+/// - State changes (password visibility toggle)
+library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -16,8 +15,7 @@ import '../test_helpers.dart';
 
 void main() {
   group('Login Screen Widget Tests', () {
-    testWidgets('Test 1: Login form renders correctly',
-        (WidgetTester tester) async {
+    testWidgets('Test 1: Login form renders correctly', (tester) async {
       await tester.pumpWidget(
         createTestableWidget(
           const LoginForm(),
@@ -33,8 +31,7 @@ void main() {
       debugPrint('✓ Test 1 PASSED: All UI elements found');
     });
 
-    testWidgets('Test 2: Email validation with invalid input',
-        (WidgetTester tester) async {
+    testWidgets('Test 2: Email validation with invalid input', (tester) async {
       await tester.pumpWidget(
         createTestableWidget(
           const LoginForm(),
@@ -56,7 +53,7 @@ void main() {
     });
 
     testWidgets('Test 3: Password validation with short password',
-        (WidgetTester tester) async {
+        (tester) async {
       await tester.pumpWidget(
         createTestableWidget(
           const LoginForm(),
@@ -85,8 +82,8 @@ void main() {
     });
 
     testWidgets('Test 4: Login button tap with valid credentials',
-        (WidgetTester tester) async {
-      bool loginCalled = false;
+        (tester) async {
+      var loginCalled = false;
 
       await tester.pumpWidget(
         createTestableWidget(
@@ -117,8 +114,7 @@ void main() {
       debugPrint('✓ Test 4 PASSED: Login callback invoked');
     });
 
-    testWidgets('Test 5: Password visibility toggle',
-        (WidgetTester tester) async {
+    testWidgets('Test 5: Password visibility toggle', (tester) async {
       await tester.pumpWidget(
         createTestableWidget(
           const LoginForm(),
@@ -148,9 +144,9 @@ void main() {
 // ====================Mock Login Form Widget ====================
 
 class LoginForm extends StatefulWidget {
-  final void Function(String email, String password)? onLogin;
-
   const LoginForm({super.key, this.onLogin});
+
+  final void Function(String email, String password)? onLogin;
 
   @override
   State<LoginForm> createState() => _LoginFormState();
@@ -192,7 +188,7 @@ class _LoginFormState extends State<LoginForm> {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.all(16.0),
+    padding: const EdgeInsets.all(16),
     child: Form(
       key: _formKey,
       child: Column(

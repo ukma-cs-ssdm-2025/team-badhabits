@@ -23,7 +23,9 @@ class WorkoutsFirestoreDataSource {
   /// Get current user ID
   String get _userId {
     final user = auth.currentUser;
-    if (user == null) throw ServerException('User not authenticated');
+    if (user == null) {
+      throw const ServerException('User not authenticated');
+    }
     return user.uid;
   }
 
@@ -66,7 +68,7 @@ class WorkoutsFirestoreDataSource {
           await firestoreDb.collection('workouts').doc(workoutId).get();
 
       if (!catalogDoc.exists) {
-        throw ServerException('Workout not found');
+        throw const ServerException('Workout not found');
       }
 
       return WorkoutModel.fromJson({...catalogDoc.data()!, 'id': catalogDoc.id});
@@ -104,10 +106,12 @@ class WorkoutsFirestoreDataSource {
 
       // Filter by equipment (client-side, as Firestore doesn't support array-contains for multiple values)
       if (equipment != null && equipment.isNotEmpty) {
-        workouts = workouts.where((workout) {
-          return workout.equipmentRequired
-              .every((req) => equipment.contains(req));
-        }).toList();
+        workouts = workouts
+            .where(
+              (workout) =>
+                  workout.equipmentRequired.every(equipment.contains),
+            )
+            .toList();
       }
 
       return workouts;
@@ -131,7 +135,7 @@ class WorkoutsFirestoreDataSource {
       final snapshot = await activeSessions.get();
 
       if (snapshot.exists) {
-        throw ServerException(
+        throw const ServerException(
             'Active session already exists. Please complete it first.');
       }
 
@@ -185,7 +189,7 @@ class WorkoutsFirestoreDataSource {
         return null;
       }
 
-      final data = snapshot.value as Map<dynamic, dynamic>;
+      final data = snapshot.value! as Map<dynamic, dynamic>;
       final sessionId = data['session_id'] as String;
 
       // Get session details from Firestore
@@ -226,7 +230,7 @@ class WorkoutsFirestoreDataSource {
       // Get session to calculate duration
       final sessionDoc = await sessionRef.get();
       if (!sessionDoc.exists) {
-        throw ServerException('Session not found');
+        throw const ServerException('Session not found');
       }
 
       final session = WorkoutSessionModel.fromJson(

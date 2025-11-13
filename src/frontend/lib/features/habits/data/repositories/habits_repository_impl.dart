@@ -119,7 +119,7 @@ class HabitsRepositoryImpl implements HabitsRepository {
         return const Right(null);
       } else {
         // Offline: just remove from cache
-        // TODO: Add to deletion queue for later sync
+        // TODO(team): Add to deletion queue for later sync
         await localDataSource.deleteCachedHabit(habitId);
         return const Right(null);
       }

@@ -9,7 +9,10 @@ class DefaultFirebaseOptions {
         return android;
       case TargetPlatform.iOS:
         return ios;
-      default:
+      case TargetPlatform.fuchsia:
+      case TargetPlatform.linux:
+      case TargetPlatform.macOS:
+      case TargetPlatform.windows:
         throw UnsupportedError(
           'DefaultFirebaseOptions are not supported for this platform.',
         );

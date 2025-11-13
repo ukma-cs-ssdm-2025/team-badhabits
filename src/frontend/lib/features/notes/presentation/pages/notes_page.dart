@@ -123,7 +123,7 @@ class _NotesPageState extends State<NotesPage> {
 
     print('Dialog result: $confirmed, mounted: $mounted');
 
-    if (confirmed ?? false && mounted) {
+    if ((confirmed ?? false) && mounted) {
       print('🔄 Deleting $count notes...');
 
       // Get current notes from state to store deleted ones
@@ -530,7 +530,7 @@ class _NotesPageState extends State<NotesPage> {
               ),
             );
             // Reload if note was saved
-            if (result ?? false && mounted) {
+            if ((result ?? false) && mounted) {
               notesBloc.add(LoadNotesEvent(userId));
             }
           },
@@ -629,7 +629,7 @@ class _NotesPageState extends State<NotesPage> {
                       );
 
                       // Reload if note was saved
-                      if (result ?? false && mounted) {
+                      if ((result ?? false) && mounted) {
                         notesBloc.add(LoadNotesEvent(userId));
                       }
                     },

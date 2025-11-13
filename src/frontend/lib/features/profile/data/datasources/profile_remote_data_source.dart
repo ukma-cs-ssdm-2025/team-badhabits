@@ -56,9 +56,15 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     try {
       // Build update data
       final updateData = <String, dynamic>{};
-      if (name != null) updateData['name'] = name;
-      if (bio != null) updateData['bio'] = bio;
-      if (avatarUrl != null) updateData['avatarUrl'] = avatarUrl;
+      if (name != null) {
+        updateData['name'] = name;
+      }
+      if (bio != null) {
+        updateData['bio'] = bio;
+      }
+      if (avatarUrl != null) {
+        updateData['avatarUrl'] = avatarUrl;
+      }
 
       if (updateData.isEmpty) {
         throw Exception('No fields to update');

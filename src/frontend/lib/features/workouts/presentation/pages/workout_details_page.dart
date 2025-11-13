@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/features/workouts/domain/entities/exercise.dart';
@@ -35,8 +37,7 @@ class _WorkoutDetailsPageState extends State<WorkoutDetailsPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
+  Widget build(BuildContext context) => Scaffold(
       appBar: AppBar(
         title: const Text('Workout Details'),
         actions: [
@@ -53,12 +54,14 @@ class _WorkoutDetailsPageState extends State<WorkoutDetailsPage> {
           if (state is WorkoutSessionStarted) {
             // Navigate to active session page
             final workoutsBloc = context.read<WorkoutsBloc>();
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute<void>(
-                builder: (context) => BlocProvider.value(
-                  value: workoutsBloc,
-                  child: WorkoutSessionPage(session: state.session),
+            unawaited(
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute<void>(
+                  builder: (context) => BlocProvider.value(
+                    value: workoutsBloc,
+                    child: WorkoutSessionPage(session: state.session),
+                  ),
                 ),
               ),
             );
@@ -123,10 +126,8 @@ class _WorkoutDetailsPageState extends State<WorkoutDetailsPage> {
         ),
       ),
     );
-  }
 
-  Widget _buildHeader(BuildContext context) {
-    return Column(
+  Widget _buildHeader(BuildContext context) => Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
@@ -173,10 +174,8 @@ class _WorkoutDetailsPageState extends State<WorkoutDetailsPage> {
         ),
       ],
     );
-  }
 
-  Widget _buildQuickStats(BuildContext context) {
-    return Card(
+  Widget _buildQuickStats(BuildContext context) => Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
@@ -201,10 +200,8 @@ class _WorkoutDetailsPageState extends State<WorkoutDetailsPage> {
         ),
       ),
     );
-  }
 
-  Widget _buildStatItem(IconData icon, String value, String label) {
-    return Column(
+  Widget _buildStatItem(IconData icon, String value, String label) => Column(
       children: [
         Icon(icon, size: 32, color: Colors.blue),
         const SizedBox(height: 8),
@@ -224,10 +221,8 @@ class _WorkoutDetailsPageState extends State<WorkoutDetailsPage> {
         ),
       ],
     );
-  }
 
-  Widget _buildEquipmentSection(BuildContext context) {
-    return Column(
+  Widget _buildEquipmentSection(BuildContext context) => Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
@@ -252,10 +247,8 @@ class _WorkoutDetailsPageState extends State<WorkoutDetailsPage> {
         ),
       ],
     );
-  }
 
-  Widget _buildExercisesSection(BuildContext context) {
-    return Column(
+  Widget _buildExercisesSection(BuildContext context) => Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
@@ -304,7 +297,6 @@ class _WorkoutDetailsPageState extends State<WorkoutDetailsPage> {
         }),
       ],
     );
-  }
 
   String _buildExerciseDetails(Exercise exercise) {
     final details = <String>[];
@@ -330,8 +322,7 @@ class _WorkoutDetailsPageState extends State<WorkoutDetailsPage> {
     return details.join(' • ');
   }
 
-  Widget _buildStartButton(BuildContext context) {
-    return BlocBuilder<WorkoutsBloc, WorkoutsState>(
+  Widget _buildStartButton(BuildContext context) => BlocBuilder<WorkoutsBloc, WorkoutsState>(
       builder: (context, state) {
         final isLoading = state is WorkoutsLoading;
 
@@ -377,7 +368,6 @@ class _WorkoutDetailsPageState extends State<WorkoutDetailsPage> {
         );
       },
     );
-  }
 
 
   Color _getDifficultyColor(String difficulty) {

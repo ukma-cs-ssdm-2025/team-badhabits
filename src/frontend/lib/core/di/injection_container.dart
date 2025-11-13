@@ -17,15 +17,6 @@ import '../../features/auth/domain/usecases/sign_in_usecase.dart';
 import '../../features/auth/domain/usecases/sign_out_usecase.dart';
 import '../../features/auth/domain/usecases/sign_up_usecase.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
-// Notes
-import '../../features/notes/data/datasources/notes_firestore_datasource.dart';
-import '../../features/notes/data/repositories/notes_repository_impl.dart';
-import '../../features/notes/domain/repositories/notes_repository.dart';
-import '../../features/notes/domain/usecases/create_note.dart';
-import '../../features/notes/domain/usecases/delete_note.dart';
-import '../../features/notes/domain/usecases/get_notes.dart';
-import '../../features/notes/domain/usecases/update_note.dart';
-import '../../features/notes/presentation/bloc/notes_bloc.dart';
 // Habits
 import '../../features/habits/data/datasources/habits_firestore_datasource.dart';
 import '../../features/habits/data/datasources/habits_local_datasource.dart';
@@ -43,6 +34,15 @@ import '../../features/habits/domain/usecases/get_habit_statistics.dart';
 import '../../features/habits/domain/usecases/get_habits.dart';
 import '../../features/habits/domain/usecases/update_habit.dart';
 import '../../features/habits/presentation/bloc/habits_bloc.dart';
+// Notes
+import '../../features/notes/data/datasources/notes_firestore_datasource.dart';
+import '../../features/notes/data/repositories/notes_repository_impl.dart';
+import '../../features/notes/domain/repositories/notes_repository.dart';
+import '../../features/notes/domain/usecases/create_note.dart';
+import '../../features/notes/domain/usecases/delete_note.dart';
+import '../../features/notes/domain/usecases/get_notes.dart';
+import '../../features/notes/domain/usecases/update_note.dart';
+import '../../features/notes/presentation/bloc/notes_bloc.dart';
 // Profile
 import '../../features/profile/data/datasources/profile_remote_data_source.dart';
 import '../../features/profile/data/repositories/profile_repository_impl.dart';
@@ -286,7 +286,7 @@ Future<void> init() async {
   // Core - Network
   // ============================================================================
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
-  sl.registerLazySingleton(() => Connectivity());
+  sl.registerLazySingleton(Connectivity.new);
 
   // ============================================================================
   // External dependencies
@@ -295,5 +295,5 @@ Future<void> init() async {
   sl.registerLazySingleton(() => FirebaseFirestore.instance);
   sl.registerLazySingleton(() => FirebaseStorage.instance);
   sl.registerLazySingleton(() => FirebaseDatabase.instance);
-  sl.registerLazySingleton(() => http.Client());
+  sl.registerLazySingleton(http.Client.new);
 }
