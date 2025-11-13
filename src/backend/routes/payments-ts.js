@@ -13,7 +13,7 @@ const mockPaymentService = {
     const { PaymentService } = require('../services/PaymentService');
     const service = new PaymentService(undefined, true); // Test mode
     return await service.processPayment(paymentRequest);
-  }
+  },
 };
 
 /**
@@ -75,24 +75,23 @@ router.post(
 
       // Return response based on success
       if (response.success) {
-        res.json({
+        return res.json({
           success: true,
           data: {
             transaction_id: response.transaction_id,
             message: 'Payment processed successfully',
           },
         });
-      } else {
-        res.status(422).json({
-          success: false,
-          error: {
-            code: 'PAYMENT_FAILED',
-            message: response.error_message,
-          },
-        });
       }
+      return res.status(422).json({
+        success: false,
+        error: {
+          code: 'PAYMENT_FAILED',
+          message: response.error_message,
+        },
+      });
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 );
