@@ -22,7 +22,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.27.1'
+          flutter-version: '3.28.0'
           channel: 'stable'
           cache: true
 
@@ -32,10 +32,14 @@ jobs:
 
       - name: Run Flutter Analyzer
         working-directory: src/frontend
+        continue-on-error: true
         run: |
           flutter analyze > analysis_output.txt 2>&1 || true
           cat analysis_output.txt
 
+      - name: Check Flutter Analyzer Results
+        working-directory: src/frontend
+        run: |
           # Count errors (critical issues)
           ERROR_COUNT=$(grep -c "error •" analysis_output.txt || echo "0")
           echo "Found $ERROR_COUNT errors"

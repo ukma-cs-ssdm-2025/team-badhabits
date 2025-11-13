@@ -392,5 +392,46 @@ describe('AdaptiveWorkoutService', () => {
       expect(workout2.id).toBeDefined();
       expect(workout1.id).not.toBe(workout2.id);
     });
+
+    it('should correctly adapt to expert level when rating is very easy', () => {
+      // Arrange
+      const userData: UserData = createMockUserData({
+        fitness_level: 'advanced',
+      });
+      const currentWorkout = service.generateWorkout(userData);
+
+      const veryEasyRating: WorkoutRating = createMockWorkoutRating({
+        workout_id: currentWorkout.id!,
+        difficulty_rating: 1,
+      });
+
+      // Act - Adapt difficulty multiple times to reach expert
+      let adaptedWorkout = service.adaptDifficulty(veryEasyRating, currentWorkout, userData);
+      adaptedWorkout = service.adaptDifficulty(veryEasyRating, adaptedWorkout, userData);
+
+      // Assert - Should reach expert level (intensity >= 9)
+      expect(adaptedWorkout.difficulty_score).toBeGreaterThanOrEqual(9);
+      expect(adaptedWorkout.difficulty).toBe('expert');
+    });
+
+    it('should maintain minimum difficulty when rated too hard repeatedly', () => {
+      // Arrange
+      const userData: UserData = createMockUserData({
+        fitness_level: 'beginner',
+      });
+      const currentWorkout = service.generateWorkout(userData);
+
+      const tooHardRating: WorkoutRating = createMockWorkoutRating({
+        workout_id: currentWorkout.id!,
+        difficulty_rating: 5,
+      });
+
+      // Act - Try to decrease below minimum
+      const adaptedWorkout = service.adaptDifficulty(tooHardRating, currentWorkout, userData);
+
+      // Assert - Should stay at beginner level (intensity >= 1)
+      expect(adaptedWorkout.difficulty_score).toBeGreaterThanOrEqual(1);
+      expect(adaptedWorkout.difficulty).toBe('beginner');
+    });
   });
 });
