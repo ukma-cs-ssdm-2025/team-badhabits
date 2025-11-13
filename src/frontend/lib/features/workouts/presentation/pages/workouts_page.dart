@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -274,12 +276,14 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
         borderRadius: BorderRadius.circular(12),
         onTap: () {
           final workoutsBloc = context.read<WorkoutsBloc>();
-          Navigator.push(
-            context,
-            MaterialPageRoute<void>(
-              builder: (context) => BlocProvider.value(
-                value: workoutsBloc,
-                child: WorkoutDetailsPage(workout: workout),
+          unawaited(
+            Navigator.push(
+              context,
+              MaterialPageRoute<void>(
+                builder: (context) => BlocProvider.value(
+                  value: workoutsBloc,
+                  child: WorkoutDetailsPage(workout: workout),
+                ),
               ),
             ),
           );
@@ -646,9 +650,11 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
             // Workout session started - reload workouts list
             if (state is WorkoutSessionStarted) {
               // Trigger reload of workouts after session starts
-              Future.microtask(() {
-                _reloadWorkouts(context);
-              });
+              unawaited(
+                Future.microtask(() {
+                  _reloadWorkouts(context);
+                }),
+              );
               return const Center(child: CircularProgressIndicator());
             }
 

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/features/workouts/domain/entities/workout_session.dart';
@@ -45,7 +47,8 @@ class _WorkoutSessionPageState extends State<WorkoutSessionPage> {
   void _completeSession(BuildContext context) {
     final workoutsBloc = context.read<WorkoutsBloc>();
 
-    showDialog<void>(
+    unawaited(
+      showDialog<void>(
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (builderContext, setStateDialog) => AlertDialog(
@@ -128,6 +131,7 @@ class _WorkoutSessionPageState extends State<WorkoutSessionPage> {
             ),
           ],
         ),
+      ),
       ),
     );
   }
@@ -257,30 +261,32 @@ class _WorkoutSessionPageState extends State<WorkoutSessionPage> {
                   height: 56,
                   child: OutlinedButton.icon(
                     onPressed: () {
-                      showDialog<void>(
-                        context: context,
-                        builder: (dialogContext) => AlertDialog(
-                          title: const Text('Cancel Workout?'),
-                          content: const Text(
-                            'Are you sure you want to cancel this workout session? Your progress will not be saved.',
+                      unawaited(
+                        showDialog<void>(
+                          context: context,
+                          builder: (dialogContext) => AlertDialog(
+                            title: const Text('Cancel Workout?'),
+                            content: const Text(
+                              'Are you sure you want to cancel this workout session? Your progress will not be saved.',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(dialogContext),
+                                child: const Text('No, Continue'),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(dialogContext);
+                                  context.read<WorkoutsBloc>().add(
+                                        CancelWorkoutSession(
+                                          sessionId: widget.session.id,
+                                        ),
+                                      );
+                                },
+                                child: const Text('Yes, Cancel'),
+                              ),
+                            ],
                           ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(dialogContext),
-                              child: const Text('No, Continue'),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.pop(dialogContext);
-                                context.read<WorkoutsBloc>().add(
-                                      CancelWorkoutSession(
-                                        sessionId: widget.session.id,
-                                      ),
-                                    );
-                              },
-                              child: const Text('Yes, Cancel'),
-                            ),
-                          ],
                         ),
                       );
                     },

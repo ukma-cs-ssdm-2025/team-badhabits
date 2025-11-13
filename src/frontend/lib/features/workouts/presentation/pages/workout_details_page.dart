@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/features/workouts/domain/entities/exercise.dart';
@@ -53,12 +55,14 @@ class _WorkoutDetailsPageState extends State<WorkoutDetailsPage> {
           if (state is WorkoutSessionStarted) {
             // Navigate to active session page
             final workoutsBloc = context.read<WorkoutsBloc>();
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute<void>(
-                builder: (context) => BlocProvider.value(
-                  value: workoutsBloc,
-                  child: WorkoutSessionPage(session: state.session),
+            unawaited(
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute<void>(
+                  builder: (context) => BlocProvider.value(
+                    value: workoutsBloc,
+                    child: WorkoutSessionPage(session: state.session),
+                  ),
                 ),
               ),
             );
