@@ -13,13 +13,12 @@ class GetFilteredWorkouts {
   final WorkoutsRepository repository;
 
   Future<Either<Failure, List<Workout>>> call(
-      GetFilteredWorkoutsParams params) async {
-    return await repository.getFilteredWorkouts(
-      duration: params.duration,
-      equipment: params.equipment,
-      difficulty: params.difficulty,
-    );
-  }
+          GetFilteredWorkoutsParams params) =>
+      repository.getFilteredWorkouts(
+        duration: params.duration,
+        equipment: params.equipment,
+        difficulty: params.difficulty,
+      );
 }
 
 /// Parameters for filtering workouts

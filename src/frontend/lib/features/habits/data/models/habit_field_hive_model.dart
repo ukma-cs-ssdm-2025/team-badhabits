@@ -6,14 +6,6 @@ part 'habit_field_hive_model.g.dart';
 /// Hive model for HabitField with TypeAdapter for local storage
 @HiveType(typeId: 2)
 class HabitFieldHiveModel {
-  @HiveField(0)
-  final String type;
-
-  @HiveField(1)
-  final String label;
-
-  @HiveField(2)
-  final String? unit;
 
   HabitFieldHiveModel({
     required this.type,
@@ -28,6 +20,14 @@ class HabitFieldHiveModel {
         label: entity.label,
         unit: entity.unit,
       );
+  @HiveField(0)
+  final String type;
+
+  @HiveField(1)
+  final String label;
+
+  @HiveField(2)
+  final String? unit;
 
   /// Converts to HabitField entity
   HabitField toEntity() => HabitField(

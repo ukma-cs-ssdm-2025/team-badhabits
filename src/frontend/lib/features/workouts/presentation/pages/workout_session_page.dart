@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/features/workouts/domain/entities/workout_session.dart';
@@ -45,9 +47,10 @@ class _WorkoutSessionPageState extends State<WorkoutSessionPage> {
   void _completeSession(BuildContext context) {
     final workoutsBloc = context.read<WorkoutsBloc>();
 
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) => StatefulBuilder(
+    unawaited(
+      showDialog<void>(
+        context: context,
+        builder: (dialogContext) => StatefulBuilder(
         builder: (builderContext, setStateDialog) => AlertDialog(
           title: const Text('Complete Workout'),
           content: SingleChildScrollView(
@@ -129,12 +132,12 @@ class _WorkoutSessionPageState extends State<WorkoutSessionPage> {
           ],
         ),
       ),
+      ),
     );
   }
 
   @override
-  Widget build(BuildContext context) {
-    return BlocListener<WorkoutsBloc, WorkoutsState>(
+  Widget build(BuildContext context) => BlocListener<WorkoutsBloc, WorkoutsState>(
       listener: (context, state) {
         if (state is WorkoutSessionCompleted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -175,18 +178,16 @@ class _WorkoutSessionPageState extends State<WorkoutSessionPage> {
                 const SizedBox(height: 48),
 
                 // Timer
-                StreamBuilder(
-                  stream: Stream.periodic(const Duration(seconds: 1)),
-                  builder: (context, snapshot) {
-                    return Text(
+                StreamBuilder<int>(
+                  stream: Stream<int>.periodic(const Duration(seconds: 1)),
+                  builder: (context, snapshot) => Text(
                       _getElapsedTime(),
                       style: const TextStyle(
                         fontSize: 64,
                         fontWeight: FontWeight.bold,
                         fontFeatures: [FontFeature.tabularFigures()],
                       ),
-                    );
-                  },
+                    ),
                 ),
                 const SizedBox(height: 8),
                 const Text(
@@ -257,9 +258,10 @@ class _WorkoutSessionPageState extends State<WorkoutSessionPage> {
                   height: 56,
                   child: OutlinedButton.icon(
                     onPressed: () {
-                      showDialog<void>(
-                        context: context,
-                        builder: (dialogContext) => AlertDialog(
+                      unawaited(
+                        showDialog<void>(
+                          context: context,
+                          builder: (dialogContext) => AlertDialog(
                           title: const Text('Cancel Workout?'),
                           content: const Text(
                             'Are you sure you want to cancel this workout session? Your progress will not be saved.',
@@ -281,6 +283,7 @@ class _WorkoutSessionPageState extends State<WorkoutSessionPage> {
                               child: const Text('Yes, Cancel'),
                             ),
                           ],
+                        ),
                         ),
                       );
                     },
@@ -304,5 +307,4 @@ class _WorkoutSessionPageState extends State<WorkoutSessionPage> {
         ),
       ),
     );
-  }
 }

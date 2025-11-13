@@ -1,9 +1,8 @@
-/**
- * Test Helper Functions
- * Lab 6: Testing & Debugging
- *
- * Helper utilities for widget testing with interactions
- */
+/// Test Helper Functions
+/// Lab 6: Testing & Debugging
+///
+/// Helper utilities for widget testing with interactions
+library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -46,24 +45,21 @@ extension WidgetTesterExtensions on WidgetTester {
 }
 
 /// Helper function to create a Material app wrapper for widget testing
-Widget createTestableWidget(Widget child) {
-  return MaterialApp(
-    home: Scaffold(
-      body: child,
-    ),
-  );
-}
+Widget createTestableWidget(Widget child) => MaterialApp(
+      home: Scaffold(
+        body: child,
+      ),
+    );
 
 /// Helper function to create a Material app with routing for integration tests
 MaterialApp createTestableApp({
   required Widget home,
   Map<String, WidgetBuilder>? routes,
-}) {
-  return MaterialApp(
-    home: home,
-    routes: routes ?? {},
-  );
-}
+}) =>
+    MaterialApp(
+      home: home,
+      routes: routes ?? {},
+    );
 
 /// Mock data helpers
 class MockData {

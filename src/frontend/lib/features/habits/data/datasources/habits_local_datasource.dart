@@ -34,13 +34,13 @@ abstract class HabitsLocalDataSource {
 
 /// Implementation of HabitsLocalDataSource using Hive
 class HabitsLocalDataSourceImpl implements HabitsLocalDataSource {
-  final Box<HabitHiveModel> habitsBox;
-  final Box<HabitEntryHiveModel> entriesBox;
-
   HabitsLocalDataSourceImpl({
     required this.habitsBox,
     required this.entriesBox,
   });
+
+  final Box<HabitHiveModel> habitsBox;
+  final Box<HabitEntryHiveModel> entriesBox;
 
   @override
   Future<List<HabitModel>> getCachedHabits(String userId) async {

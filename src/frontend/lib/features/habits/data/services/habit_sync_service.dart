@@ -11,18 +11,18 @@ import '../models/habit_model.dart';
 /// Listens to network connectivity changes and automatically syncs
 /// pending changes when connection is restored
 class HabitSyncService {
-  final HabitsLocalDataSource localDataSource;
-  final HabitsFirestoreDataSource remoteDataSource;
-  final NetworkInfo networkInfo;
-
-  StreamSubscription<bool>? _connectivitySubscription;
-  bool _isSyncing = false;
 
   HabitSyncService({
     required this.localDataSource,
     required this.remoteDataSource,
     required this.networkInfo,
   });
+  final HabitsLocalDataSource localDataSource;
+  final HabitsFirestoreDataSource remoteDataSource;
+  final NetworkInfo networkInfo;
+
+  StreamSubscription<bool>? _connectivitySubscription;
+  bool _isSyncing = false;
 
   /// Start listening to connectivity changes
   ///

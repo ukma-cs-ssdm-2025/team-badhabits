@@ -6,26 +6,6 @@ part 'habit_entry_hive_model.g.dart';
 /// Hive model for HabitEntry with offline sync support
 @HiveType(typeId: 1)
 class HabitEntryHiveModel extends HiveObject {
-  @HiveField(0)
-  final String id;
-
-  @HiveField(1)
-  final String habitId;
-
-  @HiveField(2)
-  final String userId;
-
-  @HiveField(3)
-  final String date;
-
-  @HiveField(4)
-  final Map<String, dynamic> values;
-
-  @HiveField(5)
-  final DateTime? lastSyncedAt;
-
-  @HiveField(6)
-  final bool isPendingSync;
 
   HabitEntryHiveModel({
     required this.id,
@@ -53,6 +33,26 @@ class HabitEntryHiveModel extends HiveObject {
         values: Map<String, dynamic>.from(entry.values),
         lastSyncedAt: DateTime.now(),
       );
+  @HiveField(0)
+  final String id;
+
+  @HiveField(1)
+  final String habitId;
+
+  @HiveField(2)
+  final String userId;
+
+  @HiveField(3)
+  final String date;
+
+  @HiveField(4)
+  final Map<String, dynamic> values;
+
+  @HiveField(5)
+  final DateTime? lastSyncedAt;
+
+  @HiveField(6)
+  final bool isPendingSync;
 
   /// Converts to HabitEntry entity
   HabitEntry toEntity() => HabitEntry(

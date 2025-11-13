@@ -10,23 +10,47 @@ class WorkoutModel extends Workout {
     required super.userId,
     required super.title,
     required super.description,
-    required super.exercises,
     required super.durationMinutes,
     required super.estimatedCalories,
     required super.difficulty,
     required super.difficultyScore,
     required super.isAdaptive,
-    required super.equipmentRequired,
-    required super.targetMuscleGroups,
     required super.isVerified,
     required super.isPublic,
     required super.accessType,
-    super.price,
     required super.createdBy,
     required super.createdAt,
     required super.updatedAt,
+    required super.exercises,
+    required super.equipmentRequired,
+    required super.targetMuscleGroups,
+    super.price,
     super.tags,
   });
+
+  /// Create WorkoutModel from domain entity
+  factory WorkoutModel.fromEntity(Workout workout) => WorkoutModel(
+        id: workout.id,
+        userId: workout.userId,
+        title: workout.title,
+        description: workout.description,
+        exercises: workout.exercises,
+        durationMinutes: workout.durationMinutes,
+        estimatedCalories: workout.estimatedCalories,
+        difficulty: workout.difficulty,
+        difficultyScore: workout.difficultyScore,
+        isAdaptive: workout.isAdaptive,
+        equipmentRequired: workout.equipmentRequired,
+        targetMuscleGroups: workout.targetMuscleGroups,
+        isVerified: workout.isVerified,
+        isPublic: workout.isPublic,
+        accessType: workout.accessType,
+        price: workout.price,
+        createdBy: workout.createdBy,
+        createdAt: workout.createdAt,
+        updatedAt: workout.updatedAt,
+        tags: workout.tags,
+      );
 
   /// Create WorkoutModel from JSON
   factory WorkoutModel.fromJson(Map<String, dynamic> json) => WorkoutModel(
@@ -96,30 +120,6 @@ class WorkoutModel extends Workout {
         'updated_at': updatedAt.toIso8601String(),
         if (tags != null) 'tags': tags,
       };
-
-  /// Create WorkoutModel from domain entity
-  factory WorkoutModel.fromEntity(Workout workout) => WorkoutModel(
-        id: workout.id,
-        userId: workout.userId,
-        title: workout.title,
-        description: workout.description,
-        exercises: workout.exercises,
-        durationMinutes: workout.durationMinutes,
-        estimatedCalories: workout.estimatedCalories,
-        difficulty: workout.difficulty,
-        difficultyScore: workout.difficultyScore,
-        isAdaptive: workout.isAdaptive,
-        equipmentRequired: workout.equipmentRequired,
-        targetMuscleGroups: workout.targetMuscleGroups,
-        isVerified: workout.isVerified,
-        isPublic: workout.isPublic,
-        accessType: workout.accessType,
-        price: workout.price,
-        createdBy: workout.createdBy,
-        createdAt: workout.createdAt,
-        updatedAt: workout.updatedAt,
-        tags: workout.tags,
-      );
 
   /// Convert to domain entity
   Workout toEntity() => Workout(

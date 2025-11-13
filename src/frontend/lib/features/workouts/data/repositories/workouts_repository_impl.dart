@@ -146,18 +146,18 @@ class WorkoutsRepositoryImpl implements WorkoutsRepository {
     try {
       final user = auth.currentUser;
       if (user == null) {
-        return Left(ServerFailure('User not authenticated'));
+        return const Left(ServerFailure('User not authenticated'));
       }
 
-      // TODO: Get actual user profile data
+      // TODO(team): Get actual user profile data
       final workoutModel = await apiDataSource.getRecommendedWorkout(
         userId: user.uid,
         workoutId: workoutId,
         difficultyRating: difficultyRating,
-        fitnessLevel: 'intermediate', // TODO: Get from user profile
-        injuries: [], // TODO: Get from user profile
-        availableEquipment: [], // TODO: Get from user profile
-        preferredDurationMinutes: 30, // TODO: Get from user profile
+        fitnessLevel: 'intermediate', // TODO(team): Get from user profile
+        injuries: const [], // TODO(team): Get from user profile
+        availableEquipment: const [], // TODO(team): Get from user profile
+        preferredDurationMinutes: 30, // TODO(team): Get from user profile
       );
 
       return Right(workoutModel.toEntity());

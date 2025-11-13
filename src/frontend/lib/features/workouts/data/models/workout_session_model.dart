@@ -22,6 +22,26 @@ class WorkoutSessionModel extends WorkoutSession {
     super.caloriesBurned,
   });
 
+  /// Create WorkoutSessionModel from domain entity
+  factory WorkoutSessionModel.fromEntity(WorkoutSession session) =>
+      WorkoutSessionModel(
+        id: session.id,
+        userId: session.userId,
+        workoutId: session.workoutId,
+        workoutTitle: session.workoutTitle,
+        status: session.status,
+        startedAt: session.startedAt,
+        completedAt: session.completedAt,
+        pausedAt: session.pausedAt,
+        totalDurationSeconds: session.totalDurationSeconds,
+        completedExercises: session.completedExercises,
+        currentExerciseIndex: session.currentExerciseIndex,
+        difficultyRating: session.difficultyRating,
+        enjoymentRating: session.enjoymentRating,
+        notes: session.notes,
+        caloriesBurned: session.caloriesBurned,
+      );
+
   /// Create WorkoutSessionModel from JSON
   factory WorkoutSessionModel.fromJson(Map<String, dynamic> json) =>
       WorkoutSessionModel(
@@ -72,26 +92,6 @@ class WorkoutSessionModel extends WorkoutSession {
         if (notes != null) 'notes': notes,
         if (caloriesBurned != null) 'calories_burned': caloriesBurned,
       };
-
-  /// Create WorkoutSessionModel from domain entity
-  factory WorkoutSessionModel.fromEntity(WorkoutSession session) =>
-      WorkoutSessionModel(
-        id: session.id,
-        userId: session.userId,
-        workoutId: session.workoutId,
-        workoutTitle: session.workoutTitle,
-        status: session.status,
-        startedAt: session.startedAt,
-        completedAt: session.completedAt,
-        pausedAt: session.pausedAt,
-        totalDurationSeconds: session.totalDurationSeconds,
-        completedExercises: session.completedExercises,
-        currentExerciseIndex: session.currentExerciseIndex,
-        difficultyRating: session.difficultyRating,
-        enjoymentRating: session.enjoymentRating,
-        notes: session.notes,
-        caloriesBurned: session.caloriesBurned,
-      );
 
   /// Convert to domain entity
   WorkoutSession toEntity() => WorkoutSession(

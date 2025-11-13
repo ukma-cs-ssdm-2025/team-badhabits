@@ -11,7 +11,6 @@ class GetWorkoutHistory {
 
   final WorkoutsRepository repository;
 
-  Future<Either<Failure, List<WorkoutSession>>> call() async {
-    return await repository.getWorkoutHistory();
-  }
+  Future<Either<Failure, List<WorkoutSession>>> call() =>
+      repository.getWorkoutHistory();
 }

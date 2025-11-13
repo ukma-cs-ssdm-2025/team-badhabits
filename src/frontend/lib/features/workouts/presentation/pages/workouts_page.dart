@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -79,14 +81,12 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
     required String label,
     required bool selected,
     required VoidCallback onSelected,
-  }) {
-    return FilterChip(
+  }) => FilterChip(
       label: Text(label),
       selected: selected,
       onSelected: (_) => onSelected(),
       selectedColor: Colors.blue.withValues(alpha: 0.3),
     );
-  }
 
   /// Build filters section (US-005)
   Widget _buildFiltersSection(BuildContext context) {
@@ -265,8 +265,7 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
       );
 
   /// Build workout card
-  Widget _buildWorkoutCard(BuildContext context, Workout workout) {
-    return Card(
+  Widget _buildWorkoutCard(BuildContext context, Workout workout) => Card(
       elevation: 2,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -274,12 +273,14 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
         borderRadius: BorderRadius.circular(12),
         onTap: () {
           final workoutsBloc = context.read<WorkoutsBloc>();
-          Navigator.push(
-            context,
-            MaterialPageRoute<void>(
-              builder: (context) => BlocProvider.value(
-                value: workoutsBloc,
-                child: WorkoutDetailsPage(workout: workout),
+          unawaited(
+            Navigator.push(
+              context,
+              MaterialPageRoute<void>(
+                builder: (context) => BlocProvider.value(
+                  value: workoutsBloc,
+                  child: WorkoutDetailsPage(workout: workout),
+                ),
               ),
             ),
           );
@@ -335,16 +336,15 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
               const SizedBox(height: 8),
 
               // Description
-              if (workout.description != null)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Text(
-                    workout.description!,
-                    style: TextStyle(color: Colors.grey[600], fontSize: 14),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Text(
+                  workout.description,
+                  style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
+              ),
 
               // Workout details
               Wrap(
@@ -427,11 +427,9 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
         ),
       ),
     );
-  }
 
   /// Build info chip
-  Widget _buildInfoChip({required IconData icon, required String label}) {
-    return Row(
+  Widget _buildInfoChip({required IconData icon, required String label}) => Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(icon, size: 16, color: Colors.grey[600]),
@@ -442,11 +440,12 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
         ),
       ],
     );
-  }
 
   /// Build active session banner
   Widget _buildActiveSessionBanner(BuildContext context) {
-    if (_activeSession == null) return const SizedBox.shrink();
+    if (_activeSession == null) {
+      return const SizedBox.shrink();
+    }
 
     return Card(
       margin: const EdgeInsets.all(16),
@@ -454,7 +453,7 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.green.withValues(alpha: 0.3), width: 1),
+        side: BorderSide(color: Colors.green.withValues(alpha: 0.3)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -497,8 +496,8 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 2),
-                  StreamBuilder(
-                    stream: Stream.periodic(const Duration(seconds: 1)),
+                  StreamBuilder<int>(
+                    stream: Stream<int>.periodic(const Duration(seconds: 1)),
                     builder: (context, snapshot) {
                       final elapsed = DateTime.now().difference(_activeSession!.startedAt);
                       final minutes = elapsed.inMinutes;
@@ -550,11 +549,10 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
   }
 
   /// Build workouts list
-  Widget _buildWorkoutsList(BuildContext context, List<Workout> workouts) {
-    return RefreshIndicator(
+  Widget _buildWorkoutsList(BuildContext context, List<Workout> workouts) => RefreshIndicator(
       onRefresh: () async {
         _reloadWorkouts(context);
-        await Future.delayed(const Duration(milliseconds: 500));
+        await Future<void>.delayed(const Duration(milliseconds: 500));
       },
       child: ListView.builder(
         padding: const EdgeInsets.only(bottom: 80),
@@ -571,7 +569,6 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
         },
       ),
     );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -646,9 +643,16 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
             // Workout session started - reload workouts list
             if (state is WorkoutSessionStarted) {
               // Trigger reload of workouts after session starts
-              Future.microtask(() {
-                _reloadWorkouts(context);
-              });
+              final ctx = context;
+              if (mounted) {
+                unawaited(
+                  Future.microtask(() {
+                    if (mounted) {
+                      _reloadWorkouts(ctx);
+                    }
+                  }),
+                );
+              }
               return const Center(child: CircularProgressIndicator());
             }
 
@@ -711,7 +715,9 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
               // Wait for state update
               await Future<void>.delayed(const Duration(milliseconds: 500));
 
-              if (!context.mounted) return;
+              if (!context.mounted) {
+                return;
+              }
 
               final state = context.read<WorkoutsBloc>().state;
 

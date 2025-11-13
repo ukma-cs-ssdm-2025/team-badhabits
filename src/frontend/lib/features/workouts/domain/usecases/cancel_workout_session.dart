@@ -11,9 +11,8 @@ class CancelWorkoutSession {
 
   final WorkoutsRepository repository;
 
-  Future<Either<Failure, void>> call(CancelWorkoutSessionParams params) async {
-    return await repository.cancelWorkoutSession(sessionId: params.sessionId);
-  }
+  Future<Either<Failure, void>> call(CancelWorkoutSessionParams params) =>
+      repository.cancelWorkoutSession(sessionId: params.sessionId);
 }
 
 /// Parameters for CancelWorkoutSession use case

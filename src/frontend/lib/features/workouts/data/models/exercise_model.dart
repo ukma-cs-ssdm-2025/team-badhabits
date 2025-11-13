@@ -8,19 +8,38 @@ class ExerciseModel extends Exercise {
     required super.id,
     required super.name,
     required super.description,
+    required super.restSeconds,
+    required super.difficulty,
+    required super.affectedAreas,
     required super.sets,
     required super.reps,
     super.weight,
     super.durationSeconds,
-    required super.restSeconds,
-    required super.difficulty,
-    required super.affectedAreas,
     super.equipment,
     super.caloriesBurned,
     super.videoUrl,
     super.imageUrl,
     super.instructions,
   });
+
+  /// Create ExerciseModel from domain entity
+  factory ExerciseModel.fromEntity(Exercise exercise) => ExerciseModel(
+        id: exercise.id,
+        name: exercise.name,
+        description: exercise.description,
+        sets: exercise.sets,
+        reps: exercise.reps,
+        weight: exercise.weight,
+        durationSeconds: exercise.durationSeconds,
+        restSeconds: exercise.restSeconds,
+        difficulty: exercise.difficulty,
+        affectedAreas: exercise.affectedAreas,
+        equipment: exercise.equipment,
+        caloriesBurned: exercise.caloriesBurned,
+        videoUrl: exercise.videoUrl,
+        imageUrl: exercise.imageUrl,
+        instructions: exercise.instructions,
+      );
 
   /// Create ExerciseModel from JSON
   factory ExerciseModel.fromJson(Map<String, dynamic> json) => ExerciseModel(
@@ -68,25 +87,6 @@ class ExerciseModel extends Exercise {
         if (imageUrl != null) 'image_url': imageUrl,
         if (instructions != null) 'instructions': instructions,
       };
-
-  /// Create ExerciseModel from domain entity
-  factory ExerciseModel.fromEntity(Exercise exercise) => ExerciseModel(
-        id: exercise.id,
-        name: exercise.name,
-        description: exercise.description,
-        sets: exercise.sets,
-        reps: exercise.reps,
-        weight: exercise.weight,
-        durationSeconds: exercise.durationSeconds,
-        restSeconds: exercise.restSeconds,
-        difficulty: exercise.difficulty,
-        affectedAreas: exercise.affectedAreas,
-        equipment: exercise.equipment,
-        caloriesBurned: exercise.caloriesBurned,
-        videoUrl: exercise.videoUrl,
-        imageUrl: exercise.imageUrl,
-        instructions: exercise.instructions,
-      );
 
   /// Convert to domain entity
   Exercise toEntity() => Exercise(

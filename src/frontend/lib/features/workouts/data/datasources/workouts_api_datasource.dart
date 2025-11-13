@@ -1,7 +1,8 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+
 import 'package:frontend/core/error/exceptions.dart';
 import 'package:frontend/features/workouts/data/models/workout_model.dart';
+import 'package:http/http.dart' as http;
 
 /// Workouts API Data Source
 ///
@@ -36,11 +37,11 @@ class WorkoutsApiDataSource {
           'user_data': {
             'user_id': userId,
             'fitness_level': fitnessLevel,
-            'age': 25, // TODO: Get from user profile
+            'age': 25, // TODO(team): Get from user profile
             'injuries': injuries,
             'available_equipment': availableEquipment,
             'preferred_duration_minutes': preferredDurationMinutes,
-            'goals': ['fitness'], // TODO: Get from user profile
+            'goals': ['fitness'], // TODO(team): Get from user profile
             'past_ratings': [
               {
                 'workout_id': workoutId,
@@ -57,17 +58,16 @@ class WorkoutsApiDataSource {
         final json = jsonDecode(response.body) as Map<String, dynamic>;
         return WorkoutModel.fromJson(json);
       } else if (response.statusCode == 422) {
-        final json = jsonDecode(response.body) as Map<String, dynamic>;
-        throw ServerException(
-            'Validation error: ${json['message'] ?? 'Invalid request'}');
+        throw const ServerException('Validation error: Invalid request');
       } else if (response.statusCode == 500) {
-        throw ServerException('Server error: Backend is unavailable');
+        throw const ServerException('Server error: Backend is unavailable');
       } else {
-        throw ServerException(
-            'Failed to get recommendation: ${response.statusCode}');
+        throw const ServerException('Failed to get recommendation');
       }
     } catch (e) {
-      if (e is ServerException) rethrow;
+      if (e is ServerException) {
+        rethrow;
+      }
       throw ServerException('Network error: $e');
     }
   }
