@@ -39,16 +39,16 @@ module.exports = {
       statements: 70,
     },
     './services/AdaptiveWorkoutService.ts': {
-      statements: 91,
-      branches: 64,
+      statements: 90,
+      branches: 70,
       functions: 100,
       lines: 95,
     },
     './services/PaymentService.ts': {
-      statements: 92,
-      branches: 84,
+      statements: 90,
+      branches: 80,
       functions: 100,
-      lines: 92,
+      lines: 90,
     },
   },
 

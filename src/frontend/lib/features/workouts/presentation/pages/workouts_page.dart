@@ -648,6 +648,7 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
                 unawaited(
                   Future.microtask(() {
                     if (mounted) {
+                      // ignore: use_build_context_synchronously
                       _reloadWorkouts(ctx);
                     }
                   }),
