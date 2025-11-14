@@ -9,6 +9,9 @@ jobs:
   sonarcloud:
     name: Analyze with SonarCloud
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/frontend
 
     steps:
       - uses: actions/checkout@v4
@@ -21,15 +24,15 @@ jobs:
           sdk: stable
 
       - name: Install dependencies
-        working-directory: src/frontend
         run: dart pub get
 
       - name: Run static analysis
-        working-directory: src/frontend
         run: dart analyze
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2
+        with:
+          projectBaseDir: src/frontend
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
