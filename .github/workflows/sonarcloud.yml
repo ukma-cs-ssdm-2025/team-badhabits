@@ -9,25 +9,25 @@ jobs:
   sonarcloud:
     name: Analyze with SonarCloud
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: src/frontend
 
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Set up Dart
-        uses: dart-lang/setup-dart@v1
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
         with:
-          sdk: stable
+          channel: 'stable'
+          cache: true
 
       - name: Install dependencies
-        run: dart pub get
+        working-directory: src/frontend
+        run: flutter pub get
 
       - name: Run static analysis
-        run: dart analyze
+        working-directory: src/frontend
+        run: flutter analyze
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2
