@@ -38,11 +38,9 @@ analyzer:
     test_types_in_equals: error
     throw_in_finally: error
     unnecessary_statements: error
-    unsafe_html: error
 
     # Maintainability issues - treat as warnings
     avoid_print: warning
-    avoid_returning_null_for_future: warning
     invariant_booleans: warning
 
     # Missing required parameters should be errors
@@ -61,10 +59,6 @@ analyzer:
 
 linter:
   rules:
-    # SECURITY RULES (OWASP Principles)
-    # Prevent unsafe HTML operations
-    - unsafe_html
-
     # Error Handling & Reliability
     - avoid_dynamic_calls
     - avoid_slow_async_io
@@ -82,14 +76,12 @@ linter:
     - only_throw_errors
 
     # Async/Await Patterns
-    - avoid_returning_null_for_future
     - avoid_void_async
 
     # Code Quality & Maintainability
     - always_declare_return_types
     - always_put_control_body_on_new_line
     - always_put_required_named_parameters_first
-    - always_require_non_null_named_parameters
     - annotate_overrides
     - avoid_bool_literals_in_conditional_expressions
     - avoid_empty_else
@@ -108,7 +100,6 @@ linter:
     - avoid_relative_lib_imports
     - avoid_renaming_method_parameters
     - avoid_return_types_on_setters
-    - avoid_returning_null
     - avoid_returning_null_for_void
     - avoid_returning_this
     - avoid_setters_without_getters
@@ -174,7 +165,6 @@ linter:
     - omit_local_variable_types
     - one_member_abstracts
     - overridden_fields
-    - package_api_docs
     - parameter_assignments
     - prefer_adjacent_string_concatenation
     - prefer_asserts_in_initializer_lists
