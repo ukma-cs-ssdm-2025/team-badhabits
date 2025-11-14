@@ -1,32 +1,33 @@
-name: SonarCloud Flutter Analysis
+name: SonarCloud Dart Analysis
 on:
   push:
     branches: [ main ]
   pull_request:
     types: [opened, synchronize, reopened]
+
 jobs:
   sonarcloud:
     name: Analyze with SonarCloud
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
+
+      - name: Set up Dart
+        uses: dart-lang/setup-dart@v1
         with:
-          channel: 'beta'
-          cache: true
-      
+          sdk: stable
+
       - name: Install dependencies
-        working-directory: ./src/frontend
-        run: flutter pub get
-      
+        working-directory: src/frontend
+        run: dart pub get
+
       - name: Run static analysis
-        working-directory: ./src/frontend
-        run: flutter analyze
-      
+        working-directory: src/frontend
+        run: dart analyze
+
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2
         env:
