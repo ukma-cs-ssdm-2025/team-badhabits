@@ -278,6 +278,40 @@ class _CreateEditHabitPageState extends State<CreateEditHabitPage> {
     );
   }
 
+  /// Validate habit fields for duplicates and empty labels
+  String? _validateHabitFields() {
+    if (_fields.isEmpty) {
+      return 'Please add at least one tracking field';
+    }
+
+    if (_fields.length > 10) {
+      return 'Maximum 10 fields allowed per habit';
+    }
+
+    final seenLabels = <String>{};
+
+    for (var i = 0; i < _fields.length; i++) {
+      final field = _fields[i];
+      final label = field.labelController.text.trim();
+
+      if (label.isEmpty) {
+        return 'Field #${i + 1}: label cannot be empty';
+      }
+
+      if (label.length > 50) {
+        return 'Field #${i + 1}: label too long (max 50 characters)';
+      }
+
+      final lowerLabel = label.toLowerCase();
+      if (seenLabels.contains(lowerLabel)) {
+        return 'Duplicate field label: "$label"';
+      }
+      seenLabels.add(lowerLabel);
+    }
+
+    return null;
+  }
+
   /// Save habit (create or update)
   Future<void> _saveHabit() async {
     // Validate form
@@ -304,6 +338,22 @@ class _CreateEditHabitPageState extends State<CreateEditHabitPage> {
           const SnackBar(
             content: Text('Error: user not authenticated'),
             backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
+
+    // Validate habit fields
+    final fieldsError = _validateHabitFields();
+    if (fieldsError != null) {
+      print('ERROR: Habit fields validation failed: $fieldsError');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(fieldsError),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
           ),
         );
       }

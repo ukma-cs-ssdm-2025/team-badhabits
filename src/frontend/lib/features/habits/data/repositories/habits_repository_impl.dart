@@ -140,7 +140,25 @@ class HabitsRepositoryImpl implements HabitsRepository {
 
       // Get habit to obtain userId for local storage
       final habit = await localDataSource.getCachedHabit(habitId);
-      final userId = habit?.userId ?? '';
+
+      // Validate habit exists
+      if (habit == null) {
+        print('ERROR: Habit not found in cache: $habitId');
+        return const Left(
+          CacheFailure('Habit not found. Please sync your habits first.'),
+        );
+      }
+
+      // Validate userId is not empty
+      if (habit.userId.isEmpty) {
+        print('ERROR: Invalid userId for habit $habitId');
+        return const Left(
+          CacheFailure('Invalid user data. Please sign in again.'),
+        );
+      }
+
+      final userId = habit.userId;
+      print('INFO: Adding entry for habit $habitId, user $userId');
 
       // Create HabitEntryHiveModel for local storage
       final entryId = '${habitId}_${entry.date}';
@@ -163,8 +181,10 @@ class HabitsRepositoryImpl implements HabitsRepository {
         return Right(entryModel);
       }
     } on FirebaseException catch (e) {
+      print('ERROR: Firebase error in addEntry: ${e.message}');
       return Left(ServerFailure('Firebase error: ${e.message}'));
     } catch (e) {
+      print('ERROR: Unexpected error in addEntry: $e');
       return Left(ServerFailure('Failed to add habit entry: $e'));
     }
   }

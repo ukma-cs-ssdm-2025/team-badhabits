@@ -54,13 +54,18 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     String? avatarUrl,
   }) async {
     try {
+      // Validate userId
+      if (userId.isEmpty) {
+        throw Exception('Invalid user ID');
+      }
+
       // Build update data
       final updateData = <String, dynamic>{};
-      if (name != null) {
-        updateData['name'] = name;
+      if (name != null && name.trim().isNotEmpty) {
+        updateData['name'] = name.trim();
       }
       if (bio != null) {
-        updateData['bio'] = bio;
+        updateData['bio'] = bio.trim();
       }
       if (avatarUrl != null) {
         updateData['avatarUrl'] = avatarUrl;
@@ -70,13 +75,36 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         throw Exception('No fields to update');
       }
 
-      // Update in Firestore
-      await firestore.collection('users').doc(userId).update(updateData);
+      // Add server timestamp
+      updateData['updatedAt'] = FieldValue.serverTimestamp();
 
-      // Get updated user
-      final userDoc = await firestore.collection('users').doc(userId).get();
-      return UserModel.fromFirestore(userDoc);
+      print('INFO: Updating profile for user $userId');
+
+      // Use Firestore transaction to ensure atomic update + read
+      return await firestore.runTransaction<UserModel>(
+        (transaction) async {
+          final docRef = firestore.collection('users').doc(userId);
+          final snapshot = await transaction.get(docRef);
+
+          if (!snapshot.exists) {
+            throw Exception('User not found');
+          }
+
+          // Perform atomic update
+          transaction.update(docRef, updateData);
+
+          // Return updated user data (combine existing + updates)
+          final updatedData = {
+            ...snapshot.data() ?? {},
+            ...updateData,
+          };
+
+          return UserModel.fromJson(updatedData);
+        },
+        timeout: const Duration(seconds: 15),
+      );
     } catch (e) {
+      print('ERROR: Failed to update user profile: $e');
       throw Exception('Failed to update user profile: $e');
     }
   }
