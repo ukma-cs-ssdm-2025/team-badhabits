@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:frontend/core/error/exceptions.dart';
@@ -30,29 +31,39 @@ class WorkoutsApiDataSource {
     try {
       final url = Uri.parse('$baseUrl/api/v1/adaptive/recommend');
 
-      final response = await client.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'user_data': {
-            'user_id': userId,
-            'fitness_level': fitnessLevel,
-            'age': 25, // TODO(team): Get from user profile
-            'injuries': injuries,
-            'available_equipment': availableEquipment,
-            'preferred_duration_minutes': preferredDurationMinutes,
-            'goals': ['fitness'], // TODO(team): Get from user profile
-            'past_ratings': [
-              {
-                'workout_id': workoutId,
+      final response = await client
+          .post(
+            url,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'user_data': {
                 'user_id': userId,
-                'difficulty_rating': difficultyRating,
-                'timestamp': DateTime.now().toIso8601String(),
-              }
-            ],
-          },
-        }),
-      );
+                'fitness_level': fitnessLevel,
+                'age': 25, // TODO(team): Get from user profile
+                'injuries': injuries,
+                'available_equipment': availableEquipment,
+                'preferred_duration_minutes': preferredDurationMinutes,
+                'goals': ['fitness'], // TODO(team): Get from user profile
+                'past_ratings': [
+                  {
+                    'workout_id': workoutId,
+                    'user_id': userId,
+                    'difficulty_rating': difficultyRating,
+                    'timestamp': DateTime.now().toIso8601String(),
+                  }
+                ],
+              },
+            }),
+          )
+          .timeout(
+            const Duration(seconds: 10),
+            onTimeout: () {
+              print('ERROR: Railway API timeout after 10s for user $userId');
+              throw const ServerException(
+                'Request timeout. Server is taking too long to respond.',
+              );
+            },
+          );
 
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body) as Map<String, dynamic>;
@@ -64,11 +75,17 @@ class WorkoutsApiDataSource {
       } else {
         throw const ServerException('Failed to get recommendation');
       }
+    } on TimeoutException catch (e) {
+      print('ERROR: Network timeout - $e');
+      throw const ServerException(
+        'Connection timeout. Please check your internet connection.',
+      );
     } catch (e) {
       if (e is ServerException) {
         rethrow;
       }
-      throw ServerException('Network error: $e');
+      print('ERROR: Unexpected error in getRecommendedWorkout: $e');
+      throw const ServerException('Network error. Unable to connect.');
     }
   }
 
