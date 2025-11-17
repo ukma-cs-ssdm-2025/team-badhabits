@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -78,7 +79,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       // Add server timestamp
       updateData['updatedAt'] = FieldValue.serverTimestamp();
 
-      print('INFO: Updating profile for user $userId');
+      developer.log('Updating profile for user $userId', name: 'profile.datasource');
 
       // Use Firestore transaction to ensure atomic update + read
       return await firestore.runTransaction<UserModel>(
@@ -104,7 +105,11 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         timeout: const Duration(seconds: 15),
       );
     } catch (e) {
-      print('ERROR: Failed to update user profile: $e');
+      developer.log(
+        'Failed to update user profile: $e',
+        name: 'profile.datasource',
+        level: 1000,
+      );
       throw Exception('Failed to update user profile: $e');
     }
   }

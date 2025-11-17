@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer' as developer;
 
 import 'package:frontend/core/error/exceptions.dart';
 import 'package:frontend/features/workouts/data/models/workout_model.dart';
@@ -58,7 +59,11 @@ class WorkoutsApiDataSource {
           .timeout(
             const Duration(seconds: 10),
             onTimeout: () {
-              print('ERROR: Railway API timeout after 10s for user $userId');
+              developer.log(
+                'Railway API timeout after 10s for user $userId',
+                name: 'workouts.datasource',
+                level: 1000,
+              );
               throw const ServerException(
                 'Request timeout. Server is taking too long to respond.',
               );
@@ -76,7 +81,11 @@ class WorkoutsApiDataSource {
         throw const ServerException('Failed to get recommendation');
       }
     } on TimeoutException catch (e) {
-      print('ERROR: Network timeout - $e');
+      developer.log(
+        'Network timeout - $e',
+        name: 'workouts.datasource',
+        level: 1000,
+      );
       throw const ServerException(
         'Connection timeout. Please check your internet connection.',
       );
@@ -84,7 +93,11 @@ class WorkoutsApiDataSource {
       if (e is ServerException) {
         rethrow;
       }
-      print('ERROR: Unexpected error in getRecommendedWorkout: $e');
+      developer.log(
+        'Unexpected error in getRecommendedWorkout: $e',
+        name: 'workouts.datasource',
+        level: 1000,
+      );
       throw const ServerException('Network error. Unable to connect.');
     }
   }
