@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../core/utils/failure.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -17,13 +18,40 @@ class AuthRepositoryImpl implements AuthRepository {
     required String password,
   }) async {
     try {
+      if (email.isEmpty || password.isEmpty) {
+        return const Left(
+          ServerFailure('Please enter both email and password'),
+        );
+      }
+
       final user = await remoteDataSource.signIn(
         email: email,
         password: password,
       );
+      print('INFO: User signed in: ${user.id}');
       return Right(user);
+    } on FirebaseAuthException catch (e) {
+      print('ERROR: FirebaseAuth error in signIn: ${e.code}');
+
+      String userMessage;
+      switch (e.code) {
+        case 'user-not-found':
+          userMessage = 'No account found with this email';
+        case 'wrong-password':
+          userMessage = 'Incorrect password';
+        case 'invalid-email':
+          userMessage = 'Invalid email format';
+        case 'user-disabled':
+          userMessage = 'This account has been disabled';
+        case 'too-many-requests':
+          userMessage = 'Too many attempts. Please try again later';
+        default:
+          userMessage = 'Authentication failed';
+      }
+      return Left(ServerFailure(userMessage));
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      print('ERROR: Unexpected error in signIn: $e');
+      return const Left(ServerFailure('Connection error. Please try again.'));
     }
   }
 
@@ -35,15 +63,40 @@ class AuthRepositoryImpl implements AuthRepository {
     required UserType userType,
   }) async {
     try {
+      if (email.isEmpty || password.isEmpty || name.isEmpty) {
+        return const Left(
+          ServerFailure('Please fill in all required fields'),
+        );
+      }
+
       final user = await remoteDataSource.signUp(
         email: email,
         password: password,
         name: name,
         userType: userType,
       );
+      print('INFO: User signed up: ${user.id}');
       return Right(user);
+    } on FirebaseAuthException catch (e) {
+      print('ERROR: FirebaseAuth error in signUp: ${e.code}');
+
+      String userMessage;
+      switch (e.code) {
+        case 'email-already-in-use':
+          userMessage = 'Email already registered';
+        case 'weak-password':
+          userMessage = 'Password is too weak';
+        case 'invalid-email':
+          userMessage = 'Invalid email format';
+        case 'operation-not-allowed':
+          userMessage = 'Registration is currently disabled';
+        default:
+          userMessage = 'Registration failed';
+      }
+      return Left(ServerFailure(userMessage));
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      print('ERROR: Unexpected error in signUp: $e');
+      return const Left(ServerFailure('Connection error. Please try again.'));
     }
   }
 
@@ -51,9 +104,14 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Either<Failure, Unit>> signOut() async {
     try {
       await remoteDataSource.signOut();
+      print('INFO: User signed out successfully');
       return const Right(unit);
+    } on FirebaseAuthException catch (e) {
+      print('ERROR: FirebaseAuth error in signOut: ${e.code}');
+      return const Left(ServerFailure('Sign out failed'));
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      print('ERROR: Unexpected error in signOut: $e');
+      return const Left(ServerFailure('Connection error. Please try again.'));
     }
   }
 
@@ -61,9 +119,24 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Either<Failure, UserEntity>> getCurrentUser() async {
     try {
       final user = await remoteDataSource.getCurrentUser();
+      print('INFO: Retrieved current user: ${user.id}');
       return Right(user);
+    } on FirebaseAuthException catch (e) {
+      print('ERROR: FirebaseAuth error in getCurrentUser: ${e.code}');
+
+      String userMessage;
+      switch (e.code) {
+        case 'user-not-found':
+          userMessage = 'User session expired. Please sign in again';
+        case 'network-request-failed':
+          userMessage = 'Network error. Check your connection';
+        default:
+          userMessage = 'Failed to get user data';
+      }
+      return Left(ServerFailure(userMessage));
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      print('ERROR: Unexpected error in getCurrentUser: $e');
+      return const Left(ServerFailure('Connection error. Please try again.'));
     }
   }
 
