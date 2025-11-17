@@ -23,8 +23,10 @@ jobs:
         run: flutter pub get
 
       - name: Run Flutter Analyze
-        working-directory: src/frontend
-        run: flutter analyze > ../flutter_analyze.txt || true
+        run: |
+          cd src/frontend
+          flutter analyze > ../../flutter_analyze.txt || true
+          cd ../..
 
       - name: Convert to SARIF
         uses: advanced-security/dart-analyzer-sarif@main
