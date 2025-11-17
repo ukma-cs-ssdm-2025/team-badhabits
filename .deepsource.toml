@@ -3,15 +3,3 @@ version = 1
 [[analyzers]]
 name = "dart-analyze"
 type = "community"
-
-  [analyzers.meta]
-  runtime_path = "src/frontend"
-
-[[exclude_patterns]]
-paths = [
-  "**/*.g.dart",
-  "**/*.freezed.dart",
-  "**/*.mocks.dart",
-  "**/test/**",
-  "src/backend/**"
-]

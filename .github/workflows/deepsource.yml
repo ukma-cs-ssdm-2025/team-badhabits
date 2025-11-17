@@ -1,0 +1,42 @@
+name: Deepsource Dart Analysis
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        working-directory: src/frontend
+        run: flutter pub get
+
+      - name: Run Flutter Analyze
+        run: |
+          cd src/frontend
+          flutter analyze > ../../flutter_analyze.txt || true
+          cd ../..
+
+      - name: Convert to SARIF
+        uses: advanced-security/dart-analyzer-sarif@main
+        with:
+          input: flutter_analyze.txt
+          output: flutter_analyze.sarif
+
+      - name: Upload to DeepSource
+        run: |
+          curl https://deepsource.io/cli | sh
+          ./bin/deepsource report --analyzer dart-analyze --analyzer-type community --value-file ./flutter_analyze.sarif
+        env:
+          DEEPSOURCE_DSN: ${{ secrets.DEEPSOURCE_DSN }}
