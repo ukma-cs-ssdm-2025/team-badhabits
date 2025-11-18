@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:dartz/dartz.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../core/utils/failure.dart';
@@ -28,10 +30,14 @@ class AuthRepositoryImpl implements AuthRepository {
         email: email,
         password: password,
       );
-      print('INFO: User signed in: ${user.id}');
+      developer.log('User signed in: ${user.id}', name: 'auth.repository');
       return Right(user);
     } on FirebaseAuthException catch (e) {
-      print('ERROR: FirebaseAuth error in signIn: ${e.code}');
+      developer.log(
+        'FirebaseAuth error in signIn: ${e.code}',
+        name: 'auth.repository',
+        level: 1000,
+      );
 
       String userMessage;
       switch (e.code) {
@@ -45,12 +51,18 @@ class AuthRepositoryImpl implements AuthRepository {
           userMessage = 'This account has been disabled';
         case 'too-many-requests':
           userMessage = 'Too many attempts. Please try again later';
+        case 'network-request-failed':
+          userMessage = 'Connection error. Please try again.';
         default:
           userMessage = 'Authentication failed';
       }
       return Left(ServerFailure(userMessage));
     } catch (e) {
-      print('ERROR: Unexpected error in signIn: $e');
+      developer.log(
+        'Unexpected error in signIn: $e',
+        name: 'auth.repository',
+        level: 1000,
+      );
       return const Left(ServerFailure('Connection error. Please try again.'));
     }
   }
@@ -75,10 +87,14 @@ class AuthRepositoryImpl implements AuthRepository {
         name: name,
         userType: userType,
       );
-      print('INFO: User signed up: ${user.id}');
+      developer.log('User signed up: ${user.id}', name: 'auth.repository');
       return Right(user);
     } on FirebaseAuthException catch (e) {
-      print('ERROR: FirebaseAuth error in signUp: ${e.code}');
+      developer.log(
+        'FirebaseAuth error in signUp: ${e.code}',
+        name: 'auth.repository',
+        level: 1000,
+      );
 
       String userMessage;
       switch (e.code) {
@@ -95,7 +111,11 @@ class AuthRepositoryImpl implements AuthRepository {
       }
       return Left(ServerFailure(userMessage));
     } catch (e) {
-      print('ERROR: Unexpected error in signUp: $e');
+      developer.log(
+        'Unexpected error in signUp: $e',
+        name: 'auth.repository',
+        level: 1000,
+      );
       return const Left(ServerFailure('Connection error. Please try again.'));
     }
   }
@@ -104,13 +124,21 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Either<Failure, Unit>> signOut() async {
     try {
       await remoteDataSource.signOut();
-      print('INFO: User signed out successfully');
+      developer.log('User signed out successfully', name: 'auth.repository');
       return const Right(unit);
     } on FirebaseAuthException catch (e) {
-      print('ERROR: FirebaseAuth error in signOut: ${e.code}');
+      developer.log(
+        'FirebaseAuth error in signOut: ${e.code}',
+        name: 'auth.repository',
+        level: 1000,
+      );
       return const Left(ServerFailure('Sign out failed'));
     } catch (e) {
-      print('ERROR: Unexpected error in signOut: $e');
+      developer.log(
+        'Unexpected error in signOut: $e',
+        name: 'auth.repository',
+        level: 1000,
+      );
       return const Left(ServerFailure('Connection error. Please try again.'));
     }
   }
@@ -119,10 +147,14 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Either<Failure, UserEntity>> getCurrentUser() async {
     try {
       final user = await remoteDataSource.getCurrentUser();
-      print('INFO: Retrieved current user: ${user.id}');
+      developer.log('Retrieved current user: ${user.id}', name: 'auth.repository');
       return Right(user);
     } on FirebaseAuthException catch (e) {
-      print('ERROR: FirebaseAuth error in getCurrentUser: ${e.code}');
+      developer.log(
+        'FirebaseAuth error in getCurrentUser: ${e.code}',
+        name: 'auth.repository',
+        level: 1000,
+      );
 
       String userMessage;
       switch (e.code) {
@@ -135,7 +167,11 @@ class AuthRepositoryImpl implements AuthRepository {
       }
       return Left(ServerFailure(userMessage));
     } catch (e) {
-      print('ERROR: Unexpected error in getCurrentUser: $e');
+      developer.log(
+        'Unexpected error in getCurrentUser: $e',
+        name: 'auth.repository',
+        level: 1000,
+      );
       return const Left(ServerFailure('Connection error. Please try again.'));
     }
   }
