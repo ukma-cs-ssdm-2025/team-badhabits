@@ -56,7 +56,7 @@ class WorkoutModel extends Workout {
   factory WorkoutModel.fromJson(Map<String, dynamic> json) => WorkoutModel(
         id: json['id'] as String,
         userId: json['user_id'] as String? ?? '', // Optional for public workouts
-        title: json['title'] as String,
+        title: json['title'] as String? ?? 'Untitled Workout',
         description: json['description'] as String? ?? '',
         exercises: (json['exercises'] as List<dynamic>)
             .map((e) => ExerciseModel.fromJson(e as Map<String, dynamic>))
@@ -86,9 +86,13 @@ class WorkoutModel extends Workout {
         createdAt: json['created_at'] is String
             ? DateTime.parse(json['created_at'] as String)
             : (json['created_at'] as DateTime),
-        updatedAt: json['updated_at'] is String
-            ? DateTime.parse(json['updated_at'] as String)
-            : (json['updated_at'] as DateTime),
+        updatedAt: json['updated_at'] != null
+            ? (json['updated_at'] is String
+                ? DateTime.parse(json['updated_at'] as String)
+                : (json['updated_at'] as DateTime))
+            : (json['created_at'] is String
+                ? DateTime.parse(json['created_at'] as String)
+                : (json['created_at'] as DateTime)),
         tags: (json['tags'] as List<dynamic>?)
             ?.map((e) => e as String)
             .toList() ??
