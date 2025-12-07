@@ -36,9 +36,11 @@ async function getUserWorkoutSessions(userId, days = 90) {
     .get();
 
   const sessions = snapshot.docs
-    .map(doc => ({ id: doc.id, ...doc.data() }))
-    .filter(s => {
-      if (!s.completed_at) return false;
+    .map((doc) => ({ id: doc.id, ...doc.data() }))
+    .filter((s) => {
+      if (!s.completed_at) {
+        return false;
+      }
       const completedAt = new Date(s.completed_at);
       return completedAt >= cutoffDate;
     })
@@ -61,7 +63,7 @@ async function getWorkoutsByDifficulty(difficulty, limit = 5) {
     snapshot = await db.collection('workouts').limit(limit).get();
   }
 
-  return snapshot.docs.map(doc => ({
+  return snapshot.docs.map((doc) => ({
     id: doc.id,
     ...doc.data(),
   }));
@@ -74,10 +76,12 @@ async function getUserProfile(userId) {
 
 function calculateAverageRating(sessions) {
   const ratings = sessions
-    .filter(s => s.difficulty_rating != null)
-    .map(s => s.difficulty_rating);
+    .filter((s) => s.difficulty_rating != null)
+    .map((s) => s.difficulty_rating);
 
-  if (ratings.length === 0) return null;
+  if (ratings.length === 0) {
+    return null;
+  }
   return ratings.reduce((sum, r) => sum + r, 0) / ratings.length;
 }
 
