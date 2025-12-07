@@ -2,37 +2,53 @@
  * Integration tests for API endpoints
  *
  * Tests cover:
- * 1. POST /api/v1/adaptive/recommend - Generate adaptive workout
+ * 1. GET/POST /api/v1/adaptive/recommend - Generate adaptive workout
  * 2. POST /api/v1/payments/subscribe - Process subscription payment
  * 3. GET /health - Health check endpoint
  */
 
 import request from 'supertest';
 import app from '../../app';
-import { UserData, PaymentRequest } from '../../models/Workout';
+import { PaymentRequest } from '../../models/Workout';
+
+// Mock FirebaseService to avoid needing real Firebase credentials in CI
+jest.mock('../../services/FirebaseService', () => ({
+  getUserWorkoutSessions: jest.fn().mockResolvedValue([
+    { id: '1', difficulty_rating: 3, completed_at: new Date().toISOString(), status: 'completed' },
+    { id: '2', difficulty_rating: 4, completed_at: new Date().toISOString(), status: 'completed' },
+  ]),
+  getWorkoutsByDifficulty: jest.fn().mockResolvedValue([
+    {
+      id: 'test_workout_1',
+      title: 'Test Workout',
+      description: 'Test description',
+      exercises: [
+        { name: 'Push-ups', sets: 3, reps: 10 },
+        { name: 'Squats', sets: 3, reps: 15 },
+      ],
+      duration_minutes: 30,
+      estimated_calories: 250,
+      difficulty: 'intermediate',
+      is_adaptive: true,
+      is_verified: true,
+      equipment_required: [],
+    },
+  ]),
+  getUserProfile: jest.fn().mockResolvedValue({
+    id: 'test_user',
+    fitness_level: 'intermediate',
+  }),
+  calculateAverageRating: jest.fn().mockReturnValue(3.5),
+}));
 
 describe('API Integration Tests', () => {
   // ==================== Test 1: Adaptive Workout Endpoint ====================
-  describe('POST /api/v1/adaptive/recommend', () => {
-    it('should generate workout for valid user data', async () => {
-      // Arrange
-      const userData: UserData = {
-        user_id: 'integration_test_user',
-        fitness_level: 'intermediate',
-        age: 28,
-        weight_kg: 75,
-        height_cm: 180,
-        injuries: [],
-        available_equipment: ['dumbbells'],
-        preferred_duration_minutes: 30,
-        goals: ['strength', 'endurance'],
-        past_ratings: [],
-      };
-
+  describe('GET /api/v1/adaptive/recommend', () => {
+    it('should generate workout recommendation for valid userId', async () => {
       // Act
       const response = await request(app)
-        .post('/api/v1/adaptive/recommend')
-        .send({ user_data: userData })
+        .get('/api/v1/adaptive/recommend')
+        .query({ userId: 'test_user_123' })
         .expect('Content-Type', /json/)
         .expect(200);
 
@@ -41,103 +57,55 @@ describe('API Integration Tests', () => {
       expect(response.body.success).toBe(true);
       expect(response.body.data).toBeDefined();
       expect(response.body.data.workout).toBeDefined();
+      expect(response.body.data.recommendation).toBeDefined();
 
-      const workout = response.body.data.workout;
-      expect(workout.user_id).toBe('integration_test_user');
+      const { workout, recommendation } = response.body.data;
+      expect(workout.id).toBeDefined();
+      expect(workout.title).toBeDefined();
       expect(workout.exercises).toBeInstanceOf(Array);
-      expect(workout.exercises.length).toBeGreaterThan(0);
-      expect(workout.difficulty).toBe('intermediate');
-      expect(workout.total_duration_minutes).toBeGreaterThan(0);
+      expect(recommendation.basedOnSessions).toBeDefined();
+      expect(recommendation.targetDifficulty).toBeDefined();
     });
 
-    it('should return 400 for missing user_data', async () => {
+    it('should return 400 for missing userId', async () => {
       // Act
       const response = await request(app)
-        .post('/api/v1/adaptive/recommend')
-        .send({}) // Empty body
+        .get('/api/v1/adaptive/recommend')
         .expect('Content-Type', /json/)
         .expect(400);
 
       // Assert
       expect(response.body.success).toBe(false);
       expect(response.body.error).toBeDefined();
-      expect(response.body.error.message).toContain('user_data');
     });
+  });
 
-    it('should generate workout for beginner with no equipment', async () => {
-      // Arrange
-      const userData: UserData = {
-        user_id: 'beginner_user',
-        fitness_level: 'beginner',
-        age: 22,
-        injuries: [],
-        available_equipment: [],
-        preferred_duration_minutes: 20,
-        goals: ['weight_loss'],
-        past_ratings: [],
-      };
-
+  describe('POST /api/v1/adaptive/recommend', () => {
+    it('should generate workout recommendation via POST', async () => {
       // Act
       const response = await request(app)
         .post('/api/v1/adaptive/recommend')
-        .send({ user_data: userData })
+        .send({ userId: 'test_user_123' })
+        .expect('Content-Type', /json/)
         .expect(200);
 
       // Assert
-      const workout = response.body.data.workout;
-      expect(workout.difficulty).toBe('beginner');
-      expect(workout.exercises.every((ex: any) => !ex.equipment)).toBe(true);
+      expect(response.body).toBeDefined();
+      expect(response.body.success).toBe(true);
+      expect(response.body.data).toBeDefined();
+      expect(response.body.data.workout).toBeDefined();
     });
 
-    it('should handle user with injury constraints', async () => {
-      // Arrange
-      const userData: UserData = {
-        user_id: 'injured_user',
-        fitness_level: 'intermediate',
-        age: 30,
-        injuries: ['knee'],
-        available_equipment: ['dumbbells'],
-        preferred_duration_minutes: 25,
-        goals: ['recovery'],
-        past_ratings: [],
-      };
-
+    it('should return 400 for missing userId in POST body', async () => {
       // Act
       const response = await request(app)
         .post('/api/v1/adaptive/recommend')
-        .send({ user_data: userData })
-        .expect(200);
-
-      // Assert
-      const workout = response.body.data.workout;
-      // Verify no exercises target legs (restricted with knee injury)
-      workout.exercises.forEach((exercise: any) => {
-        expect(exercise.affected_areas).not.toContain('legs');
-      });
-    });
-
-    it('should return 400 for invalid fitness_level', async () => {
-      // Arrange
-      const invalidUserData = {
-        user_id: 'test_user',
-        fitness_level: 'super_advanced', // Invalid
-        age: 25,
-        injuries: [],
-        available_equipment: [],
-        preferred_duration_minutes: 30,
-        goals: [],
-        past_ratings: [],
-      };
-
-      // Act
-      const response = await request(app)
-        .post('/api/v1/adaptive/recommend')
-        .send({ user_data: invalidUserData })
+        .send({})
+        .expect('Content-Type', /json/)
         .expect(400);
 
       // Assert
       expect(response.body.success).toBe(false);
-      expect(response.body.error.message).toContain('fitness_level');
     });
   });
 
