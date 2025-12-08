@@ -56,17 +56,48 @@ class AchievementsFirestoreDataSource {
   }
 
   /// Unlock an achievement for a user
+  /// Uses achievementId as document ID to prevent duplicates
   Future<UserAchievementModel> unlockAchievement({
     required String userId,
     required String achievementId,
   }) async {
     try {
+      // Use achievementId as document ID to prevent duplicates
       final docRef = firestore
           .collection('users')
           .doc(userId)
           .collection('user_achievements')
-          .doc();
+          .doc(achievementId);
 
+      final existingDoc = await docRef.get();
+
+      if (existingDoc.exists) {
+        final existingData = existingDoc.data()!;
+
+        // If already fully unlocked, return existing
+        if ((existingData['progress'] as num?) == 1.0) {
+          return UserAchievementModel.fromJson({
+            ...existingData,
+            'id': existingDoc.id,
+          });
+        }
+
+        // If partially complete, update to fully unlocked
+        final now = DateTime.now();
+        await docRef.update({
+          'progress': 1.0,
+          'unlocked_at': now.toIso8601String(),
+        });
+
+        return UserAchievementModel.fromJson({
+          ...existingData,
+          'id': existingDoc.id,
+          'progress': 1.0,
+          'unlocked_at': now.toIso8601String(),
+        });
+      }
+
+      // Create new unlocked achievement with achievementId as doc ID
       final now = DateTime.now();
       final data = {
         'achievement_id': achievementId,
@@ -80,7 +111,7 @@ class AchievementsFirestoreDataSource {
 
       return UserAchievementModel.fromJson({
         ...data,
-        'id': docRef.id,
+        'id': achievementId,
       });
     } catch (e) {
       throw Exception('Failed to unlock achievement: $e');
@@ -88,29 +119,24 @@ class AchievementsFirestoreDataSource {
   }
 
   /// Update achievement progress
+  /// Uses achievementId as document ID to prevent duplicates
   Future<UserAchievementModel> updateAchievementProgress({
     required String userId,
     required String achievementId,
     required double progress,
   }) async {
     try {
-      // Find existing user achievement
-      final query = await firestore
+      // Use achievementId as document ID to prevent duplicates
+      final docRef = firestore
           .collection('users')
           .doc(userId)
           .collection('user_achievements')
-          .where('achievement_id', isEqualTo: achievementId)
-          .limit(1)
-          .get();
+          .doc(achievementId);
 
-      if (query.docs.isEmpty) {
+      final existingDoc = await docRef.get();
+
+      if (!existingDoc.exists) {
         // Create new user achievement with progress
-        final docRef = firestore
-            .collection('users')
-            .doc(userId)
-            .collection('user_achievements')
-            .doc();
-
         final now = DateTime.now();
         final data = {
           'achievement_id': achievementId,
@@ -124,17 +150,21 @@ class AchievementsFirestoreDataSource {
 
         return UserAchievementModel.fromJson({
           ...data,
-          'id': docRef.id,
+          'id': achievementId,
         });
       } else {
-        // Update existing progress
-        final doc = query.docs.first;
-        await doc.reference.update({'progress': progress});
+        // Update existing progress (only if new progress is higher)
+        final existingData = existingDoc.data()!;
+        final existingProgress = (existingData['progress'] as num?) ?? 0.0;
+
+        if (progress > existingProgress) {
+          await docRef.update({'progress': progress});
+        }
 
         return UserAchievementModel.fromJson({
-          ...doc.data(),
-          'id': doc.id,
-          'progress': progress,
+          ...existingData,
+          'id': existingDoc.id,
+          'progress': progress > existingProgress ? progress : existingProgress,
         });
       }
     } catch (e) {
