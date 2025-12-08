@@ -185,16 +185,12 @@ class WorkoutsBloc extends Bloc<WorkoutsEvent, WorkoutsState> {
   ) async {
     emit(const WorkoutsLoading());
 
-    final result = await getRecommendedWorkout(
-      usecase.GetRecommendedWorkoutParams(
-        workoutId: event.workoutId,
-        difficultyRating: event.difficultyRating,
-      ),
-    );
+    final result = await getRecommendedWorkout();
 
     result.fold(
       (failure) => emit(WorkoutsError(message: _mapFailureToMessage(failure))),
-      (workout) => emit(RecommendedWorkoutLoaded(workout: workout)),
+      (recommendation) =>
+          emit(RecommendedWorkoutLoaded(recommendation: recommendation)),
     );
   }
 

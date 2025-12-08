@@ -6,6 +6,52 @@ import 'package:frontend/core/error/exceptions.dart';
 import 'package:frontend/features/workouts/data/models/workout_model.dart';
 import 'package:http/http.dart' as http;
 
+/// Response model for adaptive recommendation API
+class AdaptiveRecommendationResponse {
+  AdaptiveRecommendationResponse({
+    required this.workout,
+    required this.recommendation,
+  });
+
+  factory AdaptiveRecommendationResponse.fromJson(Map<String, dynamic> json) {
+    final data = json['data'] as Map<String, dynamic>? ?? json;
+    return AdaptiveRecommendationResponse(
+      workout: WorkoutModel.fromJson(data['workout'] as Map<String, dynamic>),
+      recommendation:
+          RecommendationInfo.fromJson(data['recommendation'] as Map<String, dynamic>),
+    );
+  }
+
+  final WorkoutModel workout;
+  final RecommendationInfo recommendation;
+}
+
+/// Recommendation metadata from backend
+class RecommendationInfo {
+  RecommendationInfo({
+    required this.reason,
+    required this.basedOnSessions,
+    required this.averageRating,
+    required this.targetDifficulty,
+    required this.userFitnessLevel,
+  });
+
+  factory RecommendationInfo.fromJson(Map<String, dynamic> json) =>
+      RecommendationInfo(
+        reason: json['reason'] as String? ?? 'Personalized for you',
+        basedOnSessions: json['basedOnSessions'] as int? ?? 0,
+        averageRating: (json['averageRating'] as num?)?.toDouble(),
+        targetDifficulty: json['targetDifficulty'] as String? ?? 'intermediate',
+        userFitnessLevel: json['userFitnessLevel'] as String? ?? 'intermediate',
+      );
+
+  final String reason;
+  final int basedOnSessions;
+  final double? averageRating;
+  final String targetDifficulty;
+  final String userFitnessLevel;
+}
+
 /// Workouts API Data Source
 ///
 /// Handles API calls to Railway backend for adaptive workout recommendations (FR-014)
@@ -18,49 +64,31 @@ class WorkoutsApiDataSource {
 
   /// Get recommended workout from Railway backend
   ///
-  /// Calls POST /api/v1/adaptive/recommend
-  /// Backend adapts workout based on difficulty rating (FR-014)
-  Future<WorkoutModel> getRecommendedWorkout({
+  /// Calls GET /api/v1/adaptive/recommend?userId=xxx
+  /// Backend adapts workout based on user's workout history and ratings (FR-014)
+  Future<AdaptiveRecommendationResponse> getRecommendedWorkout({
     required String userId,
-    required String workoutId,
-    required int difficultyRating,
-    required String fitnessLevel,
-    required List<String> injuries,
-    required List<String> availableEquipment,
-    required int preferredDurationMinutes,
   }) async {
     try {
-      final url = Uri.parse('$baseUrl/api/v1/adaptive/recommend');
+      final url = Uri.parse('$baseUrl/api/v1/adaptive/recommend').replace(
+        queryParameters: {'userId': userId},
+      );
+
+      developer.log(
+        'Fetching recommendation for user $userId from $url',
+        name: 'workouts.datasource',
+      );
 
       final response = await client
-          .post(
+          .get(
             url,
             headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({
-              'user_data': {
-                'user_id': userId,
-                'fitness_level': fitnessLevel,
-                'age': 25, // TODO(team): Get from user profile
-                'injuries': injuries,
-                'available_equipment': availableEquipment,
-                'preferred_duration_minutes': preferredDurationMinutes,
-                'goals': ['fitness'], // TODO(team): Get from user profile
-                'past_ratings': [
-                  {
-                    'workout_id': workoutId,
-                    'user_id': userId,
-                    'difficulty_rating': difficultyRating,
-                    'timestamp': DateTime.now().toIso8601String(),
-                  }
-                ],
-              },
-            }),
           )
           .timeout(
-            const Duration(seconds: 10),
+            const Duration(seconds: 15),
             onTimeout: () {
               developer.log(
-                'Railway API timeout after 10s for user $userId',
+                'Railway API timeout after 15s for user $userId',
                 name: 'workouts.datasource',
                 level: 1000,
               );
@@ -70,15 +98,33 @@ class WorkoutsApiDataSource {
             },
           );
 
+      developer.log(
+        'Recommendation API response: ${response.statusCode}',
+        name: 'workouts.datasource',
+      );
+
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body) as Map<String, dynamic>;
-        return WorkoutModel.fromJson(json);
+
+        // Check for success flag
+        if (json['success'] == false) {
+          final error = json['error'] as Map<String, dynamic>?;
+          throw ServerException(
+            error?['message'] as String? ?? 'Failed to get recommendation',
+          );
+        }
+
+        return AdaptiveRecommendationResponse.fromJson(json);
+      } else if (response.statusCode == 400) {
+        throw const ServerException('Invalid request: userId is required');
       } else if (response.statusCode == 422) {
         throw const ServerException('Validation error: Invalid request');
       } else if (response.statusCode == 500) {
         throw const ServerException('Server error: Backend is unavailable');
       } else {
-        throw const ServerException('Failed to get recommendation');
+        throw ServerException(
+          'Failed to get recommendation (${response.statusCode})',
+        );
       }
     } on TimeoutException catch (e) {
       developer.log(
@@ -89,16 +135,16 @@ class WorkoutsApiDataSource {
       throw const ServerException(
         'Connection timeout. Please check your internet connection.',
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
       if (e is ServerException) {
         rethrow;
       }
       developer.log(
-        'Unexpected error in getRecommendedWorkout: $e',
+        'Unexpected error in getRecommendedWorkout: $e\nType: ${e.runtimeType}\nStack: $stackTrace',
         name: 'workouts.datasource',
         level: 1000,
       );
-      throw const ServerException('Network error. Unable to connect.');
+      throw ServerException('Network error: ${e.runtimeType} - $e');
     }
   }
 

@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:frontend/core/error/failures.dart';
 import 'package:frontend/features/workouts/domain/entities/workout.dart';
+import 'package:frontend/features/workouts/domain/entities/workout_recommendation.dart';
 import 'package:frontend/features/workouts/domain/entities/workout_session.dart';
 
 /// Workouts Repository Interface (domain layer)
@@ -61,14 +62,12 @@ abstract class WorkoutsRepository {
     required String sessionId,
   });
 
-  /// Get recommended workout based on user ratings
+  /// Get recommended workout based on user's workout history
   ///
   /// Calls Railway backend API for adaptive recommendation (FR-014)
   /// Backend URL: https://wellity-backend-production.up.railway.app/api/v1/adaptive/recommend
-  Future<Either<Failure, Workout>> getRecommendedWorkout({
-    required String workoutId,
-    required int difficultyRating,
-  });
+  /// Returns workout with recommendation reason based on past session ratings
+  Future<Either<Failure, WorkoutRecommendation>> getRecommendedWorkout();
 
   /// Get user's workout history
   ///

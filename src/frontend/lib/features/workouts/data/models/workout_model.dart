@@ -83,16 +83,20 @@ class WorkoutModel extends Workout {
         accessType: json['access_type'] as String? ?? 'free',
         price: json['price'] != null ? (json['price'] as num).toDouble() : null,
         createdBy: json['created_by'] as String? ?? 'system', // Default to 'system' for public workouts
-        createdAt: json['created_at'] is String
-            ? DateTime.parse(json['created_at'] as String)
-            : (json['created_at'] as DateTime),
+        createdAt: json['created_at'] != null
+            ? (json['created_at'] is String
+                ? DateTime.parse(json['created_at'] as String)
+                : (json['created_at'] as DateTime))
+            : DateTime.now(),
         updatedAt: json['updated_at'] != null
             ? (json['updated_at'] is String
                 ? DateTime.parse(json['updated_at'] as String)
                 : (json['updated_at'] as DateTime))
-            : (json['created_at'] is String
-                ? DateTime.parse(json['created_at'] as String)
-                : (json['created_at'] as DateTime)),
+            : (json['created_at'] != null
+                ? (json['created_at'] is String
+                    ? DateTime.parse(json['created_at'] as String)
+                    : (json['created_at'] as DateTime))
+                : DateTime.now()),
         tags: (json['tags'] as List<dynamic>?)
             ?.map((e) => e as String)
             .toList() ??

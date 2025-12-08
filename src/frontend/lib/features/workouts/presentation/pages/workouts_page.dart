@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/features/workouts/domain/entities/workout.dart';
+import 'package:frontend/features/workouts/domain/entities/workout_recommendation.dart';
 import 'package:frontend/features/workouts/domain/entities/workout_session.dart';
 import 'package:frontend/features/workouts/presentation/bloc/workouts_bloc.dart';
 import 'package:frontend/features/workouts/presentation/bloc/workouts_event.dart';
@@ -441,6 +442,333 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
       ],
     );
 
+  /// Show AI recommendation dialog (FR-014)
+  void _showRecommendationDialog(
+    BuildContext context,
+    WorkoutRecommendation recommendation,
+  ) {
+    final workout = recommendation.workout;
+    final exercisesToShow = workout.exercises.take(3).toList();
+
+    unawaited(showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (bottomSheetContext) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.5,
+        maxChildSize: 0.9,
+        expand: false,
+        builder: (_, scrollController) => SingleChildScrollView(
+          controller: scrollController,
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Handle bar
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // AI badge and title
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Colors.purple, Colors.blue],
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.auto_awesome, size: 16, color: Colors.white),
+                          SizedBox(width: 4),
+                          Text(
+                            'AI Recommendation',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+
+                // Workout title
+                Text(
+                  workout.title,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+
+                // Difficulty badge
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _getDifficultyColor(workout.difficulty)
+                        .withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    workout.difficulty.toUpperCase(),
+                    style: TextStyle(
+                      color: _getDifficultyColor(workout.difficulty),
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Recommendation reason
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.blue.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.lightbulb_outline,
+                          color: Colors.blue, size: 20),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Why this workout?',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              recommendation.reason,
+                              style: TextStyle(
+                                color: Colors.grey[700],
+                                fontSize: 14,
+                              ),
+                            ),
+                            if (recommendation.basedOnSessions > 0) ...[
+                              const SizedBox(height: 8),
+                              Text(
+                                'Based on ${recommendation.basedOnSessions} past sessions',
+                                style: TextStyle(
+                                  color: Colors.grey[500],
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Workout info
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildRecommendationInfoItem(
+                      icon: Icons.timer_outlined,
+                      label: '${workout.durationMinutes} min',
+                    ),
+                    _buildRecommendationInfoItem(
+                      icon: Icons.local_fire_department,
+                      label: '${workout.estimatedCalories} kcal',
+                    ),
+                    _buildRecommendationInfoItem(
+                      icon: Icons.format_list_numbered,
+                      label: '${workout.exercises.length} exercises',
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+
+                // Exercises preview
+                const Text(
+                  'Exercises Preview',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                ...exercisesToShow.map((exercise) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[200],
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(
+                              Icons.fitness_center,
+                              size: 16,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  exercise.name,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                Text(
+                                  '${exercise.sets} sets × ${exercise.reps} reps',
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    )),
+                if (workout.exercises.length > 3)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      '+${workout.exercises.length - 3} more exercises',
+                      style: TextStyle(
+                        color: Colors.grey[500],
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 24),
+
+                // Action buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () {
+                          Navigator.pop(bottomSheetContext);
+                          _reloadWorkouts(context);
+                        },
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text('Maybe Later'),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      flex: 2,
+                      child: FilledButton.icon(
+                        onPressed: () {
+                          Navigator.pop(bottomSheetContext);
+                          // Start workout session
+                          context.read<WorkoutsBloc>().add(
+                                StartWorkoutSession(
+                                  workoutId: workout.id,
+                                  workoutTitle: workout.title,
+                                ),
+                              );
+                        },
+                        icon: const Icon(Icons.play_arrow),
+                        label: const Text('Start This Workout'),
+                        style: FilledButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ));
+  }
+
+  /// Build info item for recommendation dialog
+  Widget _buildRecommendationInfoItem({
+    required IconData icon,
+    required String label,
+  }) =>
+      Column(
+        children: [
+          Icon(icon, size: 24, color: Colors.grey[600]),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: Colors.grey[700],
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      );
+
+  /// Get color for difficulty level
+  Color _getDifficultyColor(String difficulty) {
+    switch (difficulty.toLowerCase()) {
+      case 'beginner':
+        return Colors.green;
+      case 'intermediate':
+        return Colors.orange;
+      case 'advanced':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
+
   /// Build active session banner
   Widget _buildActiveSessionBanner(BuildContext context) {
     if (_activeSession == null) {
@@ -497,7 +825,7 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
                   ),
                   const SizedBox(height: 2),
                   StreamBuilder<int>(
-                    stream: Stream<int>.periodic(const Duration(seconds: 1)),
+                    stream: Stream<int>.periodic(const Duration(seconds: 1), (count) => count),
                     builder: (context, snapshot) {
                       final elapsed = DateTime.now().difference(_activeSession!.startedAt);
                       final minutes = elapsed.inMinutes;
@@ -681,6 +1009,16 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
               return const Center(child: CircularProgressIndicator());
             }
 
+            // Recommended workout loaded (FR-014) - show recommendation dialog
+            if (state is RecommendedWorkoutLoaded) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                _showRecommendationDialog(context, state.recommendation);
+                // Reload workouts list after showing dialog
+                _reloadWorkouts(context);
+              });
+              return const Center(child: CircularProgressIndicator());
+            }
+
             // Error state
             if (state is WorkoutsError) {
               return _buildErrorState(context, state.message);
@@ -690,68 +1028,95 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
             return const Center(child: Text('Unknown state'));
           },
         ),
-        floatingActionButton: FloatingActionButton.extended(
-          heroTag: 'workouts_fab',
-          onPressed: () async {
-            if (_activeSession != null) {
-              // Navigate to active session directly
-              final workoutsBloc = context.read<WorkoutsBloc>();
-              await Navigator.push<void>(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => BlocProvider.value(
-                    value: workoutsBloc,
-                    child: WorkoutSessionPage(session: _activeSession!),
-                  ),
-                ),
-              );
-              // Check for active session after returning
-              if (context.mounted) {
-                context.read<WorkoutsBloc>().add(const LoadActiveWorkoutSession());
-              }
-            } else {
-              // Check for active session (FR-013)
-              context.read<WorkoutsBloc>().add(const LoadActiveWorkoutSession());
-
-              // Wait for state update
-              await Future<void>.delayed(const Duration(milliseconds: 500));
-
-              if (!context.mounted) {
-                return;
-              }
-
-              final state = context.read<WorkoutsBloc>().state;
-
-              if (state is ActiveWorkoutSessionLoaded && state.session != null) {
-                // Navigate to active session
-                final workoutsBloc = context.read<WorkoutsBloc>();
-                await Navigator.push<void>(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => BlocProvider.value(
-                      value: workoutsBloc,
-                      child: WorkoutSessionPage(session: state.session!),
+        floatingActionButton: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // AI Recommendation FAB (FR-014)
+            FloatingActionButton(
+              heroTag: 'ai_recommendation_fab',
+              onPressed: () {
+                // Request AI recommendation
+                context.read<WorkoutsBloc>().add(const GetRecommendedWorkout());
+              },
+              backgroundColor: Colors.purple,
+              child: const Icon(Icons.auto_awesome, color: Colors.white),
+            ),
+            const SizedBox(height: 16),
+            // Existing workout FAB
+            FloatingActionButton.extended(
+              heroTag: 'workouts_fab',
+              onPressed: () async {
+                if (_activeSession != null) {
+                  // Navigate to active session directly
+                  final workoutsBloc = context.read<WorkoutsBloc>();
+                  await Navigator.push<void>(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => BlocProvider.value(
+                        value: workoutsBloc,
+                        child: WorkoutSessionPage(session: _activeSession!),
+                      ),
                     ),
-                  ),
-                );
-                // Check for active session after returning
-                if (context.mounted) {
-                  context.read<WorkoutsBloc>().add(const LoadActiveWorkoutSession());
+                  );
+                  // Check for active session after returning
+                  if (context.mounted) {
+                    context
+                        .read<WorkoutsBloc>()
+                        .add(const LoadActiveWorkoutSession());
+                  }
+                } else {
+                  // Check for active session (FR-013)
+                  context
+                      .read<WorkoutsBloc>()
+                      .add(const LoadActiveWorkoutSession());
+
+                  // Wait for state update
+                  await Future<void>.delayed(const Duration(milliseconds: 500));
+
+                  if (!context.mounted) {
+                    return;
+                  }
+
+                  final state = context.read<WorkoutsBloc>().state;
+
+                  if (state is ActiveWorkoutSessionLoaded &&
+                      state.session != null) {
+                    // Navigate to active session
+                    final workoutsBloc = context.read<WorkoutsBloc>();
+                    await Navigator.push<void>(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => BlocProvider.value(
+                          value: workoutsBloc,
+                          child: WorkoutSessionPage(session: state.session!),
+                        ),
+                      ),
+                    );
+                    // Check for active session after returning
+                    if (context.mounted) {
+                      context
+                          .read<WorkoutsBloc>()
+                          .add(const LoadActiveWorkoutSession());
+                    }
+                  } else {
+                    // No active session - show message
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                            'Please select a workout from the list to start'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  }
                 }
-              } else {
-                // No active session - show message
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content:
-                        Text('Please select a workout from the list to start'),
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-              }
-            }
-          },
-          icon: Icon(_activeSession != null ? Icons.play_arrow : Icons.play_arrow),
-          label: Text(_activeSession != null ? 'Continue Workout' : 'Start Workout'),
+              },
+              icon: Icon(
+                  _activeSession != null ? Icons.play_arrow : Icons.play_arrow),
+              label: Text(_activeSession != null
+                  ? 'Continue Workout'
+                  : 'Start Workout'),
+            ),
+          ],
         ),
     );
   }
