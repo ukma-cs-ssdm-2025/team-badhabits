@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:frontend/features/workouts/domain/entities/workout.dart';
+import 'package:frontend/features/workouts/domain/entities/workout_recommendation.dart';
 import 'package:frontend/features/workouts/domain/entities/workout_session.dart';
 
 /// Base class for all workout states
@@ -77,12 +78,12 @@ class WorkoutSessionCompleted extends WorkoutsState {
 
 /// State when recommended workout is loaded (FR-014)
 class RecommendedWorkoutLoaded extends WorkoutsState {
-  const RecommendedWorkoutLoaded({required this.workout});
+  const RecommendedWorkoutLoaded({required this.recommendation});
 
-  final Workout workout;
+  final WorkoutRecommendation recommendation;
 
   @override
-  List<Object?> get props => [workout];
+  List<Object?> get props => [recommendation];
 }
 
 /// State when workout history is loaded

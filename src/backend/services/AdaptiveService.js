@@ -32,25 +32,28 @@ function determineTargetDifficulty(avgRating, currentDifficulty) {
     return { difficulty: currentDifficulty || 'intermediate', reason: 'No rating history - using default level' };
   }
 
+  // difficulty_rating: 1 = too easy, 5 = too hard
   if (avgRating > 4.0) {
-    const newIndex = Math.min(currentIndex + 1, DIFFICULTY_LEVELS.length - 1);
-    return {
-      difficulty: DIFFICULTY_LEVELS[newIndex],
-      reason: `Increased intensity (avg rating: ${avgRating.toFixed(1)}/5 - workouts were too easy)`,
-    };
-  }
-
-  if (avgRating < 3.0) {
+    // Workouts were too hard - decrease difficulty
     const newIndex = Math.max(currentIndex - 1, 0);
     return {
       difficulty: DIFFICULTY_LEVELS[newIndex],
-      reason: `Decreased intensity (avg rating: ${avgRating.toFixed(1)}/5 - workouts were too hard)`,
+      reason: `Decreased intensity (avg difficulty: ${avgRating.toFixed(1)}/5 - workouts were too hard)`,
+    };
+  }
+
+  if (avgRating < 2.0) {
+    // Workouts were too easy - increase difficulty
+    const newIndex = Math.min(currentIndex + 1, DIFFICULTY_LEVELS.length - 1);
+    return {
+      difficulty: DIFFICULTY_LEVELS[newIndex],
+      reason: `Increased intensity (avg difficulty: ${avgRating.toFixed(1)}/5 - workouts were too easy)`,
     };
   }
 
   return {
     difficulty: currentDifficulty || 'intermediate',
-    reason: `Maintained level (avg rating: ${avgRating.toFixed(1)}/5 - good balance)`,
+    reason: `Maintained level (avg difficulty: ${avgRating.toFixed(1)}/5 - good balance)`,
   };
 }
 

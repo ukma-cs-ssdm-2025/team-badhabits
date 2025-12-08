@@ -5,6 +5,7 @@ import 'package:frontend/core/error/failures.dart';
 import 'package:frontend/features/workouts/data/datasources/workouts_api_datasource.dart';
 import 'package:frontend/features/workouts/data/datasources/workouts_firestore_datasource.dart';
 import 'package:frontend/features/workouts/domain/entities/workout.dart';
+import 'package:frontend/features/workouts/domain/entities/workout_recommendation.dart';
 import 'package:frontend/features/workouts/domain/entities/workout_session.dart';
 import 'package:frontend/features/workouts/domain/repositories/workouts_repository.dart';
 
@@ -139,28 +140,29 @@ class WorkoutsRepositoryImpl implements WorkoutsRepository {
   }
 
   @override
-  Future<Either<Failure, Workout>> getRecommendedWorkout({
-    required String workoutId,
-    required int difficultyRating,
-  }) async {
+  Future<Either<Failure, WorkoutRecommendation>> getRecommendedWorkout() async {
     try {
       final user = auth.currentUser;
       if (user == null) {
         return const Left(ServerFailure('User not authenticated'));
       }
 
-      // TODO(team): Get actual user profile data
-      final workoutModel = await apiDataSource.getRecommendedWorkout(
+      // Call Railway backend API - backend handles all user data from Firebase
+      final response = await apiDataSource.getRecommendedWorkout(
         userId: user.uid,
-        workoutId: workoutId,
-        difficultyRating: difficultyRating,
-        fitnessLevel: 'intermediate', // TODO(team): Get from user profile
-        injuries: const [], // TODO(team): Get from user profile
-        availableEquipment: const [], // TODO(team): Get from user profile
-        preferredDurationMinutes: 30, // TODO(team): Get from user profile
       );
 
-      return Right(workoutModel.toEntity());
+      // Map API response to domain entity
+      final recommendation = WorkoutRecommendation(
+        workout: response.workout.toEntity(),
+        reason: response.recommendation.reason,
+        basedOnSessions: response.recommendation.basedOnSessions,
+        averageRating: response.recommendation.averageRating,
+        targetDifficulty: response.recommendation.targetDifficulty,
+        userFitnessLevel: response.recommendation.userFitnessLevel,
+      );
+
+      return Right(recommendation);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {

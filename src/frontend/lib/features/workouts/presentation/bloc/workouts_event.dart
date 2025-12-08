@@ -91,18 +91,9 @@ class CancelWorkoutSession extends WorkoutsEvent {
   List<Object?> get props => [sessionId];
 }
 
-/// Event to get recommended workout based on difficulty rating (FR-014)
+/// Event to get AI-recommended workout based on user's history (FR-014)
 class GetRecommendedWorkout extends WorkoutsEvent {
-  const GetRecommendedWorkout({
-    required this.workoutId,
-    required this.difficultyRating,
-  });
-
-  final String workoutId;
-  final int difficultyRating;
-
-  @override
-  List<Object?> get props => [workoutId, difficultyRating];
+  const GetRecommendedWorkout();
 }
 
 /// Event to load workout history

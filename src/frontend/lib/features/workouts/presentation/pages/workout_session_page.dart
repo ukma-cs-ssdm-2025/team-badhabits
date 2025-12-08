@@ -179,7 +179,7 @@ class _WorkoutSessionPageState extends State<WorkoutSessionPage> {
 
                 // Timer
                 StreamBuilder<int>(
-                  stream: Stream<int>.periodic(const Duration(seconds: 1)),
+                  stream: Stream<int>.periodic(const Duration(seconds: 1), (count) => count),
                   builder: (context, snapshot) => Text(
                       _getElapsedTime(),
                       style: const TextStyle(
