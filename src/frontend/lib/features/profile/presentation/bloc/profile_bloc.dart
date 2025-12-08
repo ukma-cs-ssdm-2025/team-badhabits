@@ -1,4 +1,7 @@
+// ignore_for_file: avoid_print
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/features/achievements/data/services/achievement_tracker_service.dart';
+import 'package:frontend/features/auth/domain/entities/user_entity.dart';
 import '../../domain/usecases/get_user_profile_usecase.dart';
 import '../../domain/usecases/update_user_profile_usecase.dart';
 import '../../domain/usecases/upload_avatar_usecase.dart';
@@ -11,6 +14,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     required this.getUserProfileUseCase,
     required this.updateUserProfileUseCase,
     required this.uploadAvatarUseCase,
+    this.achievementTracker,
   }) : super(const ProfileInitial()) {
     on<LoadProfile>(_onLoadProfile);
     on<UpdateProfile>(_onUpdateProfile);
@@ -19,6 +23,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   final GetUserProfileUseCase getUserProfileUseCase;
   final UpdateUserProfileUseCase updateUserProfileUseCase;
   final UploadAvatarUseCase uploadAvatarUseCase;
+  final AchievementTrackerService? achievementTracker;
 
   /// Handle load profile event
   Future<void> _onLoadProfile(
@@ -58,11 +63,17 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         bio: event.bio,
       );
 
-      result.fold((failure) => emit(ProfileError(failure.message)), (user) {
-        emit(ProfileUpdateSuccess(user));
-        // Return to loaded state after showing success
-        emit(ProfileLoaded(user));
-      });
+      await result.fold(
+        (failure) async => emit(ProfileError(failure.message)),
+        (user) async {
+          // Check if profile is now complete (has name and avatar)
+          await _checkProfileCompleted(user.id, user);
+
+          emit(ProfileUpdateSuccess(user));
+          // Return to loaded state after showing success
+          emit(ProfileLoaded(user));
+        },
+      );
     } else {
       emit(const ProfileError('Cannot update profile: profile not loaded'));
     }
@@ -102,17 +113,41 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
             avatarUrl: avatarUrl,
           );
 
-          updateResult.fold((failure) => emit(ProfileError(failure.message)), (
-            user,
-          ) {
-            emit(AvatarUploadSuccess(user));
-            // Return to loaded state after showing success
-            emit(ProfileLoaded(user));
-          });
+          await updateResult.fold(
+            (failure) async => emit(ProfileError(failure.message)),
+            (user) async {
+              // Check if profile is now complete (has avatar)
+              await _checkProfileCompleted(user.id, user);
+
+              emit(AvatarUploadSuccess(user));
+              // Return to loaded state after showing success
+              emit(ProfileLoaded(user));
+            },
+          );
         },
       );
     } else {
       emit(const ProfileError('Cannot upload avatar: profile not loaded'));
+    }
+  }
+
+  /// Check if profile is complete and unlock achievement
+  /// Profile is considered complete when user has uploaded an avatar
+  Future<void> _checkProfileCompleted(String userId, UserEntity user) async {
+    if (achievementTracker == null) {
+      return;
+    }
+
+    // Profile is complete when user has an avatar
+    final hasAvatar = user.avatarUrl != null && user.avatarUrl!.isNotEmpty;
+
+    if (hasAvatar) {
+      final unlocked = await achievementTracker!.onProfileCompleted(
+        userId: userId,
+      );
+      if (unlocked.isNotEmpty) {
+        print('🏆 Achievement unlocked: ${unlocked.join(", ")}');
+      }
     }
   }
 }
