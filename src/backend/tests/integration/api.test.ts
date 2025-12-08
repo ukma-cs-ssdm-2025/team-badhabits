@@ -5,6 +5,7 @@
  * 1. GET/POST /api/v1/adaptive/recommend - Generate adaptive workout
  * 2. POST /api/v1/payments/subscribe - Process subscription payment
  * 3. GET /health - Health check endpoint
+ * 4. POST /subscribe - Підписка
  */
 
 import request from "supertest";
@@ -549,6 +550,78 @@ describe("API Integration Tests", () => {
       expect(res.body.data.warnings[0]).toContain(
         "Avoid heavy upper body exercises"
       );
+    });
+  });
+
+  describe("POST /api/v1/subscriptions/subscribe", () => {
+    const endpoint = "/api/v1/payments/subscribe";
+
+    // ------------------------
+    // VALIDATION TESTS (400)
+    // ------------------------
+
+    it("should return 400 when userId is missing", async () => {
+      const res = await request(app)
+        .post(endpoint)
+        .send({
+          workoutId: "w1",
+          paymentMethod: "stripe",
+        })
+        .expect(400);
+
+      expect(res.body.success).toBe(false);
+      expect(res.body.error).toBeDefined();
+    });
+
+    it("should return 400 when workoutId is missing", async () => {
+      const res = await request(app)
+        .post(endpoint)
+        .send({
+          userId: "u1",
+          paymentMethod: "stripe",
+        })
+        .expect(400);
+
+      expect(res.body.success).toBe(false);
+    });
+
+    it("should return 400 when paymentMethod is missing", async () => {
+      const res = await request(app)
+        .post(endpoint)
+        .send({
+          userId: "u1",
+          workoutId: "w1",
+        })
+        .expect(400);
+
+      expect(res.body.error).toBeDefined();
+    });
+
+    it("should return 400 when paymentMethod is invalid", async () => {
+      const res = await request(app)
+        .post(endpoint)
+        .send({
+          userId: "u1",
+          workoutId: "w1",
+          paymentMethod: "crypto",
+        })
+        .expect(400);
+
+      expect(res.body.success).toBe(false);
+    });
+
+    // ------------------------
+    // EDGE CASE
+    // ---
+
+    it("should return JSON always", async () => {
+      const res = await request(app).post(endpoint).send({
+        userId: "ux",
+        workoutId: "wx",
+        paymentMethod: "paypal",
+      });
+
+      expect(res.headers["content-type"]).toMatch(/json/);
     });
   });
 });
