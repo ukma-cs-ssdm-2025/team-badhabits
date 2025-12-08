@@ -7,8 +7,7 @@ const { NotFoundError } = require('./utils/errors');
 const analyticsRoutes = require('./routes/analytics');
 const workoutsRoutes = require('./routes/workouts');
 const recommendationsRoutes = require('./routes/recommendations');
-// TypeScript routes for Lab 6 testing
-const adaptiveTsRoutes = require('./routes/adaptive-ts');
+const adaptiveRoutes = require('./routes/adaptive');
 const paymentsTsRoutes = require('./routes/payments-ts');
 
 const app = express();
@@ -42,12 +41,8 @@ app.get('/api-docs-json', (req, res) => {
   res.send(swaggerSpec);
 });
 
-// Use TypeScript routes for Lab 6 (override original routes for testing)
-app.use('/api/v1/adaptive', adaptiveTsRoutes);
+app.use('/api/v1/adaptive', adaptiveRoutes);
 app.use('/api/v1/payments', paymentsTsRoutes);
-// Original JavaScript routes (commented for testing)
-// app.use('/api/v1/adaptive', adaptiveRoutes);
-// app.use('/api/v1/payments', paymentsRoutes);
 app.use('/api/v1/analytics', analyticsRoutes);
 app.use('/api/v1/workouts', workoutsRoutes);
 app.use('/api/v1/recommendations', recommendationsRoutes);
