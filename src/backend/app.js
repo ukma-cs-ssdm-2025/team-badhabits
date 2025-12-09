@@ -9,6 +9,7 @@ const workoutsRoutes = require('./routes/workouts');
 const recommendationsRoutes = require('./routes/recommendations');
 const adaptiveRoutes = require('./routes/adaptive');
 const paymentsTsRoutes = require('./routes/payments-ts');
+const recoveryRoutes = require('./routes/recovery');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -46,6 +47,7 @@ app.use('/api/v1/payments', paymentsTsRoutes);
 app.use('/api/v1/analytics', analyticsRoutes);
 app.use('/api/v1/workouts', workoutsRoutes);
 app.use('/api/v1/recommendations', recommendationsRoutes);
+app.use('/api/v1/recovery', recoveryRoutes);
 
 app.get('/', (req, res) => {
   res.json({
@@ -58,6 +60,7 @@ app.get('/', (req, res) => {
       analytics: '/api/v1/analytics/trainer/:id',
       workoutVerification: '/api/v1/workouts/:id/verify',
       recoveryRecommendations: '/api/v1/recommendations/recovery',
+      recovery: '/api/v1/recovery/status',
     },
   });
 });
