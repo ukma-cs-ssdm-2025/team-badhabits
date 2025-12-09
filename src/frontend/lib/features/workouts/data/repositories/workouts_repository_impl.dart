@@ -4,6 +4,7 @@ import 'package:frontend/core/error/exceptions.dart';
 import 'package:frontend/core/error/failures.dart';
 import 'package:frontend/features/workouts/data/datasources/workouts_api_datasource.dart';
 import 'package:frontend/features/workouts/data/datasources/workouts_firestore_datasource.dart';
+import 'package:frontend/features/workouts/domain/entities/recovery_status.dart';
 import 'package:frontend/features/workouts/domain/entities/workout.dart';
 import 'package:frontend/features/workouts/domain/entities/workout_recommendation.dart';
 import 'package:frontend/features/workouts/domain/entities/workout_session.dart';
@@ -181,6 +182,27 @@ class WorkoutsRepositoryImpl implements WorkoutsRepository {
       return Left(ServerFailure(e.message));
     } catch (e) {
       return Left(ServerFailure('Failed to get workout history: $e'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, RecoveryStatus>> getRecoveryStatus() async {
+    try {
+      final user = auth.currentUser;
+      if (user == null) {
+        return const Left(ServerFailure('User not authenticated'));
+      }
+
+      // Call Railway backend API for recovery recommendations (FR-006)
+      final recoveryStatus = await apiDataSource.getRecoveryStatus(
+        userId: user.uid,
+      );
+
+      return Right(recoveryStatus);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Failed to get recovery status: $e'));
     }
   }
 }
