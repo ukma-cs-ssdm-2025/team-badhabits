@@ -273,6 +273,8 @@ class StatisticsService {
         start.setFullYear(now.getFullYear() - 1);
         break;
       case 'all':
+        start = new Date(0);
+        break;
       default:
         start = new Date(0);
         break;
