@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/features/workouts/domain/entities/exercise.dart';
 import 'package:frontend/features/workouts/domain/entities/workout.dart';
 import 'package:frontend/features/workouts/domain/entities/workout_session.dart';
 import 'package:frontend/features/workouts/presentation/bloc/workouts_bloc.dart';
@@ -35,6 +36,16 @@ class _WorkoutSessionPageState extends State<WorkoutSessionPage> {
   Workout? _workout;
   bool _isLoadingWorkout = true;
   bool _isCancelling = false;
+
+  // Exercise timer state
+  bool _exerciseTimerRunning = false;
+  DateTime? _exerciseTimerStart;
+  int _exerciseElapsedSeconds = 0;
+
+  // Rest timer state
+  bool _restTimerRunning = false;
+  DateTime? _restTimerStart;
+  int _restTargetSeconds = 0;
 
   @override
   void initState() {
@@ -74,10 +85,82 @@ class _WorkoutSessionPageState extends State<WorkoutSessionPage> {
     }
   }
 
+  void _startExerciseTimer() {
+    setState(() {
+      _exerciseTimerRunning = true;
+      _exerciseTimerStart = DateTime.now();
+    });
+  }
+
+  void _pauseExerciseTimer() {
+    if (_exerciseTimerStart != null) {
+      setState(() {
+        _exerciseElapsedSeconds +=
+            DateTime.now().difference(_exerciseTimerStart!).inSeconds;
+        _exerciseTimerRunning = false;
+        _exerciseTimerStart = null;
+      });
+    }
+  }
+
+  void _resetExerciseTimer() {
+    setState(() {
+      _exerciseTimerRunning = false;
+      _exerciseTimerStart = null;
+      _exerciseElapsedSeconds = 0;
+    });
+  }
+
+  int _getExerciseElapsedSeconds() {
+    if (_exerciseTimerStart != null) {
+      return _exerciseElapsedSeconds +
+          DateTime.now().difference(_exerciseTimerStart!).inSeconds;
+    }
+    return _exerciseElapsedSeconds;
+  }
+
+  void _startRestTimer(int seconds) {
+    setState(() {
+      _restTimerRunning = true;
+      _restTimerStart = DateTime.now();
+      _restTargetSeconds = seconds;
+      _exerciseTimerRunning = false; // Pause exercise timer during rest
+    });
+
+    // Auto-stop rest timer when done
+    Future.delayed(Duration(seconds: seconds), () {
+      if (mounted && _restTimerRunning) {
+        setState(() {
+          _restTimerRunning = false;
+          _restTimerStart = null;
+        });
+      }
+    });
+  }
+
+  void _stopRestTimer() {
+    setState(() {
+      _restTimerRunning = false;
+      _restTimerStart = null;
+    });
+  }
+
+  int _getRestRemainingSeconds() {
+    if (_restTimerStart != null) {
+      final elapsed = DateTime.now().difference(_restTimerStart!).inSeconds;
+      return (_restTargetSeconds - elapsed).clamp(0, _restTargetSeconds);
+    }
+    return 0;
+  }
+
   void _markExerciseComplete(int index) {
     setState(() {
       _completedExercises.add(index);
     });
+
+    // Reset timers when completing exercise
+    _resetExerciseTimer();
+    _stopRestTimer();
 
     // Auto-navigate to next exercise if available
     if (index < (_workout?.exercises.length ?? 0) - 1) {
@@ -305,6 +388,9 @@ class _WorkoutSessionPageState extends State<WorkoutSessionPage> {
                             onPageChanged: (index) {
                               setState(() {
                                 _currentExerciseIndex = index;
+                                // Reset timers when changing exercise
+                                _resetExerciseTimer();
+                                _stopRestTimer();
                               });
                             },
                             itemCount: _workout!.exercises.length,
@@ -317,6 +403,10 @@ class _WorkoutSessionPageState extends State<WorkoutSessionPage> {
                                 padding: const EdgeInsets.all(16),
                                 child: Column(
                                   children: [
+                                    // Exercise Timer Display
+                                    if (!isCompleted) _buildExerciseTimerCard(exercise),
+                                    const SizedBox(height: 16),
+
                                     ExerciseCard(
                                       exercise: exercise,
                                       exerciseNumber: index + 1,
@@ -358,6 +448,194 @@ class _WorkoutSessionPageState extends State<WorkoutSessionPage> {
                         _buildBottomControls(),
                       ],
                     ),
+        ),
+      );
+
+  Widget _buildExerciseTimerCard(Exercise exercise) => Card(
+        elevation: 4,
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            gradient: LinearGradient(
+              colors: _restTimerRunning
+                  ? [
+                      Colors.orange.withValues(alpha: 0.1),
+                      Colors.orange.withValues(alpha: 0.05),
+                    ]
+                  : [
+                      Colors.blue.withValues(alpha: 0.1),
+                      Colors.blue.withValues(alpha: 0.05),
+                    ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: Column(
+            children: [
+              // Timer display
+              StreamBuilder<int>(
+                stream: Stream<int>.periodic(
+                  const Duration(seconds: 1),
+                  (count) => count,
+                ),
+                builder: (context, snapshot) {
+                  if (_restTimerRunning) {
+                    // Rest timer
+                    final remaining = _getRestRemainingSeconds();
+                    final minutes = remaining ~/ 60;
+                    final seconds = remaining % 60;
+                    return Column(
+                      children: [
+                        const Text(
+                          'REST TIME',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.orange,
+                            letterSpacing: 2,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
+                          style: const TextStyle(
+                            fontSize: 56,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.orange,
+                            fontFeatures: [FontFeature.tabularFigures()],
+                          ),
+                        ),
+                      ],
+                    );
+                  } else {
+                    // Exercise timer
+                    final elapsed = _getExerciseElapsedSeconds();
+                    final minutes = elapsed ~/ 60;
+                    final seconds = elapsed % 60;
+                    return Column(
+                      children: [
+                        Text(
+                          _exerciseTimerRunning
+                              ? 'EXERCISE TIME'
+                              : 'READY TO START',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: _exerciseTimerRunning
+                                ? Colors.green
+                                : Colors.grey[600],
+                            letterSpacing: 2,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
+                          style: TextStyle(
+                            fontSize: 56,
+                            fontWeight: FontWeight.bold,
+                            color: _exerciseTimerRunning
+                                ? Colors.green
+                                : Colors.grey[700],
+                            fontFeatures: const [FontFeature.tabularFigures()],
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+                },
+              ),
+              const SizedBox(height: 20),
+
+              // Control buttons
+              if (_restTimerRunning)
+                // Rest timer controls
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: _stopRestTimer,
+                        icon: const Icon(Icons.stop),
+                        label: const Text('Skip Rest'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.orange,
+                          side: const BorderSide(color: Colors.orange),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              else
+                // Exercise timer controls
+                Row(
+                  children: [
+                    // Start/Pause button
+                    Expanded(
+                      flex: 2,
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          if (_exerciseTimerRunning) {
+                            _pauseExerciseTimer();
+                          } else {
+                            _startExerciseTimer();
+                          }
+                        },
+                        icon: Icon(_exerciseTimerRunning
+                            ? Icons.pause
+                            : Icons.play_arrow),
+                        label: Text(
+                          _exerciseTimerRunning ? 'Pause' : 'Start Exercise',
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _exerciseTimerRunning
+                              ? Colors.orange
+                              : Colors.green,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                      ),
+                    ),
+                    if (_exerciseElapsedSeconds > 0 ||
+                        _exerciseTimerStart != null) ...[
+                      const SizedBox(width: 12),
+                      // Reset button
+                      OutlinedButton(
+                        onPressed: _resetExerciseTimer,
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 14,
+                            horizontal: 16,
+                          ),
+                        ),
+                        child: const Icon(Icons.refresh),
+                      ),
+                    ],
+                  ],
+                ),
+              const SizedBox(height: 12),
+
+              // Start rest button
+              if (!_restTimerRunning && exercise.restSeconds > 0)
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () => _startRestTimer(exercise.restSeconds),
+                    icon: const Icon(Icons.self_improvement),
+                    label:
+                        Text('Start Rest (${exercise.restSeconds}s)'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.blue,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       );
 
