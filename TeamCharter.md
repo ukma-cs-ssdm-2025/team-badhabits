@@ -199,5 +199,5 @@
 
 - [] Андрій (GitHub: @kepeld)
 - [x] Дарина (GitHub: @dahl1a-bloom)
-- [] Давид (GitHub: @DavydKod)
+- [x] Давид (GitHub: @DavydKod)
 - [] Дмитро (GitHub: @AvdieienkoDmytro)
