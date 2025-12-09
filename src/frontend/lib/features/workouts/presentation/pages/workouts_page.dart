@@ -1018,13 +1018,47 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
               return _buildWorkoutsList(context, _cachedWorkouts);
             }
 
+            // Workout details loaded - keep showing cached list
+            // This can happen when returning from workout session page
+            if (state is WorkoutDetailsLoaded) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) {
+                  _reloadWorkouts(context);
+                }
+              });
+              // Show cached workouts while reloading
+              if (_cachedWorkouts.isEmpty) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              return _buildWorkoutsList(context, _cachedWorkouts);
+            }
+
             // Error state
             if (state is WorkoutsError) {
               return _buildErrorState(context, state.message);
             }
 
-            // Unknown state
-            return const Center(child: Text('Unknown state'));
+            // Unknown state - show cached workouts if available
+            if (_cachedWorkouts.isNotEmpty) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) {
+                  _reloadWorkouts(context);
+                }
+              });
+              return _buildWorkoutsList(context, _cachedWorkouts);
+            }
+
+            // Truly unknown state with no cache
+            return const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Loading workouts...'),
+                ],
+              ),
+            );
           },
         ),
         floatingActionButton: Column(
