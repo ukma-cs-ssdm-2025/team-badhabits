@@ -34,6 +34,7 @@ class _WorkoutSessionPageState extends State<WorkoutSessionPage> {
   final Set<int> _completedExercises = {};
   Workout? _workout;
   bool _isLoadingWorkout = true;
+  bool _isCancelling = false;
 
   @override
   void initState() {
@@ -203,9 +204,13 @@ class _WorkoutSessionPageState extends State<WorkoutSessionPage> {
             });
           } else if (state is WorkoutSessionCompleted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Workout completed! Great job!'),
-                backgroundColor: Colors.green,
+              SnackBar(
+                content: Text(
+                  _isCancelling
+                      ? 'Workout cancelled'
+                      : 'Workout completed! Great job!',
+                ),
+                backgroundColor: _isCancelling ? Colors.orange : Colors.green,
               ),
             );
             Navigator.pop(context);
@@ -541,12 +546,16 @@ class _WorkoutSessionPageState extends State<WorkoutSessionPage> {
                             TextButton(
                               onPressed: () {
                                 Navigator.pop(dialogContext);
+                                setState(() {
+                                  _isCancelling = true;
+                                });
                                 context.read<WorkoutsBloc>().add(
                                       CancelWorkoutSession(
                                         sessionId: widget.session.id,
                                       ),
                                     );
-                                Navigator.pop(context);
+                                // Don't call Navigator.pop(context) here
+                                // Let BlocListener handle navigation
                               },
                               child: const Text('Yes, Cancel'),
                             ),
