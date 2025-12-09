@@ -3,9 +3,11 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/features/workouts/domain/entities/recovery_status.dart';
 import 'package:frontend/features/workouts/domain/entities/workout.dart';
 import 'package:frontend/features/workouts/domain/entities/workout_recommendation.dart';
 import 'package:frontend/features/workouts/domain/entities/workout_session.dart';
+import 'package:frontend/features/workouts/presentation/widgets/recovery_status_card.dart';
 import 'package:frontend/features/workouts/presentation/bloc/workouts_bloc.dart';
 import 'package:frontend/features/workouts/presentation/bloc/workouts_event.dart';
 import 'package:frontend/features/workouts/presentation/bloc/workouts_state.dart';
@@ -33,6 +35,9 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
 
   // Cache workouts list to prevent UI flicker during dialogs
   List<Workout> _cachedWorkouts = [];
+
+  // Cache recovery status (FR-006)
+  RecoveryStatus? _cachedRecoveryStatus;
 
   @override
   void initState() {
@@ -772,6 +777,18 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
     }
   }
 
+  /// Build recovery status section (FR-006)
+  Widget _buildRecoveryStatusSection() {
+    if (_cachedRecoveryStatus == null) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: RecoveryStatusCard(recoveryStatus: _cachedRecoveryStatus!),
+    );
+  }
+
   /// Build active session banner
   Widget _buildActiveSessionBanner(BuildContext context) {
     if (_activeSession == null) {
@@ -880,26 +897,51 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
   }
 
   /// Build workouts list
-  Widget _buildWorkoutsList(BuildContext context, List<Workout> workouts) => RefreshIndicator(
+  Widget _buildWorkoutsList(BuildContext context, List<Workout> workouts) {
+    // Calculate header items count: banner (if active), recovery status (if available), filters
+    final hasActiveSession = _activeSession != null;
+    final hasRecoveryStatus = _cachedRecoveryStatus != null;
+    final headerCount = (hasActiveSession ? 1 : 0) + (hasRecoveryStatus ? 1 : 0) + 1; // +1 for filters
+
+    return RefreshIndicator(
       onRefresh: () async {
         _reloadWorkouts(context);
+        context.read<WorkoutsBloc>().add(const LoadRecoveryStatus());
         await Future<void>.delayed(const Duration(milliseconds: 500));
       },
       child: ListView.builder(
         padding: const EdgeInsets.only(bottom: 80),
-        itemCount: workouts.length + (_activeSession != null ? 2 : 1), // +1 for filters, +1 for banner if active
+        itemCount: workouts.length + headerCount,
         itemBuilder: (context, index) {
-          if (index == 0 && _activeSession != null) {
+          var currentIndex = index;
+
+          // Active session banner (first if present)
+          if (hasActiveSession && currentIndex == 0) {
             return _buildActiveSessionBanner(context);
           }
-          final adjustedIndex = _activeSession != null ? index - 1 : index;
-          if (adjustedIndex == 0) {
+          if (hasActiveSession) {
+            currentIndex--;
+          }
+
+          // Recovery status card (FR-006)
+          if (hasRecoveryStatus && currentIndex == 0) {
+            return _buildRecoveryStatusSection();
+          }
+          if (hasRecoveryStatus) {
+            currentIndex--;
+          }
+
+          // Filters section
+          if (currentIndex == 0) {
             return _buildFiltersSection(context);
           }
-          return _buildWorkoutCard(context, workouts[adjustedIndex - 1]);
+
+          // Workout cards
+          return _buildWorkoutCard(context, workouts[currentIndex - 1]);
         },
       ),
     );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -922,6 +964,14 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
             // Loaded state
             if (state is WorkoutsLoaded) {
               _cachedWorkouts = state.workouts;
+              // Load recovery status when workouts are loaded (FR-006)
+              if (_cachedRecoveryStatus == null) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) {
+                    context.read<WorkoutsBloc>().add(const LoadRecoveryStatus());
+                  }
+                });
+              }
               if (state.workouts.isEmpty) {
                 return _buildEmptyState();
               }
@@ -1015,6 +1065,22 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
                 }
               });
               // Keep showing cached workouts while dialog is open
+              return _buildWorkoutsList(context, _cachedWorkouts);
+            }
+
+            // Recovery status loaded (FR-006) - cache and show workouts
+            if (state is RecoveryStatusLoaded) {
+              _cachedRecoveryStatus = state.recoveryStatus;
+              // Don't reload workouts - just rebuild UI with cached workouts
+              // This prevents infinite loop
+              if (_cachedWorkouts.isEmpty) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) {
+                    context.read<WorkoutsBloc>().add(const LoadWorkouts());
+                  }
+                });
+                return const Center(child: CircularProgressIndicator());
+              }
               return _buildWorkoutsList(context, _cachedWorkouts);
             }
 

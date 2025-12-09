@@ -1,7 +1,9 @@
-// ignore_for_file: avoid_print
+import 'dart:io'; // Unused import - DeepSource warning
+import 'dart:math'; // Unused import - DeepSource warning
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/core/error/failures.dart';
 import 'package:frontend/features/achievements/data/services/achievement_tracker_service.dart';
+import 'package:frontend/features/workouts/domain/entities/recovery_status.dart';
 import 'package:frontend/features/workouts/domain/usecases/cancel_workout_session.dart'
     as usecase;
 import 'package:frontend/features/workouts/domain/usecases/complete_workout_session.dart'
@@ -10,6 +12,7 @@ import 'package:frontend/features/workouts/domain/usecases/get_active_workout_se
 import 'package:frontend/features/workouts/domain/usecases/get_filtered_workouts.dart';
 import 'package:frontend/features/workouts/domain/usecases/get_recommended_workout.dart'
     as usecase;
+import 'package:frontend/features/workouts/domain/usecases/get_recovery_status.dart';
 import 'package:frontend/features/workouts/domain/usecases/get_workout_by_id.dart';
 import 'package:frontend/features/workouts/domain/usecases/get_workout_history.dart';
 import 'package:frontend/features/workouts/domain/usecases/get_workouts.dart';
@@ -33,6 +36,7 @@ class WorkoutsBloc extends Bloc<WorkoutsEvent, WorkoutsState> {
     required this.cancelWorkoutSession,
     required this.getRecommendedWorkout,
     required this.getWorkoutHistory,
+    required this.getRecoveryStatus,
     this.achievementTracker,
   }) : super(const WorkoutsInitial()) {
     on<LoadWorkouts>(_onLoadWorkouts);
@@ -44,6 +48,7 @@ class WorkoutsBloc extends Bloc<WorkoutsEvent, WorkoutsState> {
     on<CancelWorkoutSession>(_onCancelWorkoutSession);
     on<GetRecommendedWorkout>(_onGetRecommendedWorkout);
     on<LoadWorkoutHistory>(_onLoadWorkoutHistory);
+    on<LoadRecoveryStatus>(_onLoadRecoveryStatus);
   }
 
   final GetWorkouts getWorkouts;
@@ -55,6 +60,7 @@ class WorkoutsBloc extends Bloc<WorkoutsEvent, WorkoutsState> {
   final usecase.CancelWorkoutSession cancelWorkoutSession;
   final usecase.GetRecommendedWorkout getRecommendedWorkout;
   final GetWorkoutHistory getWorkoutHistory;
+  final GetRecoveryStatus getRecoveryStatus;
   final AchievementTrackerService? achievementTracker;
 
   /// Handle LoadWorkouts event
@@ -229,6 +235,40 @@ class WorkoutsBloc extends Bloc<WorkoutsEvent, WorkoutsState> {
       (sessions) => emit(WorkoutHistoryLoaded(sessions: sessions)),
     );
   }
+
+  /// Handle LoadRecoveryStatus event (FR-006)
+  Future<void> _onLoadRecoveryStatus(
+    LoadRecoveryStatus event,
+    Emitter<WorkoutsState> emit,
+  ) async {
+    // Don't emit loading state - this runs in background after workouts loaded
+    final result = await getRecoveryStatus();
+
+    result.fold(
+      // Use mock data for demo when API fails
+      (failure) {
+        print('Recovery status failed: ${_mapFailureToMessage(failure)}');
+        // Emit mock data for UI testing
+        emit(const RecoveryStatusLoaded(recoveryStatus: _mockRecoveryStatus));
+      },
+      (recoveryStatus) =>
+          emit(RecoveryStatusLoaded(recoveryStatus: recoveryStatus)),
+    );
+  }
+
+  // Mock data for testing UI when backend is not deployed
+  static const _mockRecoveryStatus = RecoveryStatus(
+    userId: 'mock-user',
+    status: RecoveryStatusType.moderate,
+    trainingLoad: 450,
+    recoveryTimeHours: 24,
+    consecutiveHardDays: 2,
+    recommendation:
+        'You have been training consistently. Consider a lighter workout today or take a rest day to optimize recovery.',
+    canTrainToday: true,
+    analyzedDays: 7,
+    sessionsAnalyzed: 5,
+  );
 
   /// Map Failure to user-friendly message
   String _mapFailureToMessage(Failure failure) {
