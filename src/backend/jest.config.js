@@ -13,10 +13,12 @@ module.exports = {
   // Root directory for tests
   roots: ['<rootDir>/tests', '<rootDir>/services', '<rootDir>/models'],
 
-  // Test file patterns
+  // Test file patterns (TypeScript + JavaScript)
   testMatch: [
     '**/__tests__/**/*.ts',
     '**/?(*.)+(spec|test).ts',
+    '**/__tests__/**/*.js',
+    '**/?(*.)+(spec|test).js',
   ],
 
   // Coverage configuration
