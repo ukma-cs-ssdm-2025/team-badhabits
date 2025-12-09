@@ -8,7 +8,6 @@ import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
 import '../bloc/profile_bloc.dart';
-import '../bloc/profile_event.dart';
 import '../bloc/profile_state.dart';
 import 'edit_profile_page.dart';
 
@@ -32,12 +31,7 @@ class ProfilePage extends StatelessWidget {
           );
         }
 
-        final userId = authState.user.id;
-
-        return BlocProvider(
-          create: (context) =>
-              context.read<ProfileBloc>()..add(LoadProfile(userId)),
-          child: Scaffold(
+        return Scaffold(
             appBar: AppBar(
               title: const Text('Profile'),
               actions: [
@@ -289,7 +283,6 @@ class ProfilePage extends StatelessWidget {
                 return const Center(child: Text('Unable to load profile'));
               },
             ),
-          ),
         );
       },
     ),

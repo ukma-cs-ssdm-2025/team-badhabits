@@ -14,6 +14,7 @@ import 'package:frontend/features/auth/presentation/bloc/auth_state.dart';
 import 'package:frontend/features/habits/presentation/pages/habits_page.dart';
 import 'package:frontend/features/notes/presentation/pages/notes_page.dart';
 import 'package:frontend/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:frontend/features/profile/presentation/bloc/profile_event.dart';
 import 'package:frontend/features/profile/presentation/pages/profile_page.dart';
 import 'package:frontend/features/workouts/presentation/bloc/workouts_bloc.dart';
 import 'package:frontend/features/workouts/presentation/bloc/workouts_event.dart';
@@ -93,10 +94,16 @@ class _MainNavigationState extends State<MainNavigation> {
   ];
 
   void _navigateToProfile() {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is! Authenticated) {
+      return;
+    }
+
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => BlocProvider(
-          create: (context) => di.sl<ProfileBloc>(),
+          create: (context) =>
+              di.sl<ProfileBloc>()..add(LoadProfile(authState.user.id)),
           child: const ProfilePage(),
         ),
       ),
