@@ -6,7 +6,7 @@
 
 ## 📄 General Docs
 
-  - Уся документація проекту щодо реалізації програмного забезпечення: [docs](docs)
+  - Уся документація проекту щодо реалізації програмного забезпечення, розбита по категоріям, знаходиться [ось тут](docs).
 
   - Окремі посилання:
 
@@ -14,30 +14,12 @@
     
     - [TeamCharter.md](TeamCharter.md) - інформація про організацію процесів впровадження <br> та контролю співпраці, а також 
     спільного робочого середовища команди проекту
-    
-    - [requirements.md](docs/requirements/requirements.md) - FR & NFR проекту
-    
-    - [rtm.md](docs/requirements/rtm.md) - матриця простежуваності вимог проекту
-    
-    - [user-stories.md](docs/requirements/user-stories.md) - користувацькі історії
-    
-    - [architecture](docs/architecture/high-level-design.md) - загальний огляд архітектури додатку
-    
-    - [diagrams](docs/diagrams) - uml-представлення імплементування додатку
-    
-    - [decisions](docs/decisions) - записи архітектурних рішень додатку
-  
-    - [api](docs/api) - загальна інформація про api
-    
-    - [code-quality](docs/code-quality) - документування оцінки якості коду
-  
-    - [testing](docs/testing) - документування тестування
 
 ## ▶️ Запуск проекту
 
-- Остання верісія apk проекту: [latest_android_apk](latest_android_apk)
+- Завантажити останню версію мобільного додатку вийде [тут](latest_android_apk).
 
-- Інструкцію, як локально запустити проект на комп'ютері, можна знайти ось тут:  [setup](src\frontend\SETUP.md).
+- Інструкцію, як локально запустити проект на комп'ютері, можна знайти [ось тут](src/frontend/SETUP.md).
 
 ## 🚀 Production Deployment
 
@@ -47,7 +29,7 @@
 
 **Platform:** Railway.app | **Region:** Europe West | **Status:** ✅ Always On
 
-[deployment documentation](docs/deployment/railway-deployment.md)
+Інша пов'язана документація є [тут](docs/deployment/railway-deployment.md)
 
 ## 🕸️ Структура проєкту
 
@@ -68,8 +50,10 @@ team-badhabits/
 │   ├── decisions/
 │   ├── deployment/
 │   ├── diagrams/
+│   ├── improvements
 │   ├── requirements/
 │   ├── testing/
+│   ├── validation/
 │   ├── RELEASES.md
 │   └── index.html
 ├── tests/
