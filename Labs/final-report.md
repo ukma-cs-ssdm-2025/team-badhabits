@@ -62,10 +62,10 @@
 
 ## Результати проекту
 1. **Документація**
-   - [Вимоги](docs/requirements/requirements.md)
-   - [Архітектура](docs/architecture/high-level-design.md)
+   - [Вимоги](../docs/requirements/requirements.md)
+   - [Архітектура](../docs/architecture/high-level-design.md)
    - [Документація API](https://wellity-backend-production.up.railway.app/api-docs)
-   - [Стратегія тестування](docs/testing/testing-strategy.md)
+   - [Стратегія тестування](../docs/testing/testing-strategy.md)
 
 2. **Вихідний код**
    - Повний вихідний код у репозиторії GitHub
@@ -73,7 +73,7 @@
 
 3. **Розгортання**
    - Продуктивний API: [https://wellity-backend-production.up.railway.app](https://wellity-backend-production.up.railway.app)
-   - Остання версія APK: [Завантажити](latest_android_apk)
+   - Остання версія APK: [Завантажити](../latest_android_apk/app-release.apk)
 
 ## Висновок
 Проект **Wellity** успішно реалізував свої основні цілі, надавши користувачам інструменти для відстеження звичок та фітнес-активностей.
