@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:frontend/features/workouts/domain/entities/recovery_status.dart';
 import 'package:frontend/features/workouts/domain/entities/workout.dart';
 import 'package:frontend/features/workouts/domain/entities/workout_recommendation.dart';
 import 'package:frontend/features/workouts/domain/entities/workout_session.dart';
@@ -94,6 +95,16 @@ class WorkoutHistoryLoaded extends WorkoutsState {
 
   @override
   List<Object?> get props => [sessions];
+}
+
+/// State when recovery status is loaded (FR-006)
+class RecoveryStatusLoaded extends WorkoutsState {
+  const RecoveryStatusLoaded({required this.recoveryStatus});
+
+  final RecoveryStatus recoveryStatus;
+
+  @override
+  List<Object?> get props => [recoveryStatus];
 }
 
 /// Error state

@@ -103,3 +103,8 @@ class GetRecommendedWorkout extends WorkoutsEvent {
 class LoadWorkoutHistory extends WorkoutsEvent {
   const LoadWorkoutHistory();
 }
+
+/// Event to load recovery status (FR-006)
+class LoadRecoveryStatus extends WorkoutsEvent {
+  const LoadRecoveryStatus();
+}

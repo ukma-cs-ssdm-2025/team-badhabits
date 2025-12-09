@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:frontend/core/error/failures.dart';
+import 'package:frontend/features/workouts/domain/entities/recovery_status.dart';
 import 'package:frontend/features/workouts/domain/entities/workout.dart';
 import 'package:frontend/features/workouts/domain/entities/workout_recommendation.dart';
 import 'package:frontend/features/workouts/domain/entities/workout_session.dart';
@@ -73,4 +74,11 @@ abstract class WorkoutsRepository {
   ///
   /// Returns list of completed sessions for statistics (US-001)
   Future<Either<Failure, List<WorkoutSession>>> getWorkoutHistory();
+
+  /// Get recovery status and recommendations (FR-006)
+  ///
+  /// Calls Railway backend API for personalized recovery recommendation
+  /// Backend URL: https://wellity-backend-production.up.railway.app/api/v1/recovery/status
+  /// Returns recovery status with training load analysis
+  Future<Either<Failure, RecoveryStatus>> getRecoveryStatus();
 }

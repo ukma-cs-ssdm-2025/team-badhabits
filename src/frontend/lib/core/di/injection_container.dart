@@ -70,6 +70,7 @@ import '../../features/workouts/domain/usecases/complete_workout_session.dart';
 import '../../features/workouts/domain/usecases/get_active_workout_session.dart';
 import '../../features/workouts/domain/usecases/get_filtered_workouts.dart';
 import '../../features/workouts/domain/usecases/get_recommended_workout.dart';
+import '../../features/workouts/domain/usecases/get_recovery_status.dart';
 import '../../features/workouts/domain/usecases/get_workout_by_id.dart';
 import '../../features/workouts/domain/usecases/get_workout_history.dart';
 import '../../features/workouts/domain/usecases/get_workouts.dart';
@@ -254,6 +255,7 @@ Future<void> init() async {
       cancelWorkoutSession: sl(),
       getRecommendedWorkout: sl(),
       getWorkoutHistory: sl(),
+      getRecoveryStatus: sl(),
       achievementTracker: sl<AchievementTrackerService>(),
     ),
   );
@@ -268,6 +270,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => CancelWorkoutSession(sl()));
   sl.registerLazySingleton(() => GetRecommendedWorkout(sl()));
   sl.registerLazySingleton(() => GetWorkoutHistory(sl()));
+  sl.registerLazySingleton(() => GetRecoveryStatus(sl()));
 
   // Repository
   sl.registerLazySingleton<WorkoutsRepository>(

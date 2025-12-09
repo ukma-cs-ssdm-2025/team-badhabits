@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:developer' as developer;
 
 import 'package:frontend/core/error/exceptions.dart';
+import 'package:frontend/features/workouts/data/models/recovery_status_model.dart';
 import 'package:frontend/features/workouts/data/models/workout_model.dart';
 import 'package:http/http.dart' as http;
 
@@ -162,6 +163,97 @@ class WorkoutsApiDataSource {
       return false;
     } catch (e) {
       return false;
+    }
+  }
+
+  /// Get recovery status from Railway backend (FR-006)
+  ///
+  /// Calls GET /api/v1/recovery/status?userId=xxx
+  /// Backend analyzes training load and returns recovery recommendation
+  Future<RecoveryStatusModel> getRecoveryStatus({
+    required String userId,
+    int days = 7,
+  }) async {
+    try {
+      final url = Uri.parse('$baseUrl/api/v1/recovery/status').replace(
+        queryParameters: {
+          'userId': userId,
+          'days': days.toString(),
+        },
+      );
+
+      developer.log(
+        'Fetching recovery status for user $userId from $url',
+        name: 'workouts.datasource',
+      );
+
+      final response = await client
+          .get(
+            url,
+            headers: {'Content-Type': 'application/json'},
+          )
+          .timeout(
+            const Duration(seconds: 15),
+            onTimeout: () {
+              developer.log(
+                'Recovery API timeout after 15s for user $userId',
+                name: 'workouts.datasource',
+                level: 1000,
+              );
+              throw const ServerException(
+                'Request timeout. Server is taking too long to respond.',
+              );
+            },
+          );
+
+      developer.log(
+        'Recovery API response: ${response.statusCode}',
+        name: 'workouts.datasource',
+      );
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body) as Map<String, dynamic>;
+
+        // Check for success flag
+        if (json['success'] == false) {
+          final error = json['error'] as Map<String, dynamic>?;
+          throw ServerException(
+            error?['message'] as String? ?? 'Failed to get recovery status',
+          );
+        }
+
+        final data = json['data'] as Map<String, dynamic>;
+        return RecoveryStatusModel.fromJson(data);
+      } else if (response.statusCode == 400) {
+        throw const ServerException('Invalid request: userId is required');
+      } else if (response.statusCode == 404) {
+        throw const ServerException('User not found');
+      } else if (response.statusCode == 500) {
+        throw const ServerException('Server error: Backend is unavailable');
+      } else {
+        throw ServerException(
+          'Failed to get recovery status (${response.statusCode})',
+        );
+      }
+    } on TimeoutException catch (e) {
+      developer.log(
+        'Network timeout - $e',
+        name: 'workouts.datasource',
+        level: 1000,
+      );
+      throw const ServerException(
+        'Connection timeout. Please check your internet connection.',
+      );
+    } catch (e, stackTrace) {
+      if (e is ServerException) {
+        rethrow;
+      }
+      developer.log(
+        'Unexpected error in getRecoveryStatus: $e\nType: ${e.runtimeType}\nStack: $stackTrace',
+        name: 'workouts.datasource',
+        level: 1000,
+      );
+      throw ServerException('Network error: ${e.runtimeType} - $e');
     }
   }
 }
