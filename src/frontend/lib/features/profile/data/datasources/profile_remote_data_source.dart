@@ -81,29 +81,18 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
 
       developer.log('Updating profile for user $userId', name: 'profile.datasource');
 
-      // Use Firestore transaction to ensure atomic update + read
-      return await firestore.runTransaction<UserModel>(
-        (transaction) async {
-          final docRef = firestore.collection('users').doc(userId);
-          final snapshot = await transaction.get(docRef);
+      // Update user profile in Firestore
+      final docRef = firestore.collection('users').doc(userId);
+      await docRef.update(updateData);
 
-          if (!snapshot.exists) {
-            throw Exception('User not found');
-          }
+      // Read the updated document to get the actual data with server timestamp
+      final updatedSnapshot = await docRef.get();
 
-          // Perform atomic update
-          transaction.update(docRef, updateData);
+      if (!updatedSnapshot.exists) {
+        throw Exception('User not found after update');
+      }
 
-          // Return updated user data (combine existing + updates)
-          final updatedData = {
-            ...snapshot.data() ?? {},
-            ...updateData,
-          };
-
-          return UserModel.fromJson(updatedData);
-        },
-        timeout: const Duration(seconds: 15),
-      );
+      return UserModel.fromFirestore(updatedSnapshot);
     } catch (e) {
       developer.log(
         'Failed to update user profile: $e',

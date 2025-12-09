@@ -31,15 +31,28 @@ class UserModel extends UserEntity {
   /// Creates [UserModel] from JSON (Map)
   ///
   /// Used for deserializing data from Firestore
-  factory UserModel.fromJson(Map<String, dynamic> json) => UserModel(
-    id: json['id'] as String,
-    email: json['email'] as String,
-    name: json['name'] as String,
-    userType: _userTypeFromString(json['userType'] as String),
-    bio: json['bio'] as String?,
-    avatarUrl: json['avatarUrl'] as String?,
-    createdAt: (json['createdAt'] as Timestamp).toDate(),
-  );
+  factory UserModel.fromJson(Map<String, dynamic> json) {
+    // Parse createdAt safely
+    DateTime createdAt;
+    final createdAtValue = json['createdAt'];
+    if (createdAtValue is Timestamp) {
+      createdAt = createdAtValue.toDate();
+    } else if (createdAtValue is String) {
+      createdAt = DateTime.parse(createdAtValue);
+    } else {
+      createdAt = DateTime.now();
+    }
+
+    return UserModel(
+      id: json['id'] as String,
+      email: json['email'] as String,
+      name: json['name'] as String,
+      userType: _userTypeFromString(json['userType'] as String),
+      bio: json['bio'] as String?,
+      avatarUrl: json['avatarUrl'] as String?,
+      createdAt: createdAt,
+    );
+  }
 
   /// Creates [UserModel] from Firestore DocumentSnapshot
   factory UserModel.fromFirestore(DocumentSnapshot doc) {
