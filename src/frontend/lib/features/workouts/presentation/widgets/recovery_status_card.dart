@@ -1,5 +1,3 @@
-import 'dart:async'; // Unused import - DeepSource warning
-import 'dart:convert'; // Unused import - DeepSource warning
 import 'package:flutter/material.dart';
 import 'package:frontend/features/workouts/domain/entities/recovery_status.dart';
 
@@ -11,9 +9,6 @@ class RecoveryStatusCard extends StatelessWidget {
   });
 
   final RecoveryStatus recoveryStatus;
-
-  // Unused field - DeepSource warning
-  static const String _unusedConstant = 'This constant is never used';
 
   @override
   Widget build(BuildContext context) => Card(
@@ -229,36 +224,40 @@ class RecoveryStatusCard extends StatelessWidget {
         ),
       );
 
-  Widget _buildStats() => Row(
-        children: [
-          _buildStatItem(
-            Icons.calendar_today,
-            '${recoveryStatus.analyzedDays}',
-            'Days',
-          ),
-          const SizedBox(width: 24),
-          _buildStatItem(
-            Icons.fitness_center,
-            '${recoveryStatus.sessionsAnalyzed}',
-            'Sessions',
-          ),
-          const SizedBox(width: 24),
-          if (recoveryStatus.consecutiveHardDays > 0)
+  Widget _buildStats() => SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
             _buildStatItem(
-              Icons.local_fire_department,
-              '${recoveryStatus.consecutiveHardDays}',
-              'Hard Days',
-              isWarning: recoveryStatus.hasHighConsecutiveHardDays,
+              Icons.calendar_today,
+              '${recoveryStatus.analyzedDays}',
+              'Days',
             ),
-          if (recoveryStatus.recoveryTimeHours > 0) ...[
-            const Spacer(),
+            const SizedBox(width: 24),
             _buildStatItem(
-              Icons.timer,
-              '${recoveryStatus.recoveryTimeHours}h',
-              'Recovery',
+              Icons.fitness_center,
+              '${recoveryStatus.sessionsAnalyzed}',
+              'Sessions',
             ),
+            const SizedBox(width: 24),
+            if (recoveryStatus.consecutiveHardDays > 0)
+              _buildStatItem(
+                Icons.local_fire_department,
+                '${recoveryStatus.consecutiveHardDays}',
+                'Hard Days',
+                isWarning: recoveryStatus.hasHighConsecutiveHardDays,
+              ),
+            if (recoveryStatus.consecutiveHardDays > 0 &&
+                recoveryStatus.recoveryTimeHours > 0)
+              const SizedBox(width: 24),
+            if (recoveryStatus.recoveryTimeHours > 0)
+              _buildStatItem(
+                Icons.timer,
+                '${recoveryStatus.recoveryTimeHours}h',
+                'Recovery',
+              ),
           ],
-        ],
+        ),
       );
 
   Widget _buildStatItem(

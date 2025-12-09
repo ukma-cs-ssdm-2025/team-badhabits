@@ -81,29 +81,18 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
 
       developer.log('Updating profile for user $userId', name: 'profile.datasource');
 
-      // Use Firestore transaction to ensure atomic update + read
-      return await firestore.runTransaction<UserModel>(
-        (transaction) async {
-          final docRef = firestore.collection('users').doc(userId);
-          final snapshot = await transaction.get(docRef);
+      // Update user profile in Firestore
+      final docRef = firestore.collection('users').doc(userId);
+      await docRef.update(updateData);
 
-          if (!snapshot.exists) {
-            throw Exception('User not found');
-          }
+      // Read the updated document to get the actual data with server timestamp
+      final updatedSnapshot = await docRef.get();
 
-          // Perform atomic update
-          transaction.update(docRef, updateData);
+      if (!updatedSnapshot.exists) {
+        throw Exception('User not found after update');
+      }
 
-          // Return updated user data (combine existing + updates)
-          final updatedData = {
-            ...snapshot.data() ?? {},
-            ...updateData,
-          };
-
-          return UserModel.fromJson(updatedData);
-        },
-        timeout: const Duration(seconds: 15),
-      );
+      return UserModel.fromFirestore(updatedSnapshot);
     } catch (e) {
       developer.log(
         'Failed to update user profile: $e',
@@ -120,6 +109,43 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     required File imageFile,
   }) async {
     try {
+      // Get current user data to check for existing avatar
+      final userDoc = await firestore.collection('users').doc(userId).get();
+      if (userDoc.exists) {
+        final userData = userDoc.data();
+        final oldAvatarUrl = userData?['avatarUrl'] as String?;
+
+        // Delete old avatar if it exists
+        if (oldAvatarUrl != null && oldAvatarUrl.isNotEmpty) {
+          try {
+            // Extract storage path from URL
+            final uri = Uri.parse(oldAvatarUrl);
+            // URL format: https://firebasestorage.googleapis.com/v0/b/{bucket}/o/{path}?alt=media&token={token}
+            final pathSegments = uri.pathSegments;
+            if (pathSegments.length >= 4 && pathSegments[2] == 'o') {
+              // Decode the path (it's URL encoded)
+              final encodedPath = pathSegments[3];
+              final storagePath = Uri.decodeComponent(encodedPath);
+
+              // Delete the old file
+              final oldRef = storage.ref().child(storagePath);
+              await oldRef.delete();
+              developer.log(
+                'Deleted old avatar: $storagePath',
+                name: 'profile.datasource',
+              );
+            }
+          } catch (e) {
+            // Don't fail upload if deletion fails
+            developer.log(
+              'Failed to delete old avatar: $e',
+              name: 'profile.datasource',
+              level: 900,
+            );
+          }
+        }
+      }
+
       // Create reference to storage location
       final fileName = 'avatar_${DateTime.now().millisecondsSinceEpoch}.jpg';
       final ref = storage.ref().child('avatars/$userId/$fileName');
