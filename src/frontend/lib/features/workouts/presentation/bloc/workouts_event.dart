@@ -65,12 +65,14 @@ class CompleteWorkoutSession extends WorkoutsEvent {
     required this.difficultyRating,
     this.enjoymentRating,
     this.notes,
+    this.userId,
   });
 
   final String sessionId;
   final int difficultyRating;
   final int? enjoymentRating;
   final String? notes;
+  final String? userId;
 
   @override
   List<Object?> get props => [
@@ -78,6 +80,7 @@ class CompleteWorkoutSession extends WorkoutsEvent {
         difficultyRating,
         enjoymentRating,
         notes,
+        userId,
       ];
 }
 

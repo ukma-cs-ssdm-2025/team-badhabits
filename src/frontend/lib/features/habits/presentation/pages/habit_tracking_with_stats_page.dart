@@ -363,7 +363,11 @@ class _HabitTrackingWithStatsPageState extends State<HabitTrackingWithStatsPage>
     final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
     final entry = HabitEntry(date: today, values: values);
     context.read<HabitsBloc>().add(
-          AddEntryEvent(widget.habit.id, entry),
+          AddEntryEvent(
+            habitId: widget.habit.id,
+            entry: entry,
+            userId: widget.habit.userId,
+          ),
         );
 
     // Clear form

@@ -1,5 +1,7 @@
+// ignore_for_file: avoid_print
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/core/error/failures.dart';
+import 'package:frontend/features/achievements/data/services/achievement_tracker_service.dart';
 import 'package:frontend/features/workouts/domain/usecases/cancel_workout_session.dart'
     as usecase;
 import 'package:frontend/features/workouts/domain/usecases/complete_workout_session.dart'
@@ -31,6 +33,7 @@ class WorkoutsBloc extends Bloc<WorkoutsEvent, WorkoutsState> {
     required this.cancelWorkoutSession,
     required this.getRecommendedWorkout,
     required this.getWorkoutHistory,
+    this.achievementTracker,
   }) : super(const WorkoutsInitial()) {
     on<LoadWorkouts>(_onLoadWorkouts);
     on<LoadWorkoutDetails>(_onLoadWorkoutDetails);
@@ -52,6 +55,7 @@ class WorkoutsBloc extends Bloc<WorkoutsEvent, WorkoutsState> {
   final usecase.CancelWorkoutSession cancelWorkoutSession;
   final usecase.GetRecommendedWorkout getRecommendedWorkout;
   final GetWorkoutHistory getWorkoutHistory;
+  final AchievementTrackerService? achievementTracker;
 
   /// Handle LoadWorkouts event
   Future<void> _onLoadWorkouts(
@@ -155,9 +159,26 @@ class WorkoutsBloc extends Bloc<WorkoutsEvent, WorkoutsState> {
       ),
     );
 
-    result.fold(
-      (failure) => emit(WorkoutsError(message: _mapFailureToMessage(failure))),
-      (_) => emit(const WorkoutSessionCompleted()),
+    await result.fold(
+      (failure) async =>
+          emit(WorkoutsError(message: _mapFailureToMessage(failure))),
+      (_) async {
+        // Track achievement for completing a workout
+        if (achievementTracker != null && event.userId != null) {
+          final historyResult = await getWorkoutHistory();
+          await historyResult.fold(
+            (_) async {},
+            (sessions) async {
+              await achievementTracker!.onWorkoutCompleted(
+                userId: event.userId!,
+                totalWorkouts: sessions.length,
+                completedAt: DateTime.now(),
+              );
+            },
+          );
+        }
+        emit(const WorkoutSessionCompleted());
+      },
     );
   }
 

@@ -8,6 +8,15 @@ import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
 
+// Achievements
+import '../../features/achievements/data/datasources/achievements_firestore_datasource.dart';
+import '../../features/achievements/data/repositories/achievements_repository_impl.dart';
+import '../../features/achievements/data/services/achievement_tracker_service.dart';
+import '../../features/achievements/domain/repositories/achievements_repository.dart';
+import '../../features/achievements/domain/usecases/get_user_achievements.dart';
+import '../../features/achievements/domain/usecases/unlock_achievement.dart';
+import '../../features/achievements/domain/usecases/update_achievement_progress.dart';
+import '../../features/achievements/presentation/bloc/achievements_bloc.dart';
 // Auth
 import '../../features/auth/data/datasources/auth_remote_data_source.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
@@ -121,6 +130,7 @@ Future<void> init() async {
       getUserProfileUseCase: sl(),
       updateUserProfileUseCase: sl(),
       uploadAvatarUseCase: sl(),
+      achievementTracker: sl<AchievementTrackerService>(),
     ),
   );
 
@@ -184,6 +194,7 @@ Future<void> init() async {
       getHabitEntries: sl(),
       getEntryForDate: sl(),
       getHabitStatistics: sl(),
+      achievementTracker: sl<AchievementTrackerService>(),
     ),
   );
 
@@ -243,6 +254,7 @@ Future<void> init() async {
       cancelWorkoutSession: sl(),
       getRecommendedWorkout: sl(),
       getWorkoutHistory: sl(),
+      achievementTracker: sl<AchievementTrackerService>(),
     ),
   );
 
@@ -280,6 +292,39 @@ Future<void> init() async {
       client: sl(),
       baseUrl: 'https://wellity-backend-production.up.railway.app',
     ),
+  );
+
+  // ============================================================================
+  // Features - Achievements
+  // ============================================================================
+
+  // Bloc
+  sl.registerFactory(
+    () => AchievementsBloc(
+      getUserAchievements: sl(),
+      unlockAchievement: sl(),
+      updateAchievementProgress: sl(),
+    ),
+  );
+
+  // Use cases
+  sl.registerLazySingleton(() => GetUserAchievements(sl()));
+  sl.registerLazySingleton(() => UnlockAchievement(sl()));
+  sl.registerLazySingleton(() => UpdateAchievementProgress(sl()));
+
+  // Repository
+  sl.registerLazySingleton<AchievementsRepository>(
+    () => AchievementsRepositoryImpl(firestoreDataSource: sl()),
+  );
+
+  // Data sources
+  sl.registerLazySingleton<AchievementsFirestoreDataSource>(
+    () => AchievementsFirestoreDataSource(firestore: sl(), auth: sl()),
+  );
+
+  // Services
+  sl.registerLazySingleton(
+    () => AchievementTrackerService(repository: sl()),
   );
 
   // ============================================================================

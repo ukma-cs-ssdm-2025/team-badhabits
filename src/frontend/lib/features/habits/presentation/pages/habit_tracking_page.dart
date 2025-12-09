@@ -134,7 +134,13 @@ class _HabitTrackingPageState extends State<HabitTrackingPage> {
     final entry = HabitEntry(date: _currentDate, values: values);
 
     // Add entry event
-    context.read<HabitsBloc>().add(AddEntryEvent(widget.habit.id, entry));
+    context.read<HabitsBloc>().add(
+      AddEntryEvent(
+        habitId: widget.habit.id,
+        entry: entry,
+        userId: widget.habit.userId,
+      ),
+    );
   }
 
   @override

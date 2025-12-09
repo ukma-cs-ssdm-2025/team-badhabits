@@ -31,6 +31,9 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
   // Active session tracking
   WorkoutSession? _activeSession;
 
+  // Cache workouts list to prevent UI flicker during dialogs
+  List<Workout> _cachedWorkouts = [];
+
   @override
   void initState() {
     super.initState();
@@ -918,6 +921,7 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
 
             // Loaded state
             if (state is WorkoutsLoaded) {
+              _cachedWorkouts = state.workouts;
               if (state.workouts.isEmpty) {
                 return _buildEmptyState();
               }
@@ -926,6 +930,7 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
 
             // Filtered workouts state
             if (state is FilteredWorkoutsLoaded) {
+              _cachedWorkouts = state.workouts;
               if (state.workouts.isEmpty) {
                 return SingleChildScrollView(
                   child: Column(
@@ -968,55 +973,49 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
               return _buildWorkoutsList(context, state.workouts);
             }
 
-            // Workout session started - reload workouts list
+            // Workout session started - store session and reload workouts
             if (state is WorkoutSessionStarted) {
-              // Trigger reload of workouts after session starts
-              final ctx = context;
-              if (mounted) {
-                unawaited(
-                  Future.microtask(() {
-                    if (mounted) {
-                      // ignore: use_build_context_synchronously
-                      _reloadWorkouts(ctx);
-                    }
-                  }),
-                );
-              }
-              return const Center(child: CircularProgressIndicator());
+              // Store session synchronously, then reload
+              _activeSession = state.session;
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) {
+                  _reloadWorkouts(context);
+                }
+              });
+              return _buildWorkoutsList(context, _cachedWorkouts);
             }
 
             // Active session loaded - store session and reload workouts
             if (state is ActiveWorkoutSessionLoaded) {
-              // Store the active session
+              _activeSession = state.session;
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                setState(() {
-                  _activeSession = state.session;
-                });
-                // Reload workouts list to show the banner
-                _reloadWorkouts(context);
+                if (mounted) {
+                  _reloadWorkouts(context);
+                }
               });
-              return const Center(child: CircularProgressIndicator());
+              return _buildWorkoutsList(context, _cachedWorkouts);
             }
 
             // Session completed - clear active session and reload workouts
             if (state is WorkoutSessionCompleted) {
+              _activeSession = null;
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                setState(() {
-                  _activeSession = null;
-                });
-                _reloadWorkouts(context);
+                if (mounted) {
+                  _reloadWorkouts(context);
+                }
               });
-              return const Center(child: CircularProgressIndicator());
+              return _buildWorkoutsList(context, _cachedWorkouts);
             }
 
             // Recommended workout loaded (FR-014) - show recommendation dialog
             if (state is RecommendedWorkoutLoaded) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                _showRecommendationDialog(context, state.recommendation);
-                // Reload workouts list after showing dialog
-                _reloadWorkouts(context);
+                if (mounted) {
+                  _showRecommendationDialog(context, state.recommendation);
+                }
               });
-              return const Center(child: CircularProgressIndicator());
+              // Keep showing cached workouts while dialog is open
+              return _buildWorkoutsList(context, _cachedWorkouts);
             }
 
             // Error state

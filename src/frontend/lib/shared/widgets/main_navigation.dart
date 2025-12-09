@@ -1,10 +1,13 @@
-// ignore_for_file: deprecated_member_use, discarded_futures, inference_failure_on_instance_creation
+// ignore_for_file: deprecated_member_use, discarded_futures, inference_failure_on_instance_creation, avoid_print
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:frontend/core/di/injection_container.dart' as di;
+import 'package:frontend/core/services/app_usage_service.dart';
 import 'package:frontend/core/theme/theme_cubit.dart';
+import 'package:frontend/features/achievements/data/services/achievement_tracker_service.dart';
 import 'package:frontend/features/achievements/presentation/pages/achievements_page.dart';
 import 'package:frontend/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:frontend/features/auth/presentation/bloc/auth_state.dart';
@@ -33,6 +36,40 @@ class _MainNavigationState extends State<MainNavigation> {
     _workoutsBloc = di.sl<WorkoutsBloc>()
       ..add(const LoadWorkouts())
       ..add(const LoadActiveWorkoutSession());
+
+    // Track app usage for milestone achievements
+    _trackAppUsage();
+  }
+
+  Future<void> _trackAppUsage() async {
+    try {
+      // Only track if this is first usage today
+      if (!AppUsageService.isFirstUsageToday()) {
+        return;
+      }
+
+      // Record today's usage
+      final totalDays = await AppUsageService.recordUsage();
+
+      // Get current user ID
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        return;
+      }
+
+      // Check for milestone achievements
+      final achievementTracker = di.sl<AchievementTrackerService>();
+      final unlocked = await achievementTracker.onAppUsageUpdated(
+        userId: user.uid,
+        totalDaysUsed: totalDays,
+      );
+
+      if (unlocked.isNotEmpty) {
+        print('🏆 Milestone achievements unlocked: ${unlocked.join(", ")}');
+      }
+    } catch (e) {
+      print('Error tracking app usage: $e');
+    }
   }
 
   @override

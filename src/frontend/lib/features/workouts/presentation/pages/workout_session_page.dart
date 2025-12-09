@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/features/workouts/domain/entities/workout_session.dart';
@@ -124,6 +125,7 @@ class _WorkoutSessionPageState extends State<WorkoutSessionPage> {
                     notes: _notesController.text.isEmpty
                         ? null
                         : _notesController.text,
+                    userId: FirebaseAuth.instance.currentUser?.uid,
                   ),
                 );
               },

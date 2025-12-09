@@ -47,12 +47,17 @@ class DeleteHabitEvent extends HabitsEvent {
 
 /// Event to add a tracking entry to a habit
 class AddEntryEvent extends HabitsEvent {
-  const AddEntryEvent(this.habitId, this.entry);
+  const AddEntryEvent({
+    required this.habitId,
+    required this.entry,
+    required this.userId,
+  });
   final String habitId;
   final HabitEntry entry;
+  final String userId;
 
   @override
-  List<Object?> get props => [habitId, entry];
+  List<Object?> get props => [habitId, entry, userId];
 }
 
 /// Event to load entries for a habit within a date range

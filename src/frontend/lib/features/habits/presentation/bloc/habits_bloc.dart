@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_print
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/features/achievements/data/services/achievement_tracker_service.dart';
 import 'package:frontend/features/habits/domain/usecases/add_habit_entry.dart';
 import 'package:frontend/features/habits/domain/usecases/create_habit.dart';
 import 'package:frontend/features/habits/domain/usecases/delete_habit.dart';
@@ -22,6 +23,7 @@ class HabitsBloc extends Bloc<HabitsEvent, HabitsState> {
     required this.getHabitEntries,
     required this.getEntryForDate,
     required this.getHabitStatistics,
+    this.achievementTracker,
   }) : super(const HabitsInitial()) {
     on<LoadHabitsEvent>(_onLoadHabits);
     on<CreateHabitEvent>(_onCreateHabit);
@@ -40,6 +42,7 @@ class HabitsBloc extends Bloc<HabitsEvent, HabitsState> {
   final GetHabitEntries getHabitEntries;
   final GetEntryForDate getEntryForDate;
   final GetHabitStatistics getHabitStatistics;
+  final AchievementTrackerService? achievementTracker;
 
   /// Handle load habits request
   Future<void> _onLoadHabits(
@@ -73,15 +76,34 @@ class HabitsBloc extends Bloc<HabitsEvent, HabitsState> {
 
     final result = await createHabit(event.habit);
 
-    result.fold(
-      (failure) {
+    await result.fold(
+      (failure) async {
         print('🔴 HabitsBloc: Create failed - ${failure.message}');
         emit(HabitsError(failure.message));
       },
-      (createdHabit) {
+      (createdHabit) async {
         print(
           '🟢 HabitsBloc: Habit created successfully with ID: ${createdHabit.id}',
         );
+
+        // Track achievement for creating a habit
+        if (achievementTracker != null) {
+          // Get total habits count to check for achievements
+          final habitsResult = await getHabits(createdHabit.userId);
+          await habitsResult.fold(
+            (_) async {},
+            (habits) async {
+              final unlocked = await achievementTracker!.onHabitCreated(
+                userId: createdHabit.userId,
+                totalHabits: habits.length,
+              );
+              if (unlocked.isNotEmpty) {
+                print('🏆 Achievement unlocked: ${unlocked.join(", ")}');
+              }
+            },
+          );
+        }
+
         // Emit success state - parent page will reload
         emit(const HabitsLoaded([]));
       },
@@ -155,17 +177,135 @@ class HabitsBloc extends Bloc<HabitsEvent, HabitsState> {
 
     final result = await addHabitEntry(event.habitId, event.entry);
 
-    result.fold(
-      (failure) {
+    await result.fold(
+      (failure) async {
         print('🔴 HabitsBloc: Add entry failed - ${failure.message}');
         emit(HabitsError(failure.message));
       },
-      (addedEntry) {
+      (addedEntry) async {
         print(
           '🟢 HabitsBloc: Entry added successfully for date ${addedEntry.date}',
         );
+
+        // Track streak and entry achievements
+        if (achievementTracker != null) {
+          final now = DateTime.now();
+          final startDate = now.subtract(const Duration(days: 365));
+          final entriesResult = await getHabitEntries(
+            event.habitId,
+            startDate,
+            now,
+          );
+
+          await entriesResult.fold(
+            (_) async {},
+            (entries) async {
+              // Calculate current streak - entry is completed if values is not empty
+              final completedEntries = entries
+                  .where((e) => e.values.isNotEmpty)
+                  .map((e) => e.date)
+                  .toSet();
+              final streak = _calculateCurrentStreak(completedEntries);
+              final totalDays = completedEntries.length;
+
+              // Check for all habits completed today (perfectionist)
+              await _checkPerfectionistAchievement(event.userId);
+
+              // Track entry achievements
+              final unlocked = await achievementTracker!.onHabitEntryAdded(
+                userId: event.userId,
+                currentStreak: streak,
+                totalTrackingDays: totalDays,
+                completedAt: now,
+              );
+              if (unlocked.isNotEmpty) {
+                print('🏆 Achievement unlocked: ${unlocked.join(", ")}');
+              }
+            },
+          );
+        }
+
         // Emit success state - parent page will reload
         emit(const HabitsLoaded([]));
+      },
+    );
+  }
+
+  /// Calculate current streak from completed dates
+  int _calculateCurrentStreak(Set<String> completedDates) {
+    if (completedDates.isEmpty) {
+      return 0;
+    }
+
+    var streak = 0;
+    var currentDate = DateTime.now();
+
+    final todayStr = _formatDate(currentDate);
+    final yesterdayStr =
+        _formatDate(currentDate.subtract(const Duration(days: 1)));
+
+    if (!completedDates.contains(todayStr) &&
+        !completedDates.contains(yesterdayStr)) {
+      return 0;
+    }
+
+    if (!completedDates.contains(todayStr)) {
+      currentDate = currentDate.subtract(const Duration(days: 1));
+    }
+
+    while (completedDates.contains(_formatDate(currentDate))) {
+      streak++;
+      currentDate = currentDate.subtract(const Duration(days: 1));
+    }
+
+    return streak;
+  }
+
+  String _formatDate(DateTime date) =>
+      '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+
+  /// Check if all habits are completed for today
+  Future<void> _checkPerfectionistAchievement(String userId) async {
+    if (achievementTracker == null) {
+      return;
+    }
+
+    final habitsResult = await getHabits(userId);
+    await habitsResult.fold(
+      (_) async {},
+      (habits) async {
+        if (habits.isEmpty) {
+          return;
+        }
+
+        final today = _formatDate(DateTime.now());
+        var allCompleted = true;
+
+        for (final habit in habits) {
+          final entryResult = await getEntryForDate(habit.id, today);
+          entryResult.fold(
+            (_) {
+              allCompleted = false;
+            },
+            (entry) {
+              if (entry == null || entry.values.isEmpty) {
+                allCompleted = false;
+              }
+            },
+          );
+          if (!allCompleted) {
+            break;
+          }
+        }
+
+        if (allCompleted) {
+          final unlocked = await achievementTracker!.onAllHabitsCompletedForDay(
+            userId: userId,
+          );
+          if (unlocked.isNotEmpty) {
+            print('🏆 Achievement unlocked: ${unlocked.join(", ")}');
+          }
+        }
       },
     );
   }

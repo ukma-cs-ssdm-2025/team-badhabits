@@ -294,19 +294,29 @@ class WorkoutsFirestoreDataSource {
   /// Get workout history
   Future<List<WorkoutSessionModel>> getWorkoutHistory() async {
     try {
+      // Note: Not using orderBy to avoid requiring composite index
+      // Sort client-side instead
       final snapshot = await firestoreDb
           .collection('users')
           .doc(_userId)
           .collection('workout_sessions')
           .where('status', isEqualTo: 'completed')
-          .orderBy('completed_at', descending: true)
-          .limit(50)
           .get();
 
-      return snapshot.docs
+      final sessions = snapshot.docs
           .map((doc) =>
               WorkoutSessionModel.fromJson({...doc.data(), 'id': doc.id}))
           .toList();
+
+      // Sort by completed_at descending (client-side)
+      sessions.sort((a, b) {
+        final aDate = a.completedAt ?? DateTime(1970);
+        final bDate = b.completedAt ?? DateTime(1970);
+        return bDate.compareTo(aDate);
+      });
+
+      // Limit to 50 most recent
+      return sessions.take(50).toList();
     } catch (e) {
       throw ServerException('Failed to fetch workout history: $e');
     }
