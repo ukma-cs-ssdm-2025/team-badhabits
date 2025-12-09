@@ -50,6 +50,7 @@ team-badhabits/
 │   ├── decisions/
 │   ├── deployment/
 │   ├── diagrams/
+│   ├── improvements
 │   ├── requirements/
 │   ├── testing/
 │   ├── validation/
