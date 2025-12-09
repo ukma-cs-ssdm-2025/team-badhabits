@@ -200,4 +200,4 @@
 - [x] Андрій (GitHub: @kepeld)
 - [x] Дарина (GitHub: @dahl1a-bloom)
 - [x] Давид (GitHub: @DavydKod)
-- [] Дмитро (GitHub: @AvdieienkoDmytro)
+- [x] Дмитро (GitHub: @AvdieienkoDmytro)
